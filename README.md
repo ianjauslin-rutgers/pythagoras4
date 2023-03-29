@@ -14,7 +14,7 @@ git clone https://github.com/ianjauslin-rutgers/pythagoras4.git && lake update &
 or, if you prefer to use SSH,
 
 ```bash
-git clone git@github.com:ianjauslin-rutgers/pythagoras4.git
+git clone git@github.com:ianjauslin-rutgers/pythagoras4.git && lake update && lake exe cache get
 ```
 
 This will download all the files in the project and install a copy of **mathlib**
