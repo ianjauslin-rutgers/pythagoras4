@@ -1,0 +1,16 @@
+*.olean
+/build
+/lake-packages
+/lean_packages
+_cache
+__pycache__
+all.lean
+*.depend
+/src/.noisy_files
+*~
+.DS_Store
+*.lock
+port_status.yaml
+*.swp
+.history
+.vscode

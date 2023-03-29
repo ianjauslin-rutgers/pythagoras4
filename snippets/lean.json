@@ -1,0 +1,74 @@
+// Place your snippets for lean here. Each snippet is defined under a snippet name and has a prefix, body and
+// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the
+// same ids are connected.
+
+{
+  "Theorem snippet": {
+    "prefix": "theorem",
+    "body": [
+      "theorem ${1:name} (${2:var}: ${3:type})\n\t(${4:h}: ${5:prop})\n\t: ${6:goal}\n\t:=\n\tbegin\n\t\t$7sorry\n\tend"
+    ],
+    "description": "Theorem snippet"
+  },
+
+  "Lemma snippet": {
+    "prefix": "lemma",
+    "body": [
+      "lemma ${1:name} (${2:var}: ${3:type})\n\t(${4:h}: ${5:prop})\n\t: ${6:goal}\n\t:=\n\tbegin\n\t\t$7sorry\n\tend"
+    ],
+    "description": "Lemma snippet"
+  },
+
+  "Begin snippet": {
+    "prefix": "begin",
+    "body": [
+      "begin\n\t$1sorry\nend"
+    ],
+    "description": "Begin snippet"
+  },
+
+  "Def snippet": {
+    "prefix": "def",
+    "body": [
+      "def ${1:name} (${2:var}: ${3:type}) : Prop\n\t:=\n\t${4:statement}"
+    ],
+    "description": "Definition snippet"
+  },
+
+  "Have snippet": {
+    "prefix": "have",
+    "body": ["have ${1:name} : ${2:statement} := by ${3:proof}"],
+    "description": "Have snippet"
+  },
+
+  "Cases snippet": {
+    "prefix": "cases",
+    "body": ["cases ${1:h} with ${2:x} ${3:hx}"],
+    "description": "Cases snippet"
+  },
+
+  "Obtain snippet": {
+    "prefix": "obtain",
+    "body": ["obtain ⟨${1:x, hx}⟩ := $2,"],
+    "description": "Obtain snippet"
+  },
+
+  "Induction snippet": {
+    "prefix": "induction",
+    "body": ["induction ${1:n} with ${2:n} ${3:hn}"],
+    "description": "Induction snippet"
+  },
+  
+  "Brace snippet": {
+    "prefix": "br",
+    "body": ["{\n\t$1\n},"],
+    "description": "Brace snippet"
+  },
+
+  "Docstring snippet": {
+    "prefix": "doc",
+    "body": "\/-- ## $1\n$2 -\/",
+    "description": "Docstring snippet"
+  },
+}
