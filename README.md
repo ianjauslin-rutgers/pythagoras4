@@ -8,16 +8,16 @@ issues, contact Ian.
 To download the project, run
 
 ```bash
-leanproject get https://github.com/ianjauslin-rutgers/pythagoras.git
+git clone https://github.com/ianjauslin-rutgers/pythagoras4.git && lake update && lake exe cache get
 ```
 
 or, if you prefer to use SSH,
 
 ```bash
-leanproject get git@github.com:ianjauslin-rutgers/pythagoras.git
+git clone git@github.com:ianjauslin-rutgers/pythagoras4.git
 ```
 
-This will download all the files in the project and install a copy of mathlib
+This will download all the files in the project and install a copy of **mathlib**
 in the project directory, along with its oleans. You should now be all set to
 start working!
 
@@ -36,7 +36,6 @@ Andre's API, you can use
 
 ```lean
 import synthetic_axioms
-import synthetic_inst
 open incidence_geometry
 ```
 
