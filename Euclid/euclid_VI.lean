@@ -4,30 +4,35 @@ import Euclid.euclid_I_extras
 
 open incidence_geometry
 variable [i: incidence_geometry] {a b c d e f g h j k l m n: i.point} {L M N O P Q: i.line}
-include i
 
 /-- technical lemma that really shouldn't be here, but hey... -/
 lemma mul_mul_lt (a b c : ℝ) (hc: 0<c): a<b → a*c<b*c
   :=
-  begin
+   by sorry
+ --
+/-begin
     exact (mul_lt_mul_right hc).mpr,
-  end
+   end-/
 /-- technical lemma that really shouldn't be here, but hey... -/
 lemma ge2_of_n1_n0 {n : ℕ}
   (h0: n ≠ 0) (h1: n ≠ 1)
   : n ≥ 2
   :=
-  begin
+   by sorry
+ --
+/-begin
     exact ge_iff_le.mpr ((nat.two_le_iff n).mpr ⟨ h0,h1 ⟩),
-  end
+   end-/
 /-- technical lemma that really shouldn't be here, but hey... -/
 lemma gt1_of_n1_n0 {n : ℕ}
   (h0: n ≠ 0) (h1: n ≠ 1)
   : n > 1
   :=
-  begin
+   by sorry
+ --
+/-begin
     exact gt_iff_lt.mpr (lt_of_lt_of_le one_lt_two (ge_iff_le.mp (ge2_of_n1_n0 h0 h1))),
-  end
+   end-/
 
 /-- from segment of length l, construct a new segment of length n*l
     based on I.3 -/
@@ -37,7 +42,9 @@ lemma rescale_length {a b : point} {L : line} (n : ℕ)
   : ∃ (c : point), (online c L) ∧ (length a c = n*(length a b)) ∧ (n ≥ 2 ∧ a ≠ b → B a b c)
   :=
 
-  begin
+   by sorry
+ --
+/-begin
     -- trivial case
     by_cases h_a_ne_b: a = b, {
       use a,
@@ -109,7 +116,7 @@ lemma rescale_length {a b : point} {L : line} (n : ℕ)
       intros,
       exact B124_of_B134_B123 he.1 this,
     },
-  end
+   end-/
 
 
 /-- rescale base of triangle -/
@@ -120,7 +127,9 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
   (h_a_nonline_L: ¬ online a L)
   : ∀ d:point, (online d L) → (length b d = n*(length b c)) → B b c d → area a b d = n*(area a b c)
   :=
-  begin
+   by sorry
+ --
+/-begin
     induction n with n hn, {
       intros d hdL hlen hB,
       simp only [algebra_map.coe_zero, zero_mul] at ⊢ hlen,
@@ -217,7 +226,7 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
       simp only [one_mul, add_right_inj] at this,
       exact this.symm,
     },
-  end
+   end-/
 -- lemma with B b c d as a hypothesis
 lemma rescale_triangle_of_base__B (a : point) {b c d : point} {L : line} {n : ℕ}
   (hbL: online b L)
@@ -228,9 +237,11 @@ lemma rescale_triangle_of_base__B (a : point) {b c d : point} {L : line} {n : �
   (h_a_nonline_L: ¬ online a L)
   : area a b d = n*(area a b c)
   :=
-  begin
+   by sorry
+ --
+/-begin
     exact rescale_triangle_of_base__inductive a hbL hcL h_a_nonline_L d hdL hlen hB,
-  end
+   end-/
 -- not B c b d
 lemma rescale_triangle_of_base__notcbd (a : point) {b c d : point} {L : line} {n : ℕ}
   (hbL: online b L)
@@ -244,7 +255,9 @@ lemma rescale_triangle_of_base__notcbd (a : point) {b c d : point} {L : line} {n
   (h_a_nonline_L: ¬ online a L)
   : area a b d = n*(area a b c)
   :=
-  begin
+   by sorry
+ --
+/-begin
     -- trivial case: n=1
     by_cases h_n_ne_1 : n=1, {
       rw h_n_ne_1 at ⊢ hlen,
@@ -277,7 +290,7 @@ lemma rescale_triangle_of_base__notcbd (a : point) {b c d : point} {L : line} {n
     exact this,
     norm_cast,
     exact (gt1_of_n1_n0 h_n_ne_0 h_n_ne_1),
-  end
+   end-/
 -- full version
 lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
   (hbL: online b L)
@@ -286,7 +299,9 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
   (hlen: length b d = n*(length b c))
   : area a b d = n*(area a b c)
   :=
-  begin
+   by sorry
+ --
+/-begin
     -- trivial case: b=c
     by_cases h_b_ne_c : b=c, {
       rw (area_of_eq a b d _),
@@ -358,7 +373,7 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
     },
 
     exact rescale_triangle_of_base__notcbd a hbL hcL hdL hlen h_B_cbd h_b_ne_c h_n_ne_0 h_b_ne_d h_a_nonline_L,
-  end
+   end-/
 
 /-- triangles between parallels with smaller base have smaller area -/
 -- case where they share a side and have the right betweeneness
@@ -373,7 +388,9 @@ lemma lt_area_of_lt_base__sameedge_Bbfc (a : point) {b c f: point} {L: line}
   (h_a_nonline_L: ¬ online a L)
   : (length b c)>(length b f) → (area a b c)>(area a b f)
   :=
-  begin
+   by sorry
+ --
+/-begin
     intro hlen,
 
     have := (area_add_iff_B h_b_ne_c h_c_ne_f h_b_ne_f.symm hbL hcL hfL h_a_nonline_L).mp hB,
@@ -388,7 +405,7 @@ lemma lt_area_of_lt_base__sameedge_Bbfc (a : point) {b c f: point} {L: line}
       exact h_a_nonline_L contra,
     },
     exact (ne.symm this).lt_of_le (area_nonneg a f c),
-  end
+   end-/
 -- case where they share a side and not B f b c
 lemma lt_area_of_lt_base__sameedge_nBfbc (a : point) {b c f: point} {L: line}
   (hbL: online b L)
@@ -400,7 +417,9 @@ lemma lt_area_of_lt_base__sameedge_nBfbc (a : point) {b c f: point} {L: line}
   (hB: ¬ B f b c)
   : (length b c)>(length b f) → (area a b c)>(area a b f)
   :=
-  begin
+   by sorry
+ --
+/-begin
     intro hlen,
     simp only [gt_iff_lt] at hlen,
 
@@ -418,7 +437,7 @@ lemma lt_area_of_lt_base__sameedge_nBfbc (a : point) {b c f: point} {L: line}
 
     exfalso,
     exact hB this,
-  end
+   end-/
 -- case where they share a side
 lemma lt_area_of_lt_base__sameedge (a : point) {b c f: point} {L: line}
   (hbL: online b L)
@@ -429,7 +448,9 @@ lemma lt_area_of_lt_base__sameedge (a : point) {b c f: point} {L: line}
   (h_a_nonline_L: ¬ online a L)
   : (length b c)>(length b f) → (area a b c)>(area a b f)
   :=
-  begin
+   by sorry
+ --
+/-begin
     intro hlen,
 
     by_cases hB: B f b c, {
@@ -453,7 +474,7 @@ lemma lt_area_of_lt_base__sameedge (a : point) {b c f: point} {L: line}
     },
     
     exact lt_area_of_lt_base__sameedge_nBfbc a hbL hcL hfL h_b_ne_c h_b_ne_f h_a_nonline_L hB hlen,
-  end
+   end-/
 -- general case
 lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
   (haM: online a M)
@@ -465,7 +486,9 @@ lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
   (hpar: para L M)
   : (length b c)>(length e f) → (area a b c)>(area d e f)
   :=
-  begin
+   by sorry
+ --
+/-begin
     intro hlen,
 
     have h_b_ne_c: b ≠ c, {
@@ -525,7 +548,7 @@ lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
     rw eq_area_of_eq_base hdM heL hfL haM hbL hh.1 hpar hlen_ef_bh,
 
     exact lt_area_of_lt_base__sameedge a hbL hcL hh.1 h_b_ne_c h_b_ne_h h_a_nonline_L this,
-  end
+   end-/
   
 
 /-- ## Euclid VI.1
@@ -542,7 +565,9 @@ theorem proportion_area_of_proportion_base {a b c d e f: point} {L M : line}
   : proportion (length b c) (length e f) (area a b c) (area d e f)
   :=
 
-  begin
+   by sorry
+ --
+/-begin
     dsimp [proportion],
 
     refine ⟨ length_nonneg b c, length_nonneg e f, area_nonneg a b c, area_nonneg d e f, _ ⟩,
@@ -559,7 +584,7 @@ theorem proportion_area_of_proportion_base {a b c d e f: point} {L M : line}
     split,
     exact lt_area_of_lt_base hdM heL hl.1 haM hbL hh.1 hpar,
     exact lt_area_of_lt_base haM hbL hh.1 hdM heL hl.1 hpar,
-  end
+   end-/
 
 
 /-- version where the vertex is the same for both triangles -/
@@ -572,10 +597,12 @@ theorem proportion_area_of_proportion_base_samevertex (a : point) {b c e f: poin
   : proportion (length b c) (length e f) (area a b c) (area a e f)
   :=
 
-  begin
+   by sorry
+ --
+/-begin
     obtain ⟨ M, hM ⟩ := parallel_of_line_pt h_a_nonline_L,
     exact proportion_area_of_proportion_base hM.1 hbL hcL hM.1 heL hfL hM.2,
-  end
+   end-/
 
 
 /-- ## Euclid VI.2
@@ -592,7 +619,9 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
 (Badb : B a d b) (Baec : B a e c)
 : proportion (length b d) (length a d) (length c e) (length a e) ↔ para L M
 :=
-begin
+ by sorry
+ --
+/-begin
   -- N
   have hbN := online_3_of_B Badb haN hdN,
 
@@ -671,12 +700,14 @@ begin
       exact ad h1,
     end,
   have len_ae_neq_0 : length a e ≠ 0 :=
+   
     begin
       by_contradiction,
       have h1 : a = e := by exact (length_eq_zero_iff.1 h),
       exact ae h1,
     end,
   have area_ade_neq_0 : area a d e ≠ 0 :=
+   
     begin
       by_contradiction,
       have h1 := (area_zero_iff_online ad haN hdN).1 h,
@@ -688,6 +719,7 @@ begin
   have ratio_ce_ae := eq_ratio_of_proportion len_ae_neq_0 area_dae_neq_0 hceae_by_prop_vi_i,
   have ratio_iff : length b d / length a d = length c e / length a e ↔ area e b d / area e a d = area d c e / area d a e := by rwa [ratio_bd_ad, ratio_ce_ae],
   have proportion_lhs : proportion (length b d) (length a d) (length c e) (length a e) ↔ area e b d / area e a d = area d c e / area d a e :=
+ 
   begin
     rwa ← proportion_iff,
     exact length_nonneg b d,
@@ -698,6 +730,7 @@ begin
     exact len_ae_neq_0,
   end,
   have area_bde_eq_cde : proportion (length b d) (length a d) (length c e) (length a e) ↔ area b d e = area c d e :=
+ 
   begin
     rw [proportion_lhs, ead_eq_dae, ebd_eq_bde, dce_eq_cde],
     apply div_left_inj' area_dae_neq_0,
@@ -715,8 +748,7 @@ begin
   -- apply I.37
   intro pLM,
   rw area_bde_eq_cde,
-  apply para_implies_eq_area_of_same_base hbM hdL heL hcM pLM,
-end
+  apply para_implies_eq_area_of_same_base hbM hdL heL hcM pLM,  end-/
 
 
 /-- ## Euclid VI.2
@@ -733,7 +765,9 @@ theorem proportional_iff_para' {a b c d e: point} {L M N: line}
 (Badb : B a d b) (Baec : B a e c) 
 : proportion (length a b) (length a d) (length a c) (length a e) ↔ para L M
 :=
-  begin
+   by sorry
+ --
+/-begin
     have ad : length a d ≠ 0 := length_eq_zero_iff.not.mpr (ne_12_of_B Badb),
     have ae : length a e ≠ 0 := length_eq_zero_iff.not.mpr (ne_12_of_B Baec),
 
@@ -749,7 +783,7 @@ theorem proportional_iff_para' {a b c d e: point} {L M N: line}
     rw [length_symm d b],
     rw [length_symm e c],
     exact this,
-  end
+   end-/
 
 
 /-- Three points are on the same line -/
@@ -757,7 +791,9 @@ def colinear (a b c : point) := ∃ L : line, online a L ∧ online b L ∧ onli
 
 /-- colinear is symmetric under odd permutation -/
 theorem colinear_symm1 : colinear a b c ↔ colinear b a c :=
-  begin
+   by sorry
+ --
+/-begin
     dsimp [colinear],
     split,
     all_goals
@@ -765,11 +801,13 @@ theorem colinear_symm1 : colinear a b c ↔ colinear b a c :=
       obtain ⟨ l,hl ⟩ := L,
       use l,
       exact and.left_comm.mp hl, },
-  end
+   end-/
 
 /-- colinear is symmetric under even permutation -/
 theorem colinear_symm2 : colinear a b c ↔ colinear b c a :=
-  begin
+   by sorry
+ --
+/-begin
     dsimp [colinear],
     split,
     all_goals
@@ -778,59 +816,73 @@ theorem colinear_symm2 : colinear a b c ↔ colinear b c a :=
       use l, },
     exact and_rotate.mp hl,
     exact and_rotate.mpr hl,
-  end
+   end-/
 
 /-- equal points are colinear -/
 lemma colinear_of_eq_23 (a b : point) : colinear a b b :=
-  begin
+   by sorry
+ --
+/-begin
     dsimp [colinear],
     simp only [and_self],
     exact line_of_pts a b,
-  end
+   end-/
 /-- equal points are colinear -/
 lemma colinear_of_eq_12 (a b : point) : colinear a a b :=
-  begin
+   by sorry
+ --
+/-begin
     rw colinear_symm2,
     rw colinear_symm2,
     exact colinear_of_eq_23 b a,
-  end
+   end-/
 /-- equal points are colinear -/
 lemma colinear_of_eq_13 (a b : point) : colinear a b a :=
-  begin
+   by sorry
+ --
+/-begin
     rw colinear_symm2,
     exact colinear_of_eq_23 b a,
-  end
+   end-/
 
 /-- not colinear implies different -/
 lemma neq_12_of_not_colinear {a b c : point} (h: ¬ colinear a b c) : a ≠ b :=
-  begin
+   by sorry
+ --
+/-begin
     by_contradiction contra,
     rw contra at h,
     exact h (colinear_of_eq_12 b c),
-  end
+   end-/
 /-- not colinear implies different -/
 lemma neq_13_of_not_colinear {a b c : point} (h: ¬ colinear a b c) : a ≠ c :=
-  begin
+   by sorry
+ --
+/-begin
     by_contradiction contra,
     rw contra at h,
     exact h (colinear_of_eq_13 c b),
-  end
+   end-/
 /-- not colinear implies different -/
 lemma neq_23_of_not_colinear {a b c : point} (h: ¬ colinear a b c) : b ≠ c :=
-  begin
+   by sorry
+ --
+/-begin
     by_contradiction contra,
     rw contra at h,
     exact h (colinear_of_eq_23 a c),
-  end
+   end-/
 
 /-- not colinear implies one of the points is not aligned -/
 lemma not_online_of_not_colinear {a b c : point} {L : line} (haL: online a L) (hbL : online b L) (h: ¬ colinear a b c)
   : ¬ online c L :=
-  begin
+   by sorry
+ --
+/-begin
     dsimp [colinear] at h,
     simp only [not_exists, not_and] at h,
     exact h L haL hbL,
-  end
+   end-/
     
 
 
@@ -858,7 +910,9 @@ lemma parallel_of_similar {a b c g h : point} {AB AC BC HG: line}
   (hB: B a h b)
   (hss: sameside g c AB)
   : para BC HG :=
-  begin
+   by sorry
+ --
+/-begin
     have hbc_abc : angle h b c = angle a b c,
     { refine angle_extension b_ne_h.symm a_ne_b b_ne_c.symm b_ne_c.symm hbAB hhAB haAB hbBC hcBC hcBC (not_B_of_B (B_symm hB)) _,
       by_contradiction contra,
@@ -905,7 +959,7 @@ lemma parallel_of_similar {a b c g h : point} {AB AC BC HG: line}
     have := line_unique_of_pts a_ne_c haAC hcAC haAB contra,
     rw this at b_nonline_AC,
     exact b_nonline_AC hbAB,
-  end
+   end-/
 
 /-- two similar triangles that share an edge are equal -/
 lemma length_eq_of_length_eq {a b c d e f : point}
@@ -913,7 +967,9 @@ lemma length_eq_of_length_eq {a b c d e f : point}
   (ang_a_eq_d : angle b a c = angle e d f) (ang_b_eq_e : angle a b c = angle d e f)
   (leq: length d f = length a c)
   : length d e = length a b :=
-  begin
+   by sorry
+ --
+/-begin
     have d_ne_f := neq_13_of_not_colinear tri_def,
     have a_ne_c := neq_13_of_not_colinear tri_abc,
     have d_ne_e := neq_12_of_not_colinear tri_def,
@@ -980,7 +1036,7 @@ lemma length_eq_of_length_eq {a b c d e f : point}
     exact contra,
     exfalso,
     linarith,
-  end
+   end-/
 
 /-- Given two similar triangles, if the side of one triangle is smaller than that of the second,
 then the remaining sides are also smaller -/
@@ -989,7 +1045,9 @@ lemma length_lt_of_length_lt {a b c d e f : point}
   (ang_a_eq_d : angle b a c = angle e d f) (ang_b_eq_e : angle a b c = angle d e f)
   (lineq: length d f < length a c)
   : length d e < length a b :=
-  begin
+   by sorry
+ --
+/-begin
     have d_ne_f := neq_13_of_not_colinear tri_def,
     have a_ne_c := neq_13_of_not_colinear tri_abc,
     have d_ne_e := neq_12_of_not_colinear tri_def,
@@ -1078,13 +1136,15 @@ lemma length_lt_of_length_lt {a b c d e f : point}
     rw angle_symm at ang_b_eq_e,
     rw @angle_symm i d e f at ang_b_eq_e,
     exact (asa d_ne_e hDE.1 hDE.2 f_nonline_DE contra ang_a_eq_d ang_b_eq_e).2.2,
-  end
+   end-/
 
 /-- Two triangles are similar if they have two angles equal -/
 theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_def : ¬ colinear d e f) 
   (ang_a_eq_d : angle b a c = angle e d f) (ang_b_eq_e : angle a b c = angle d e f) : 
   proportion (length a b) (length d e) (length a c) (length d f) := 
-  begin
+   by sorry
+ --
+/-begin
     have d_ne_f := neq_13_of_not_colinear tri_def,
     have a_ne_c := neq_13_of_not_colinear tri_abc,
     have d_ne_e := neq_12_of_not_colinear tri_def,
@@ -1185,4 +1245,5 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
     have := line_unique_of_pts (ne_12_of_B hg.1) hAB.1 contra hAC.1 g_online_AC,
     rw this at hAB,
     exact b_nonline_AC hAB.2,
-  end
+   end-/
+

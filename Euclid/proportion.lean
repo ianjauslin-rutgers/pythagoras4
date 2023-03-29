@@ -1,6 +1,6 @@
 import Mathlib.Data.Real.NNReal
 
-open_locale nnreal 
+--open_locale nnreal 
 
 def proportion (r s t u : ℝ) : Prop := 
   0 ≤ r ∧ 0 ≤ s ∧ 0 ≤ t ∧ 0 ≤ u ∧ 
@@ -12,7 +12,9 @@ def proportion (r s t u : ℝ) : Prop :=
 lemma proportion_of_eq_ratio {r s t u : ℝ} (hr : 0 ≤ r) (hs : 0 ≤ s) (ht : 0 ≤ t) (hu : 0 ≤ u) (s_ne : s ≠ 0) (u_ne : u ≠ 0) 
   (rstu : r / s = t / u) : 
   proportion r s t u :=
-begin
+ by sorry
+ --
+/-begin
   refine ⟨hr, hs, ht, hu, _⟩,
   intros n m,
   field_simp at rstu,
@@ -38,13 +40,14 @@ begin
         field_simp, },
       { rw [(by ring : (n : ℝ) * t * s = n * (t * s)), ← rstu],
         convert mul_lt_mul h (by simp : u ≤ u) (by positivity) (by positivity) using 1; 
-        ring, }, }, },
-end
+        ring, }, }, },  end-/
 
 lemma eq_ratio_of_proportion {r s t u : ℝ} (s_ne : s ≠ 0) (u_ne : u ≠ 0) 
   (h : proportion r s t u) : 
   r / s = t / u :=
-begin
+ by sorry
+ --
+/-begin
   have hr := h.1,
   have hs := h.2.1,
   have ht := h.2.2.1,
@@ -123,17 +126,19 @@ begin
     { convert mul_lt_mul hrs_le_nm (by simp : u * m ≤ u * m) (by positivity) (by positivity) using 1;
       { field_simp,
         ring, }, },
-    linarith, },
-end
+    linarith, },  end-/
 
 lemma proportion_iff {r s t u : ℝ} (hr : 0 ≤ r) (hs : 0 ≤ s) (ht : 0 ≤ t) (hu : 0 ≤ u) (s_ne : s ≠ 0) (u_ne : u ≠ 0) :
   r / s = t / u ↔ proportion r s t u := 
-⟨λ h, proportion_of_eq_ratio hr hs ht hu s_ne u_ne h, λ h, eq_ratio_of_proportion s_ne u_ne h⟩ 
+ by sorry
+ -- ⟨λ h, proportion_of_eq_ratio hr hs ht hu s_ne u_ne h, λ h, eq_ratio_of_proportion s_ne u_ne h⟩ 
 
 
 lemma proportion_inv {r s t u : ℝ} (h : proportion r s t u) :
   proportion s r u t :=
-  begin
+   by sorry
+ --
+/-begin
     dsimp [proportion] at ⊢ h,
     refine ⟨h.2.1, h.1, h.2.2.2.1, h.2.2.1, _⟩,
     intros n m,
@@ -146,21 +151,25 @@ lemma proportion_inv {r s t u : ℝ} (h : proportion r s t u) :
     exact (this.2.2 h),
     intro h,
     exact (this.2.1 h),
-  end
+   end-/
 
 lemma proportion_inv_iff {r s t u : ℝ} :
   proportion r s t u ↔ proportion s r u t :=
-  begin
+   by sorry
+ --
+/-begin
     split,
     all_goals
     { intro h,
       exact proportion_inv h, },
-  end
+   end-/
 
 
 lemma zero_of_proportion_iff { r s t u : ℝ } (h : proportion r s t u) :
   s = 0 ↔ u = 0 :=
-  begin
+   by sorry
+ --
+/-begin
     dsimp [proportion] at h,
     split,
     { intro s_ne,
@@ -175,22 +184,27 @@ lemma zero_of_proportion_iff { r s t u : ℝ } (h : proportion r s t u) :
       by_contradiction contra,
       rw (ne.def s 0).symm at contra,
       exact this (lt_of_le_of_ne h.2.1 contra.symm), },
-  end
+   end-/
 
 lemma proportion_of_zero : proportion 0 0 0 0 :=
-  begin
+   by sorry
+ --
+/-begin
     dsimp [proportion],
     simp only [le_refl, mul_zero, eq_self_iff_true, lt_self_iff_false, is_empty.forall_iff, and_self, forall_const],
-  end
+   end-/
 
 
 lemma proportion_symm {r s t u : ℝ} (s_ne : s ≠ 0) (u_ne : u ≠ 0) (h : proportion r s t u) :
   proportion t u r s 
- := (proportion_iff h.2.2.1 h.2.2.2.1 h.1 h.2.1 u_ne s_ne).mp(((proportion_iff h.1 h.2.1 h.2.2.1 h.2.2.2.1 s_ne u_ne).mpr) h).symm
+ :=  by sorry
+ -- (proportion_iff h.2.2.1 h.2.2.2.1 h.1 h.2.1 u_ne s_ne).mp(((proportion_iff h.1 h.2.1 h.2.2.1 h.2.2.2.1 s_ne u_ne).mpr) h).symm
 
 lemma proportion_symm' {r s t u : ℝ} (h : proportion r s t u) :
   proportion t u r s :=
-  begin
+   by sorry
+ --
+/-begin
     by_cases s_ne : s = 0,
     { have u_ne := (zero_of_proportion_iff h).mp s_ne,
       -- invert the proportionality relation
@@ -208,19 +222,24 @@ lemma proportion_symm' {r s t u : ℝ} (h : proportion r s t u) :
 
     have u_ne := (zero_of_proportion_iff h).not.mp s_ne,
     exact proportion_symm s_ne u_ne h,
-  end
+   end-/
 
 lemma proportion_symm_iff {r s t u : ℝ}
   : proportion r s t u ↔ proportion t u r s :=
-  begin
+   by sorry
+ --
+/-begin
     split,
     all_goals
     { intro h,
       exact proportion_symm' h, },
-  end
+   end-/
 
 lemma proportion_eq {r s : ℝ} (hr: 0 ≤ r) (hs: 0 ≤ s) (r_ne: r ≠ 0) (s_ne: s ≠ 0) : proportion r r s s :=
-  begin
+   by sorry
+ --
+/-begin
     rw (proportion_iff hr hr hs hs r_ne s_ne).symm,
     field_simp,
-  end
+   end-/
+
