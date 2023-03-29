@@ -21,7 +21,7 @@ synthetic geometry, Euclid elements
 -/
 
 universe u1 u2 u3
-@[class] structure incidence_geometry :=
+class incidence_geometry :=
 (point : Type u1)
 (line : Type u2)
 (circle : Type u3)
