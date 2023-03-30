@@ -6,14 +6,11 @@ variables [i: incidence_geometry] {a b c d e f g h j k l m n: i.point} {L M N O 
 
 /-- colinear API -/
 
-lemma ne_13_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : a ≠ c := 
- by sorry
- --
-/-begin
-  intros ac,
-  obtain ⟨L, bL, cL⟩ := line_of_pts b c,
-  refine tri_abc ⟨L, _, bL, cL⟩,
-  rwa ac,  end-/
+lemma ne_13_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : a ≠ c := by
+  intro ac
+  obtain ⟨L, bL, cL⟩ := line_of_pts b c
+  have aL : online a L := by rwa [ac.symm] at cL
+  exact tri_abc ⟨L, aL, bL, cL⟩ 
 
 lemma ne_12_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : a ≠ b := 
  by sorry
