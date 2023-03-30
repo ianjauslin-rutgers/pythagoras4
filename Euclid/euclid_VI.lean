@@ -4,7 +4,7 @@ import Euclid.euclid_I_extras
 import Std.Tactic.ShowTerm
 
 open incidence_geometry
-variable [i: incidence_geometry] {a b c d e f g h j k l m n: i.point} {L M N O P Q: i.line}
+variable [i: incidence_geometry]-- {a b c d e f g h j k l m n: i.point} {L M N O P Q: i.line}
 
 /-- technical lemma that really shouldn't be here, but hey... -/
 lemma mul_mul_lt (a b c : ℝ) (hc: 0<c): a<b → a*c<b*c
@@ -896,7 +896,7 @@ lemma length_eq_of_length_eq {a b c d e f : point}
 
   by_contra contra
   rw [(Ne.def (length d e) (length a b)).symm] at contra
-  rw [ne_iff_lt_or_gt] at contra
+  simp_rw [ne_iff_lt_or_gt] at contra
 
   wlog lineq : length a b < length d e
   swap
@@ -938,13 +938,14 @@ lemma length_eq_of_length_eq {a b c d e f : point}
   rw [colinear_symm2] at tri_def
   have e_nonline_DF := not_online_of_not_colinear hDF.1 hDF.2 tri_def
 
-  sorry
-  --refine' this tri_abc tri_def ang_a_eq_d.symm ang_b_eq_e.symm leq.symm a_ne_c d_ne_f a_ne_b d_ne_e e_ne_f b_ne_c DF hDF DE hDE EF hEF f_nonline_DE tri_def e_nonline_DF _ _
-  --exact or.swap contra
-  --cases contra
-  --exact contra
-  --exfalso
-  --linarith
+  refine' this tri_def tri_abc ang_a_eq_d.symm ang_b_eq_e.symm leq.symm a_ne_c d_ne_f a_ne_b d_ne_e e_ne_f b_ne_c DF hDF DE hDE EF hEF f_nonline_DE e_nonline_DF _ _
+  exact Or.symm contra
+  cases contra with
+  | inl contra =>
+    exact contra
+  | inr contra =>
+    exfalso
+    linarith
 
 /-- Given two similar triangles, if the side of one triangle is smaller than that of the second,
 then the remaining sides are also smaller -/
@@ -1084,24 +1085,22 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
     rw [colinear_symm2] at tri_def
     rw [angle_symm] at ang_a_eq_d
     rw [@angle_symm i e d f] at ang_a_eq_d
-    sorry
-    --refine' this tri_abc tri_def ang_a_eq_d _ d_ne_e a_ne_b d_ne_f a_ne_c b_ne_c.symm e_ne_f.symm (Or.symm dfde_ne_acab) leq
+    refine' this tri_abc tri_def ang_a_eq_d _ d_ne_e a_ne_b d_ne_f a_ne_c b_ne_c.symm e_ne_f.symm (Or.symm dfde_ne_acab) leq
 
-    --rw [angle_symm] at ang_a_eq_d
-    --rw [@angle_symm i f d e] at ang_a_eq_d
-    --rw [angle_symm] at ang_b_eq_e
-    --rw [@angle_symm i d e f] at ang_b_eq_e
-    --refine (asa d_ne_e hDE.1 hDE.2 f_nonline_DE leq.symm ang_a_eq_d ang_b_eq_e).2.2
+    rw [angle_symm] at ang_a_eq_d
+    rw [@angle_symm i f d e] at ang_a_eq_d
+    rw [angle_symm] at ang_b_eq_e
+    rw [@angle_symm i d e f] at ang_b_eq_e
+    refine (asa d_ne_e hDE.1 hDE.2 f_nonline_DE leq.symm ang_a_eq_d ang_b_eq_e).2.2
 
   rw [not_or] at dfde_ne_acab
   rw [(Ne.def (length d f) (length a c)).symm] at dfde_ne_acab
   rw [(Ne.def (length d e) (length a b)).symm] at dfde_ne_acab
 
   wlog lineq : length d f < length a c
-  sorry
-  --refine' proportion_inv (this tri_def tri_abc ang_a_eq_d.symm ang_b_eq_e.symm a_ne_c d_ne_f a_ne_b d_ne_e e_ne_f b_ne_c ⟨dfde_ne_acab.1.symm,dfde_ne_acab.2.symm⟩ _)
-  --simp only [not_lt] at lineq
-  --exact (Ne.symm dfde_ne_acab.1).lt_of_le lineq
+  refine' proportion_inv (this tri_def tri_abc ang_a_eq_d.symm ang_b_eq_e.symm a_ne_c d_ne_f a_ne_b d_ne_e e_ne_f b_ne_c ⟨dfde_ne_acab.1.symm,dfde_ne_acab.2.symm⟩ _)
+  simp only [not_lt] at lineq
+  exact (Ne.symm dfde_ne_acab.1).lt_of_le lineq
 
   obtain ⟨AC, hAC⟩ := line_of_pts a c
   obtain ⟨AB, hAB⟩ := line_of_pts a b
