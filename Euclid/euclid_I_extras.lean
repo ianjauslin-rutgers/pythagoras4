@@ -9,51 +9,51 @@ variables [i: incidence_geometry]
 /-- find two different points on line -/
 lemma pts_of_line (L : line)
   : ∃ a b : point, online a L ∧ online b L ∧ a ≠ b
-  :=
-   by sorry
- --
-/-begin
-    -- start with two points
-    obtain ⟨ a , ha ⟩ := more_pts ∅ set.finite_empty,
-    obtain ⟨ b , hb ⟩ := more_pts {a} (set.finite_singleton a),
+  := by
+  -- start with two points
+  obtain ⟨ a , ha ⟩ := more_pts ∅ Set.finite_empty
+  obtain ⟨ b , hb ⟩ := more_pts {a} (Set.finite_singleton a)
 
-    -- if they are both on the line, we are done
-    by_cases online a L ∧ online b L, {
-      use a, use b,
-      have h_a_ne_b : a ≠ b := by refine ne_of_mem_of_not_mem (set.mem_singleton a) hb,
-      exact ⟨ h.1, h.2, h_a_ne_b ⟩,
-    },
+  -- if they are both on the line, we are done
+  by_cases online a L ∧ online b L
+  · use a
+    use b
+    have h_a_ne_b : a ≠ b := by refine ne_of_mem_of_not_mem (Set.mem_singleton a) hb
+    exact ⟨ h.1, h.2, h_a_ne_b ⟩
 
-    -- select the one that is not on the line
-    by_cases h_nonline_a: online a L ,
-    simp only [not_and] at h,
-    have h_nonline_a := h h_nonline_a,
-    -- swap a and b, so the proof can be done for both goals at once
-    swap_var [a b],
+  -- select the one that is not on the line
+  by_cases h_nonline_a: online a L 
+  simp only [not_and] at h
+  have h_nonline_a := h h_nonline_a
+  -- swap a and b, so the proof can be done for both goals at once
+  swap_var a ↔ b
 
-    -- at this stage, the two goals can be achieved with the same steps
-    all_goals {
-      -- find point on other side of line
-      obtain ⟨ c, hc ⟩ := diffside_of_not_online h_nonline_a,
-      have : a ≠ c, {
-        by_contradiction contra,
-        rw contra.symm at hc,
-        exact hc.2 (sameside_rfl_of_not_online h_nonline_a),
-      },
-      -- circle through c centered at a
-     obtain ⟨ C, hC ⟩ := circle_of_ne this,
+  -- at this stage, the two goals can be achieved with the same steps
+  all_goals
+    -- find point on other side of line
+    obtain ⟨ c, hc ⟩ := diffside_of_not_online h_nonline_a
+    have : a ≠ c := by
+      by_contra contra
+      rw [contra.symm] at hc
+      exact hc.2 (sameside_rfl_of_not_online h_nonline_a)
+    -- circle through c centered at a
+    obtain ⟨ C, hC ⟩ := circle_of_ne this
+  
+    -- intersections
+    have' := line_circle_inter_of_not_sameside hc.2 _ _
+    swap
+    exact C
+    swap
+    left
+    exact hC.1
+    swap
+    right
+    exact inside_circle_of_center hC.2
 
-     -- intersections
-     have := line_circle_inter_of_not_sameside hc.2 _ _,
-     swap, exact C,
-     swap, left, exact hC.1,
-     swap, right, exact inside_circle_of_center hC.2,
-
-     obtain ⟨ e, f, hef ⟩ := pts_of_line_circle_inter this,
-     use e, use f,
-     exact ⟨ hef.2.1, hef.2.2.1, hef.1 ⟩,
-    }
-   end-/
+    obtain ⟨ e, f, hef ⟩ := pts_of_line_circle_inter this
+    use e
+    use f
+    exact ⟨ hef.2.1, hef.2.2.1, hef.1 ⟩
 
 
 /-- construct point on line -/
