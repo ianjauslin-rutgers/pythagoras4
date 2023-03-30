@@ -112,6 +112,7 @@ class incidence_geometry :=
 (angle_symm : ∀ (a b c : point), angle a b c = angle c b a)
 (angle_nonneg : ∀ (a b c : point), 0 ≤ angle a b c)
 (length_nonneg : ∀ (a b : point), 0 ≤ length a b)
+(area_nonneg : ∀ (a b c : point), 0 ≤ area a b c)
 (degenerate_area : ∀ (a b : point), area a a b = 0)
 (area_invariant : ∀ (a b c : point), area a b c = area c a b ∧ area a b c = area a c b)
 (area_eq_of_SSS : ∀ {a b c a1 b1 c1 : point}, length a b = length a1 b1 → length b c = length b1 c1 →
@@ -128,8 +129,8 @@ class incidence_geometry :=
   (angle b a c = angle b a d + angle d a c ↔ sameside b d M ∧ sameside c d L))
 (angle_eq_iff_rightangle : ∀ {a b c d : point}, ∀ {L : line}, online a L → online b L → ¬online d L → B a c b →
   (angle a c d = angle d c b ↔ angle a c d = rightangle))
-(angle_extension : ∀ {a b c a1 b1 c1 : point}, ∀ {L M : line}, b ≠ a → b1 ≠ a → c ≠ a → c1 ≠ a → online a L → online b L → online b1 L →
-  online a M → online c M → online c1 M →  ¬B b a b1 → ¬B c a c1 → angle b a c = angle b1 a1 c1)
+(angle_extension : ∀ {a b c b1 c1 : point}, ∀ {L M : line}, b ≠ a → b1 ≠ a → c ≠ a → c1 ≠ a → online a L → online b L → online b1 L →
+  online a M → online c M → online c1 M →  ¬B b a b1 → ¬B c a c1 → angle b a c = angle b1 a c1)
 (unparallel_postulate : ∀ {a b c d : point}, ∀ {L M N : line},b ≠ c → online a L → online b L → online b M → online c M →
   online c N → online d N →  sameside a d M → angle a b c + angle b c d < 2 * rightangle →
   ∃ (e : point), online e L ∧ online e N ∧ sameside e a M)
