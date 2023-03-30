@@ -24,4 +24,11 @@ Here are some tips on migrating
   | inr hb =>
     ...
 
+* 'induction n with n hn' is now
+  induction n with
+  | zero =>
+    ...
+  | succ n hn =>
+    ...
+
 -/
