@@ -8,13 +8,20 @@ Here are some tips on migrating
 
 * Indentation is important!
 
-* by_contradiction is now by_contra
+* 'by_contradiction' is now 'by_contra'
 
 * You can no longer do
     have := blabla _ _
   instead, you need to do
     have' := blabla _ _
 
-* '⬝' does something (I would like someone to explain what). 
+* 'split' is now 'constructor'
+
+* 'cases h : ha hb' is now
+  cases h with
+  | inl ha =>
+    ...
+  | inr hb =>
+    ...
 
 -/
