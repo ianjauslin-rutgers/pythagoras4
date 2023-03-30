@@ -103,107 +103,111 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
   (hcL: online c L)
   (h_a_nonline_L: ¬ online a L)
   : ∀ d:point, (online d L) → (length b d = n*(length b c)) → B b c d → area a b d = n*(area a b c)
-  :=
-   by sorry
- --
-/-begin
-    induction n with n hn, {
-      intros d hdL hlen hB,
-      simp only [algebra_map.coe_zero, zero_mul] at ⊢ hlen,
-      rw length_eq_zero_iff.mp hlen,
-      rw area_of_eq a d d _,
-      right,right,
-      simp only [eq_self_iff_true],
-    }, {
-      intros d hdL hlen hB,
+  := by
+  induction n with
+  | zero =>
+    intros d hdL hlen hB
+    simp
+    simp at hlen
+    --simp only [algebra_map.coe_one, zero_mul]
+    --simp only [algebra_map.coe_one, zero_mul] at hlen
+    rw [length_eq_zero_iff.mp hlen]
+    rw [area_of_eq a d d _]
+    right
+    right
+    simp only [eq_self_iff_true]
 
-      have h_b_ne_c := ne_12_of_B hB,
-      have h_b_ne_d := ne_13_of_B hB,
-      have h_c_ne_d := ne_23_of_B hB,
+  | succ n hn =>
+    intros d hdL hlen hB
 
-      -- trivial case: n=0
-      by_cases h_n_ne_0 : n = 0, {
-        exfalso,
-        rw h_n_ne_0 at hlen,
-        simp only [algebra_map.coe_one, one_mul] at hlen,
-        rw eq.symm (length_sum_of_B hB) at hlen,
-        simp only [add_right_eq_self] at hlen,
-        exact h_c_ne_d (length_eq_zero_iff.mp hlen),
-      },
+    have h_b_ne_c := ne_12_of_B hB
+    have h_b_ne_d := ne_13_of_B hB
+    have h_c_ne_d := ne_23_of_B hB
 
-      -- special case: n=1
-      by_cases h_n_ne_1 : n = 1, {
-        rw h_n_ne_1,
-        simp only [nat.cast_succ, algebra_map.coe_one],
-        ring_nf,
+    -- trivial case: n=0
+    by_cases h_n_ne_0 : n = 0
+    · exfalso
+      rw [h_n_ne_0] at hlen
+      --simp only [algebra_map.coe_one, one_mul] at hlen
+      simp at hlen
+      rw [Eq.symm (length_sum_of_B hB)] at hlen
+      simp only [add_right_eq_self] at hlen
+      exact h_c_ne_d (length_eq_zero_iff.mp hlen)
 
-        have := (area_add_iff_B h_b_ne_d h_c_ne_d.symm h_b_ne_c.symm hbL hdL hcL h_a_nonline_L).mp hB,
-        rw (@area_invariant_213 i b a d) at this,
-        rw this.symm,
-        rw (area_invariant b c a).1,
-        rw eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hcL hdL _),
-        ring,
+    -- special case: n=1
+    by_cases h_n_ne_1 : n = 1
+    · rw [h_n_ne_1]
+      --simp only [Nat.cast_succ, algebra_map.coe_one]
+      simp
+      ring_nf
 
-        rw [h_n_ne_1, (length_sum_of_B hB).symm] at hlen,
-        simp only [nat.cast_succ, algebra_map.coe_one] at hlen,
-        rw add_mul at hlen,
-        simp only [one_mul, add_right_inj] at hlen,
-        exact hlen.symm,
-      },
+      have := (area_add_iff_B h_b_ne_d h_c_ne_d.symm h_b_ne_c.symm hbL hdL hcL h_a_nonline_L).mp hB
+      rw [(@area_invariant_213 i b a d)] at this
+      rw [this.symm]
+      rw [(area_invariant b c a).1]
+      rw [Eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hcL hdL _)]
+      ring
 
-      -- split off n+1'st bit
-      simp only [nat.cast_succ],
-      rw add_mul,
-      simp only [one_mul],
+      rw [h_n_ne_1, (length_sum_of_B hB).symm] at hlen
+      --simp only [Nat.cast_succ, algebra_map.coe_one] at hlen
+      simp at hlen
+      rw [add_mul] at hlen
+      simp only [one_mul, add_right_inj] at hlen
+      exact hlen.symm
 
-      -- construct n-triangle
-      obtain ⟨ e, he ⟩ := rescale_length n hbL hcL,
-      have h_B_bce := he.2.2 ⟨ ge2_of_n1_n0 h_n_ne_0 h_n_ne_1, h_b_ne_c ⟩,
-      rw eq.symm (hn e he.1 he.2.1 h_B_bce),
+    -- split off n+1'st bit
+    simp only [Nat.cast_succ]
+    rw [add_mul]
+    simp only [one_mul]
 
-      have h_b_ne_e := ne_13_of_B h_B_bce,
-      have h_e_ne_d : e ≠ d, {
-        by_contradiction contra,
-        have := he.2.1,
-        rw contra at this,
-        have := eq.trans this.symm hlen,
-        simp only [nat.cast_succ, mul_eq_mul_right_iff, self_eq_add_right, one_ne_zero, false_or] at this,
-        exact h_b_ne_c (length_eq_zero_iff.mp this),
-      },
+    -- construct n-triangle
+    obtain ⟨ e, he ⟩ := rescale_length n hbL hcL
+    have h_B_bce := he.2.2 ⟨ ge2_of_n1_n0 h_n_ne_0 h_n_ne_1, h_b_ne_c ⟩
+    rw [Eq.symm (hn e he.1 he.2.1 h_B_bce)]
 
-      -- split abd
-      have h_B_bed : B b e d, {
-        have := B_of_three_online_ne_short _ h_b_ne_e h_b_ne_d h_e_ne_d hbL he.1 hdL,
-        
-        cases this,
-        exact this,
+    have h_b_ne_e := ne_13_of_B h_B_bce
+    have h_e_ne_d : e ≠ d := by
+      by_contra contra
+      have := he.2.1
+      rw [contra] at this
+      have := Eq.trans this.symm hlen
+      simp only [Nat.cast_succ, mul_eq_mul_right_iff, self_eq_add_right, one_ne_zero, false_or] at this
+      exact h_b_ne_c (length_eq_zero_iff.mp this)
 
-        exfalso,
-        have h1 := not_B324_of_B123_B124 h_B_bce hB,
-        have := B124_of_B134_B123 this (B_symm h_B_bce),
-        exact h1 this,
+    -- split abd
+    have h_B_bed : B b e d := by
+      have' := B_of_three_online_ne_short _ h_b_ne_e h_b_ne_d h_e_ne_d hbL he.1 hdL
+      
+      cases this with
+      | inl h =>
+        exact h
 
-        rw [he.2.1,hlen],
-        simp only [nat.cast_succ],
-        have : ↑n < ↑n+1 := by simp,
-        linarith [len_pos_of_nq h_b_ne_c],
-      },
-      have := (area_add_iff_B h_b_ne_d h_e_ne_d.symm h_b_ne_e.symm hbL hdL he.1 h_a_nonline_L).mp h_B_bed,
-      rw @area_invariant_213 i b a d at this,
-      rw this.symm,
+      |inr h =>
+        exfalso
+        have h1 := not_B324_of_B123_B124 h_B_bce hB
+        have := B124_of_B134_B123 h (B_symm h_B_bce)
+        exact h1 this
 
-      have := eq_area_of_eq_base_samevertex a hbL hcL he.1 hdL _,
-      rw this,
-      rw @area_invariant_312 i b e a,
+      rw [he.2.1,hlen]
+      simp only [Nat.cast_succ]
+      have : ↑n < ↑n+1 := by simp
+      linarith [len_pos_of_nq h_b_ne_c]
+    
+    have := (area_add_iff_B h_b_ne_d h_e_ne_d.symm h_b_ne_e.symm hbL hdL he.1 h_a_nonline_L).mp h_B_bed
+    rw [@area_invariant_213 i b a d] at this
+    rw [this.symm]
 
-      have := length_sum_of_B h_B_bed,
-      rw [hlen, he.2.1] at this,
-      simp only [nat.cast_succ] at this,
-      rw add_mul at this,
-      simp only [one_mul, add_right_inj] at this,
-      exact this.symm,
-    },
-   end-/
+    have' := eq_area_of_eq_base_samevertex a hbL hcL he.1 hdL _
+    rw [this]
+    rw [@area_invariant_312 i b e a]
+
+    have := length_sum_of_B h_B_bed
+    rw [hlen, he.2.1] at this
+    simp only [Nat.cast_succ] at this
+    rw [add_mul] at this
+    simp only [one_mul, add_right_inj] at this
+    exact this.symm
+
 -- lemma with B b c d as a hypothesis
 lemma rescale_triangle_of_base__B (a : point) {b c d : point} {L : line} {n : ℕ}
   (hbL: online b L)
@@ -213,12 +217,9 @@ lemma rescale_triangle_of_base__B (a : point) {b c d : point} {L : line} {n : �
   (hB: B b c d)
   (h_a_nonline_L: ¬ online a L)
   : area a b d = n*(area a b c)
-  :=
-   by sorry
- --
-/-begin
-    exact rescale_triangle_of_base__inductive a hbL hcL h_a_nonline_L d hdL hlen hB,
-   end-/
+  := by
+  exact rescale_triangle_of_base__inductive a hbL hcL h_a_nonline_L d hdL hlen hB
+
 -- not B c b d
 lemma rescale_triangle_of_base__notcbd (a : point) {b c d : point} {L : line} {n : ℕ}
   (hbL: online b L)
@@ -231,43 +232,43 @@ lemma rescale_triangle_of_base__notcbd (a : point) {b c d : point} {L : line} {n
   (h_b_ne_d: b ≠ d)
   (h_a_nonline_L: ¬ online a L)
   : area a b d = n*(area a b c)
-  :=
-   by sorry
- --
-/-begin
-    -- trivial case: n=1
-    by_cases h_n_ne_1 : n=1, {
-      rw h_n_ne_1 at ⊢ hlen,
-      simp only [algebra_map.coe_one, one_mul] at ⊢ hlen,
-      exact eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hbL hdL hlen.symm),
-    },
+  := by
+  -- trivial case: n=1
+  by_cases h_n_ne_1 : n=1
+  · rw [h_n_ne_1] at hlen
+    rw [h_n_ne_1]
+    --simp only [algebra_map.coe_one, one_mul] at hlen
+    --simp only [algebra_map.coe_one, one_mul]
+    simp at hlen
+    simp
+    exact Eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hbL hdL hlen.symm)
 
-    have h_c_ne_d: c ≠ d, {
-      by_contradiction contra,
-      rw contra at hlen,
-      have hnz :=(not_iff_not.mpr length_eq_zero_iff).mpr h_b_ne_d,
-      have := (mul_left_inj' hnz).mp (eq.trans (one_mul (length b d)) hlen),
-      norm_cast at this,
-      exact h_n_ne_1 this.symm,
-    },
+  have h_c_ne_d: c ≠ d := by
+    by_contra contra
+    rw [contra] at hlen
+    have hnz :=(not_iff_not.mpr length_eq_zero_iff).mpr h_b_ne_d
+    have := (mul_left_inj' hnz).mp (Eq.trans (one_mul (length b d)) hlen)
+    norm_cast at this
+    exact h_n_ne_1 this.symm
 
-    have hBs := B_of_three_online_ne_short _ h_b_ne_c h_b_ne_d h_c_ne_d hbL hcL hdL,
-    cases hBs,
-    exact rescale_triangle_of_base__B a hbL hcL hdL hlen hBs h_a_nonline_L,
-    exfalso,
-    exact hB hBs,
+  have' hBs := B_of_three_online_ne_short _ h_b_ne_c h_b_ne_d h_c_ne_d hbL hcL hdL
+  cases hBs with
+  | inl hBs =>
+    exact rescale_triangle_of_base__B a hbL hcL hdL hlen hBs h_a_nonline_L
+  |inr hBs =>
+    exfalso
+    exact hB hBs
 
-    rw hlen,
-    have := len_pos_of_nq h_b_ne_c,
-    have n_ge1 := gt1_of_n1_n0 h_n_ne_0 h_n_ne_1,
-    rw gt_iff_lt at n_ge1,
-    -- I can't replace this by the one line proof of mul_mul_lt, for some annoying coercion reason...
-    have := mul_mul_lt 1 ↑n (length b c) this _,
-    simp only [one_mul] at this,
-    exact this,
-    norm_cast,
-    exact (gt1_of_n1_n0 h_n_ne_0 h_n_ne_1),
-   end-/
+  rw [hlen]
+  have := len_pos_of_nq h_b_ne_c
+  have n_ge1 := gt1_of_n1_n0 h_n_ne_0 h_n_ne_1
+  rw [gt_iff_lt] at n_ge1
+  -- I can't replace this by the one line proof of mul_mul_lt, for some annoying coercion reason...
+  have' := mul_mul_lt 1 ↑n (length b c) this _
+  simp only [one_mul] at this
+  exact this
+  norm_cast
+
 -- full version
 lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
   (hbL: online b L)
@@ -275,82 +276,80 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
   (hdL: online d L)
   (hlen: length b d = n*(length b c))
   : area a b d = n*(area a b c)
-  :=
-   by sorry
- --
-/-begin
-    -- trivial case: b=c
-    by_cases h_b_ne_c : b=c, {
-      rw (area_of_eq a b d _),
-      rw (area_of_eq a b c _),
-      simp only [mul_zero],
-      right,right, exact h_b_ne_c,
-      right,right,
-      rw length_eq_zero_iff.mpr h_b_ne_c at hlen,
-      simp only [mul_zero] at hlen,
-      exact length_eq_zero_iff.mp hlen,
-    },
+  := by
+  -- trivial case: b=c
+  by_cases h_b_ne_c : b=c
+  · rw [(area_of_eq a b d _)]
+    rw [(area_of_eq a b c _)]
+    simp only [mul_zero]
+    right
+    right
+    exact h_b_ne_c
+    right
+    right
+    rw [length_eq_zero_iff.mpr h_b_ne_c] at hlen
+    simp only [mul_zero] at hlen
+    exact length_eq_zero_iff.mp hlen
 
-    -- trivial case: n=0
-    by_cases h_n_ne_0 : n=0, {
-      rw h_n_ne_0,
-      simp only [algebra_map.coe_zero, zero_mul],
-      rw area_of_eq a b d _,
-      right,right,
-      rw h_n_ne_0 at hlen,
-      simp only [algebra_map.coe_zero, zero_mul] at hlen,
-      exact length_eq_zero_iff.mp hlen,
-    },
+  -- trivial case: n=0
+  by_cases h_n_ne_0 : n=0
+  · rw [h_n_ne_0]
+    --simp only [algebra_map.coe_zero, zero_mul]
+    simp
+    rw [area_of_eq a b d _]
+    right;right
+    rw [h_n_ne_0] at hlen
+    --simp only [algebra_map.coe_zero, zero_mul] at hlen
+    simp at hlen
+    exact length_eq_zero_iff.mp hlen
 
-    have h_b_ne_d: b ≠ d, {
-      by_contradiction contra,
-      have := length_eq_zero_iff.mpr contra,
-      rw this at hlen,
-      simp only [zero_eq_mul, nat.cast_eq_zero] at hlen,
-      cases hlen,
-      exact h_n_ne_0 hlen,
-      exact h_b_ne_c (length_eq_zero_iff.mp hlen),
-    },
+  have h_b_ne_d: b ≠ d := by
+    by_contra contra
+    have := length_eq_zero_iff.mpr contra
+    rw [this] at hlen
+    simp only [zero_eq_mul, Nat.cast_eq_zero] at hlen
+    cases hlen with
+    | inl hlen =>
+      exact h_n_ne_0 hlen
+    | inr hlen =>
+      exact h_b_ne_c (length_eq_zero_iff.mp hlen)
 
-    -- trivial case: online a L
-    by_cases h_a_nonline_L : online a L, {
-      have := (area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L,
-      rw (area_invariant b c a).1 at this,
-      rw this,
-      simp only [mul_zero],
-      have := (area_zero_iff_online h_b_ne_d hbL hdL).mpr h_a_nonline_L,
-      rw (area_invariant b d a).1 at this,
-      rw this,
-    },
+  -- trivial case: online a L
+  by_cases h_a_nonline_L : online a L
+  · have := (area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L
+    rw [(area_invariant b c a).1] at this
+    rw [this]
+    simp only [mul_zero]
+    have := (area_zero_iff_online h_b_ne_d hbL hdL).mpr h_a_nonline_L
+    rw [(area_invariant b d a).1] at this
+    rw [this]
 
-    by_cases h_B_cbd : B c b d, {
-      -- reflect c about b
-      obtain ⟨ e, he ⟩ := rescale_length 2 hcL hbL,
-      have h_B_cbe : B c b e, {
-        have : 2 ≥ 2 ∧ c ≠ b, {
-          split,
-          simp only [ge_iff_le],
-          rw (ne.def b c).symm at h_b_ne_c,
-          exact h_b_ne_c.symm,
-        },
-        exact  he.2.2 this,
-      },
-      have lbe : length b e = length b c, {
-        have := length_sum_of_B h_B_cbe,
-        rw [he.2.1, length_symm c b] at this,
-        norm_cast at this,
-        linarith,
-      },
-      rw lbe.symm at hlen,
+  by_cases h_B_cbd : B c b d
+    -- reflect c about b
+  · obtain ⟨ e, he ⟩ := rescale_length 2 hcL hbL
+    have h_B_cbe : B c b e := by
+      have : 2 ≥ 2 ∧ c ≠ b := by
+        constructor
+        simp only [ge_iff_le]
+        rw [(Ne.def b c).symm] at h_b_ne_c
+        exact h_b_ne_c.symm
+      exact  he.2.2 this
 
-      have := not_B324_of_B123_B124 h_B_cbe h_B_cbd,
+    have lbe : length b e = length b c := by
+      have := length_sum_of_B h_B_cbe
+      rw [he.2.1, length_symm c b] at this
+      norm_cast at this
+      linarith
 
-      rw rescale_triangle_of_base__notcbd a hbL he.1 hdL hlen this (ne_23_of_B h_B_cbe) h_n_ne_0 h_b_ne_d h_a_nonline_L,
-      rw eq_area_of_eq_base_samevertex a hbL he.1 hbL hcL lbe,
-    },
+    rw [lbe.symm] at hlen
 
-    exact rescale_triangle_of_base__notcbd a hbL hcL hdL hlen h_B_cbd h_b_ne_c h_n_ne_0 h_b_ne_d h_a_nonline_L,
-   end-/
+    have := not_B324_of_B123_B124 h_B_cbe h_B_cbd
+
+    rw [rescale_triangle_of_base__notcbd a hbL he.1 hdL hlen this (ne_23_of_B h_B_cbe) h_n_ne_0 h_b_ne_d h_a_nonline_L]
+    rw [eq_area_of_eq_base_samevertex a hbL he.1 hbL hcL lbe]
+
+  exact rescale_triangle_of_base__notcbd a hbL hcL hdL hlen h_B_cbd h_b_ne_c h_n_ne_0 h_b_ne_d h_a_nonline_L
+
 
 /-- triangles between parallels with smaller base have smaller area -/
 -- case where they share a side and have the right betweeneness
