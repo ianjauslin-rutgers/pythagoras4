@@ -59,50 +59,36 @@ lemma pts_of_line (L : line)
 /-- construct point on line -/
 lemma pt_of_line (L : line)
   : ∃ a : point, online a L
-  :=
-   by sorry
- --
-/-begin
-    obtain ⟨ a, b, hab ⟩ := pts_of_line L,
-    use a,
-    exact hab.1
-   end-/
-
+  := by
+  obtain ⟨ a, b, hab ⟩ := pts_of_line L
+  use a
+  exact hab.1
 
 /-- find second point on line -/
 lemma pt_of_line_ne_pt {a : point} {L : line}
   (haL: online a L)
   : ∃ b : point, (b ≠ a) ∧ (online b L)
-  :=
-   by sorry
- --
-/-begin
-    obtain ⟨ b, c, hbc ⟩ := pts_of_line L,
-    by_cases b = a, {
-      use c,
-      rw h at hbc,
-      exact ⟨ hbc.2.2.symm, hbc.2.1 ⟩,
-    },
-    use b,
-    exact ⟨ h, hbc.1 ⟩,
-   end-/
+  := by
+  obtain ⟨ b, c, hbc ⟩ := pts_of_line L
+  by_cases b = a
+  · use c
+    rw [h] at hbc
+    exact ⟨ hbc.2.2.symm, hbc.2.1 ⟩
+  · use b
+    exact ⟨ h, hbc.1 ⟩
 
 
 /-- intersection of non_parallel lines -/
 lemma pt_of_line_line {L M : line}
   (hp: ¬ para L M)
   : ∃ a:point, (online a L)∧(online a M)
-  :=
-   by sorry
- --
-/-begin
-    dsimp [para] at hp,
-    rw not_forall at hp,
-    obtain ⟨ e, he ⟩ := hp,
-    use e,
-    convert he,
-    rw [not_or_distrib,not_not,not_not],
-   end-/
+  := by
+  dsimp [para] at hp
+  rw [not_forall] at hp
+  obtain ⟨ e, he ⟩ := hp
+  use e
+  rw [not_or,not_not,not_not] at he
+  exact he
 
 
 /-- parallel lines don't intersect -/
@@ -111,15 +97,11 @@ lemma neq_of_para {a b : point} {L M : line}
   (hbM: online b M)
   (hpar: para L M)
   : a ≠ b
-  :=
-   by sorry
- --
-/-begin
-    by_contradiction contra,
-    have := online_of_online_para haL hpar,
-    rw contra at this,
-    exact this hbM,
-   end-/
+  := by
+  by_contra contra
+  have := online_of_online_para haL hpar
+  rw [contra] at this
+  exact this hbM
 
 
 /-- ## Euclid I.30
@@ -237,82 +219,55 @@ theorem para_trans {L M N : line}
 lemma diffside_symm {a b : point} {L: line}
   (hdiff: diffside a b L)
   : diffside b a L
-  :=
-
-   by sorry
- --
-/-begin
-    dsimp [diffside] at ⊢ hdiff,
-    exact ⟨ hdiff.2.1, hdiff.1, (difsym hdiff.2.2) ⟩,
-   end-/
+  := by
+  dsimp [diffside]
+  dsimp [diffside] at hdiff
+  exact ⟨ hdiff.2.1, hdiff.1, (difsym hdiff.2.2) ⟩
 
 
 /-- reorder areas -/
 lemma area_invariant_132 {a b c : point}
   : area a b c = area a c b
-  :=
-   by sorry
- --
-/-begin
-    exact (area_invariant a b c).2,
-   end-/
+  := by
+  exact (area_invariant a b c).2
 lemma area_invariant_213 {a b c : point}
   : area a b c = area b a c
-  :=
-   by sorry
- --
-/-begin
-    rw (area_invariant a b c).2,
-    rw (area_invariant a c b).1,
-   end-/
+  := by
+  rw [(area_invariant a b c).2]
+  rw [(area_invariant a c b).1]
 lemma area_invariant_231 {a b c : point}
   : area a b c = area b c a
-  :=
-   by sorry
- --
-/-begin
-    rw (area_invariant a b c).1,
-    rw (area_invariant c a b).1,
-   end-/
+  := by
+  rw [(area_invariant a b c).1]
+  rw [(area_invariant c a b).1]
 lemma area_invariant_312 {a b c : point}
   : area a b c = area c a b
-  :=
-   by sorry
- --
-/-begin
-    exact (area_invariant a b c).1,
-   end-/
+  := by
+  exact (area_invariant a b c).1
 lemma area_invariant_321 {a b c : point}
   : area a b c = area c b a
-  :=
-   by sorry
- --
-/-begin
-    rw (area_invariant a b c).2,
-    rw (area_invariant c b a).1,
-   end-/
+  := by
+  rw [(area_invariant a b c).2]
+  rw [(area_invariant c b a).1]
 
 
 /-- degenerate area: more general statement -/
 lemma area_of_eq (a b c : point)
   (h: a=b ∨ a=c ∨ b=c)
   : area a b c =0
-  :=
-   by sorry
- --
-/-begin
-    cases h, {
-      rw h,
-      exact degenerate_area b c,
-    },
-    cases h, {
-      rw [h,area_invariant_132],
-      exact degenerate_area c b,
-    },
-
-    rw [h,area_invariant_321],
-    exact degenerate_area c a,
-   end-/
+  := by
+  cases h with
+  | inl ab =>
+    rw [ab]
+    exact degenerate_area b c
+  | inr h =>
+    cases h with
+    | inl ac =>
+      rw [ac,area_invariant_132]
+      exact degenerate_area c b
+    | inr bc =>
+      rw [bc,area_invariant_321]
+      exact degenerate_area c a
 
 
 /-- equivalent areas of paralellogram -/
@@ -325,25 +280,21 @@ lemma area_of_parallelogram {a b c d : point} {L M N O : line}
   (parMO: para M O)
   : area a b c + area a d c = 2*(area a b c)
   ∧ area b a d + area b c d = 2*(area a b c)
-  :=
-   by sorry
- --
-/-begin
-    split,
-    have := (parasianar hbL haL hcN hdN hbM hcM haO hdO parLN parMO).2.2,
-    rw area_invariant_321 at this,
-    rw this.symm,
-    ring_nf,
+  := by
+  constructor
+  have := (parasianar hbL haL hcN hdN hbM hcM haO hdO parLN parMO).2.2
+  rw [area_invariant_321] at this
+  rw [this.symm]
+  ring_nf
 
-    have := (parasianar haL hbL hdN hcN haO hdO hbM hcM parLN (para_symm parMO)).2.2,
-    rw area_invariant_321 at this,
-    rw this.symm,
-    ring_nf,
+  have := (parasianar haL hbL hdN hcN haO hdO hbM hcM parLN (para_symm parMO)).2.2
+  rw [area_invariant_321] at this
+  rw [this.symm]
+  ring_nf
 
-    rw [area_invariant_312, @area_invariant_321 i a b c],
-    field_simp,
-    exact triarea hdN hcN hbL haL (para_symm parLN),
-   end-/
+  rw [area_invariant_312, @area_invariant_321 i a b c]
+  field_simp
+  exact triarea hdN hcN hbL haL (para_symm parLN)
 
 
 /-- non-degeneracy of triangle -/
@@ -355,31 +306,23 @@ lemma not_online_of_triangle {a b c : point} {L M : line}
   (hn: ¬ online a M)
   (hdeg: b ≠ c)
   : ¬ online c L
-  :=
-   by sorry
- --
-/-begin
-    by_contradiction contra,
-    rw (line_unique_of_pts hdeg hbL contra hbM hcM) at haL,
-    exact hn haL,
-   end-/
+  := by
+  by_contra contra
+  rw [line_unique_of_pts hdeg hbL contra hbM hcM] at haL
+  exact hn haL
 
 
 /--parallel line through point -/
 lemma parallel_of_line_pt {a : point} {L : line}
   (haL: ¬ online a L)
   : ∃ M : line, (online a M) ∧ (para L M)
-  :=
-   by sorry
- --
-/-begin
-    obtain ⟨ b, hb ⟩ := pt_of_line L,
-    obtain ⟨ c, hc ⟩ := pt_of_line_ne_pt hb,
-    have := drawpar hc.1 hc.2 hb haL,
-    obtain ⟨ throwaway,O,hO ⟩ := drawpar hc.1 hc.2 hb haL,
-    use O,
-    exact ⟨ hO.2.1, para_symm hO.2.2.2.2 ⟩,
-   end-/
+  := by
+  obtain ⟨ b, hb ⟩ := pt_of_line L
+  obtain ⟨ c, hc ⟩ := pt_of_line_ne_pt hb
+  have := drawpar hc.1 hc.2 hb haL
+  obtain ⟨ throwaway,O,hO ⟩ := drawpar hc.1 hc.2 hb haL
+  use O
+  exact ⟨ hO.2.1, para_symm hO.2.2.2.2 ⟩
 
 
 /-- parallel projection of point -/
@@ -389,66 +332,62 @@ lemma parallel_projection {a : point}{L M N : line}
   (h_L_npara_M: ¬ para L M)
   (haL: ¬ online a L)
   : ∃ b : point, ∃ O : line, (online b N) ∧ (online b O) ∧ (online a O) ∧ (para L O)
-  :=
-   by sorry
- --
-/-begin
-    -- intersections with L
-    obtain ⟨ c, hc ⟩ := pt_of_line_line h_L_npara_M,
-    have h_L_npara_N: ¬ para L N, {
-      by_contradiction contra,
-      cases para_trans (para_symm hpar) (para_symm contra), {
-        rw h at haM,
-        exact haL haM,
-      },
-      exact h_L_npara_M (para_symm h),
-    },
-    obtain ⟨ d, hd ⟩ := pt_of_line_line h_L_npara_N,
+  := by
+  -- intersections with L
+  obtain ⟨ c, hc ⟩ := pt_of_line_line h_L_npara_M
+  have h_L_npara_N : ¬ para L N := by
+    by_contra contra
+    cases para_trans (para_symm hpar) (para_symm contra) with
+    | inl h =>
+      rw [h] at haM
+      exact haL haM
+    | inr h =>
+      exact h_L_npara_M (para_symm h)
 
-    have h_c_ne_d : c ≠ d, {
-      by_contradiction contra,
-      rw contra at hc,
-      dsimp [para] at hpar,
-      cases hpar d,
-      exact h hc.2,
-      exact h hd.2,
-    },
+  obtain ⟨ d, hd ⟩ := pt_of_line_line h_L_npara_N
 
-    -- construct parallel to L through a
-    obtain ⟨ throwaway,O,hO ⟩ := drawpar h_c_ne_d hc.1 hd.1 haL,
+  have h_c_ne_d : c ≠ d := by
+    by_contra contra
+    rw [contra] at hc
+    dsimp [para] at hpar
+    cases hpar d with
+    | inl h =>
+      exact h hc.2
+    | inr h =>
+      exact h hd.2
 
-    -- construct intersection of O and M
-    have h_O_npara_N : ¬ para O N, {
-      by_contradiction contra,
-      have pNO := para_trans contra  hO.2.2.2.2,
-      cases pNO, {
-        rw pNO at hpar,
-        exact h_L_npara_M (para_symm hpar),
-      },
-      exact (online_of_online_para hd.1 (para_symm pNO)) hd.2,
-    },
-    obtain ⟨ ap, hap ⟩ := pt_of_line_line h_O_npara_N,
+  -- construct parallel to L through a
+  obtain ⟨ throwaway,O,hO ⟩ := drawpar h_c_ne_d hc.1 hd.1 haL
 
-    use ap, use O,
+  -- construct intersection of O and M
+  have h_O_npara_N : ¬ para O N := by
+    by_contra contra
+    have pNO := para_trans contra  hO.2.2.2.2
+    cases pNO with
+    | inl pNO =>
+      rw [pNO] at hpar
+      exact h_L_npara_M (para_symm hpar)
+    | inr pNO =>
+      exact (online_of_online_para hd.1 (para_symm pNO)) hd.2
 
-    exact ⟨ hap.2, hap.1, hO.2.1, (para_symm hO.2.2.2.2) ⟩,
-   end-/
+  obtain ⟨ ap, hap ⟩ := pt_of_line_line h_O_npara_N
+
+  use ap
+  use O
+
+  exact ⟨ hap.2, hap.1, hO.2.1, (para_symm hO.2.2.2.2) ⟩
 
 
 /-- intersecting lines cannot be parallel -/
 lemma not_para_of_online_online {a : point} {L M : line}
   : (online a L) → (online a M) → ¬ para L M
-  :=
-   by sorry
- --
-/-begin
-    intros hL hM,
-    dsimp [para],
-    simp only [not_forall],
-    use a,
-    rw [not_or_distrib,not_not,not_not],
-    exact ⟨ hL, hM ⟩,
-   end-/
+  := by
+  intro hL hM
+  dsimp [para]
+  simp only [not_forall]
+  use a
+  rw [not_or,not_not,not_not]
+  exact ⟨ hL, hM ⟩
 
 
 /-- diagonals of a trapezoid imply diffside -/
