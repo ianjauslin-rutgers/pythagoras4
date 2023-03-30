@@ -14,6 +14,9 @@ Here are some tips on migrating
     have := blabla _ _
   instead, you need to do
     have' := blabla _ _
+  or
+    have := blabla ?_ ?_
+  The same holds for refine.
 
 * 'split' is now 'constructor'
 
@@ -30,5 +33,7 @@ Here are some tips on migrating
     ...
   | succ n hn =>
     ...
+
+* There doesn't seem to be squeeze_simp in mathlib4 yet.
 
 -/
