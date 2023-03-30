@@ -1,38 +1,24 @@
 import Euclid.synthetic
 import Euclid.proportion
 import Euclid.euclid_I_extras
+import Std.Tactic.ShowTerm
 
 open incidence_geometry
 variable [i: incidence_geometry] {a b c d e f g h j k l m n: i.point} {L M N O P Q: i.line}
 
 /-- technical lemma that really shouldn't be here, but hey... -/
 lemma mul_mul_lt (a b c : ℝ) (hc: 0<c): a<b → a*c<b*c
-  :=
-   by sorry
- --
-/-begin
-    exact (mul_lt_mul_right hc).mpr,
-   end-/
+  := by exact (mul_lt_mul_right hc).mpr
 /-- technical lemma that really shouldn't be here, but hey... -/
 lemma ge2_of_n1_n0 {n : ℕ}
   (h0: n ≠ 0) (h1: n ≠ 1)
   : n ≥ 2
-  :=
-   by sorry
- --
-/-begin
-    exact ge_iff_le.mpr ((nat.two_le_iff n).mpr ⟨ h0,h1 ⟩),
-   end-/
+  := by exact ge_iff_le.mpr ((Nat.two_le_iff n).mpr ⟨ h0,h1 ⟩)
 /-- technical lemma that really shouldn't be here, but hey... -/
 lemma gt1_of_n1_n0 {n : ℕ}
   (h0: n ≠ 0) (h1: n ≠ 1)
   : n > 1
-  :=
-   by sorry
- --
-/-begin
-    exact gt_iff_lt.mpr (lt_of_lt_of_le one_lt_two (ge_iff_le.mp (ge2_of_n1_n0 h0 h1))),
-   end-/
+  := by exact gt_iff_lt.mpr (lt_of_lt_of_le one_lt_two (ge_iff_le.mp (ge2_of_n1_n0 h0 h1)))
 
 /-- from segment of length l, construct a new segment of length n*l
     based on I.3 -/
@@ -40,83 +26,74 @@ lemma rescale_length {a b : point} {L : line} (n : ℕ)
   (haL: online a L)
   (hbL: online b L)
   : ∃ (c : point), (online c L) ∧ (length a c = n*(length a b)) ∧ (n ≥ 2 ∧ a ≠ b → B a b c)
-  :=
+  := by
+  -- trivial case
+  by_cases h_a_ne_b: a = b
+  · use a
+    rw [h_a_ne_b.symm]
+    rw [length_eq_zero_iff.mpr,mul_zero]
+    simp only [eq_self_iff_true, Ne.def, not_true, and_false, IsEmpty.forall_iff, and_true]
+    exact haL
+    simp only [eq_self_iff_true]
 
-   by sorry
- --
-/-begin
-    -- trivial case
-    by_cases h_a_ne_b: a = b, {
-      use a,
-      rw h_a_ne_b.symm,
-      rw [length_eq_zero_iff.mpr,mul_zero],
-      simp only [eq_self_iff_true, ne.def, not_true, and_false, is_empty.forall_iff, and_true],
-      exact haL,
-      simp only [eq_self_iff_true],
-    },
+  induction n with
+  | zero =>
+    use a
+    rw [length_eq_zero_iff.mpr]
+    simp
+    --simp only [algebra_map.coe_zero, zero_mul, eq_self_iff_true, ge_iff_le, le_zero_iff, bit0_eq_zero, nat.one_ne_zero, false_and, is_empty.forall_iff, and_true]
+    exact haL
+    simp only [eq_self_iff_true]
 
-    induction n with n hn, {
-      use a,
-      rw [length_eq_zero_iff.mpr],
-      simp only [algebra_map.coe_zero, zero_mul, eq_self_iff_true, ge_iff_le, le_zero_iff, bit0_eq_zero, nat.one_ne_zero, false_and, is_empty.forall_iff, and_true],
-      exact haL,
-      simp only [eq_self_iff_true],
-    }, {
-      -- trivial case: n=0
-      by_cases hnz:(n=0), {
-        use b,
-        split,
-        exact hbL,
-        rw hnz,
-        simp only [algebra_map.coe_one, one_mul, eq_self_iff_true, ge_iff_le, ne.def, and_imp, true_and],
-        by_contradiction contra,
-        simp only [ge_iff_le, ne.def, and_imp, not_forall, exists_prop] at contra,
-        have : ¬ 2 ≤ 1 := by simp only [not_le, nat.one_lt_bit0_iff],
-        exact this contra.1,
-      },
+  | succ n hn =>
+    -- trivial case: n=0
+    by_cases hnz:(n=0)
+    · use b
+      constructor
+      exact hbL
+      rw [hnz]
+      --simp only [algebra_map.coe_one, one_mul, eq_self_iff_true, ge_iff_le, ne.def, and_imp, true_and]
+      simp
 
-      -- separate case n=1
-      by_cases h_n_ne_1 : n=1, {
-        obtain ⟨ e, he ⟩ := same_length_B_of_ne_four h_a_ne_b h_a_ne_b,
-        use e,
-        simp only [nat.cast_succ, algebra_map.coe_one],
-        rw [(length_sum_of_B he.1).symm,he.2, h_n_ne_1],
-        simp only [nat.cast_succ, algebra_map.coe_one],
-        ring_nf,
-        simp only [eq_self_iff_true, ge_iff_le, le_refl, ne.def, true_and],
+    -- separate case n=1
+    by_cases h_n_ne_1 : n=1
+    · obtain ⟨ e, he ⟩ := same_length_B_of_ne_four h_a_ne_b h_a_ne_b
+      use e
+      simp
+      --simp only [Nat.cast_succ, algebra_map.coe_one]
+      rw [(length_sum_of_B he.1).symm,he.2, h_n_ne_1]
+      --simp only [nat.cast_succ, algebra_map.coe_one]
+      simp
+      ring_nf
+      simp only [eq_self_iff_true, ge_iff_le, le_refl, Ne.def, true_and]
 
-        split,
-        exact online_3_of_B he.1 haL hbL,
-        intro h,
-        exact he.1,
-      },
+      constructor
+      exact online_3_of_B he.1 haL hbL
+      intro
+      exact he.1
 
-      -- extract point from hn
-      obtain ⟨ d, hd ⟩ := hn,
-      have h_a_ne_d : a ≠ d, {
-        convert nq_of_len_pos _,
-        rw hd.2.1,
-        simp only [nat.pos_of_ne_zero hnz, zero_lt_mul_left, nat.cast_pos],
-        exact len_pos_of_nq h_a_ne_b,
-      },
-      --rw (eq.symm (ne.def a b)) at h_a_ne_b,
-      obtain ⟨ e, he ⟩ := same_length_B_of_ne_four h_a_ne_d h_a_ne_b,
-      use e,
-      rw [(length_sum_of_B he.1).symm, hd.2.1, he.2],
-      simp only [nat.cast_succ, ge_iff_le, ne.def, and_imp],
-      ring_nf,
-      simp only [eq_self_iff_true, true_and],
+    -- extract point from hn
+    obtain ⟨ d, hd ⟩ := hn
+    have h_a_ne_d : a ≠ d := by
+      convert nq_of_len_pos _
+      rw [hd.2.1]
+      simp only [Nat.pos_of_ne_zero hnz, zero_lt_mul_left, Nat.cast_pos]
+      exact len_pos_of_nq h_a_ne_b
+    obtain ⟨ e, he ⟩ := same_length_B_of_ne_four h_a_ne_d h_a_ne_b
+    use e
+    rw [(length_sum_of_B he.1).symm, hd.2.1, he.2]
+    simp only [Nat.cast_succ, ge_iff_le, Ne.def, and_imp]
+    ring_nf
+    simp only [eq_self_iff_true, true_and]
 
-      split,
-      exact online_3_of_B he.1 haL hd.1,
+    constructor
+    exact online_3_of_B he.1 haL hd.1
 
-      have : n ≥ 2 ∧ a ≠ b := ⟨ ge2_of_n1_n0 hnz h_n_ne_1, h_a_ne_b ⟩,
-      have := hd.2.2 this,
+    have : n ≥ 2 ∧ a ≠ b := ⟨ ge2_of_n1_n0 hnz h_n_ne_1, h_a_ne_b ⟩
+    have := hd.2.2 this
 
-      intros,
-      exact B124_of_B134_B123 he.1 this,
-    },
-   end-/
+    intros
+    exact B124_of_B134_B123 he.1 this
 
 
 /-- rescale base of triangle -/
