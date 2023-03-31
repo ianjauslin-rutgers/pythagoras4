@@ -18,14 +18,14 @@ This document lists recipes for what to do when faced with a proof in lean.
 
 * ∨ in goal
   If the goal is of the form 'a ∨ b', first prove a or b, then use
-    left,
+    left
   if you've proved a, or
-    right,
+    right
   if you've proved b.
 
 * ∨ in hypothesis
   If a hypothesis h is of the form 'a ∨ b', then use
-    cases h,
+    cases h
 
 
 * ∃ in goal:
@@ -34,9 +34,9 @@ This document lists recipes for what to do when faced with a proof in lean.
 
 * ∃ in hypothesis:
   If a hypothesis h is of the form '∃ x : ..., ...', 'x' can be extracted using
-    cases h with x hx,
+    cases h with x hx
   or
-    obtain <x,hx> : h,
+    obtain <x,hx> : h
 
 
 * ∀ in goal:
@@ -51,7 +51,7 @@ This document lists recipes for what to do when faced with a proof in lean.
 * Missing proofs of hypotheses:
   If you haven't proved all the hypotheses for a theorem, but still want to use
   the theorem, you can replace the missing hypotheses by
-    _
+    ?_
   which will turn them into goals. This allows you to proceed with the proof
   and deal with the hypothesis later.
   To do this in an 'exact' statement, use
@@ -68,13 +68,13 @@ This document lists recipes for what to do when faced with a proof in lean.
 * Simplification:
   Lean can simplify expressions using the 'simp' tactic. To simplify the
   goal, use
-    simp,
+    simp
   to simplify a hypothesis h, use
-    simp at h,
+    simp at h
   You can also instruct simp to use a hypothesis k with
-    simp [k],
+    simp [k]
   Finally, you can instruct simp to only use what it needs with
-    simp only [...],
+    simp only [...]
   
   If you use 'simp', you can get lean to tell you what simp used, and replace
   it with a 'simp only' using
@@ -85,15 +85,13 @@ This document lists recipes for what to do when faced with a proof in lean.
   Lean can rewrite goals and hypothesis with the 'rw' tactic. 'rw' takes
   equalities or iff statements and replaces occurrences in goals or hypothesis.
   To rewrite the goal, use
-    rw (...),
+    rw [...]
   to rewrite a hypothesis h, use
-    rw (...) at h,
+    rw [...] at h
   You can chain rw's with
     rw [h1,h2,...]
   You can also rewrite in several hypotheses at once:
-    rw at h1 h2 ...
-  To specify the goal and hypotheses in a rewrite:
-    rw at ⊢ h1 ...
+    rw [..]at h1 h2 ...
 
 
 * Problems with coercions (↑):
@@ -104,43 +102,49 @@ This document lists recipes for what to do when faced with a proof in lean.
 
 * If/then statements:
   To write a proof of the form 'if h, then ...', use
-    by_cases : h,
+    by_cases : h
   which will create two goals: one assuming h and the other assuming ¬h.
 
 
 * Proof by contradiction:
   To carry out a proof by contradiction, use
-    by_contradiction contra,
+    by_contra contra
   This will create a hypothesis contra which is ¬ goal.
 
 
 * Induction:
   To prove something inductively, use
-    induction n with n hn,
+    induction n with
+    | zero =>
+      ...
+    | succ n hn =>
+      ...
   which will set up an induction on n. hn will be the inductive hypothesis.
 
 
 * Simplifications involving division:
   If, for instance, you want to prove 'a=b' and you know '2*a=2*b', then use
-    field_simp,
+    field_simp
 
 
 * Changing the order of goals:
   If you want to change the order of the goals, say, move the n-th goal to the
   front, use
-    swap n,
+    swap n
   (by default, swap brings the second goal to the front).
 
 
 * Changing the order of variables in an (in)equality:
   To get 'b = a' from h: 'a = b', use
-    h.symm,
+    h.symm
 
 
 * Changing the negation of an equality to an inquality (e.g., after 'by_ cases'):
   To get 'a ≠ b' from h: ¬ a = b, use
-    rw ← ne.def a b at h,
+    rw [← Ne.def a b] at h
 
+* To close a logical goal with sufficient hypotheses:
+    tauto
 
 
 ** How to type that symbol?
