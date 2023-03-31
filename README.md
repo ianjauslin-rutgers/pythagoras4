@@ -145,7 +145,6 @@ When you are ready to merge your work with the master branch (that is, when you
 are ready for your work to be included in the default branch of the project,
 where it can be merged with everyone else's), create a pull request at
 <https://github.com/ianjauslin-rutgers/pythagoras4/pulls>
-```
 
 Using git properly can help you streamline your workflow. Using it improperly
 might slow you down, but it's actually quite difficult to ruin things for other
