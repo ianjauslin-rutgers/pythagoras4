@@ -4,7 +4,7 @@ This document lists recipes for what to do when faced with a proof in lean.
 
 * ∧ in goal:
   If the goal is of the form 'a ∧ b', you can split the goal into two using
-    split,
+    constructor
   or, if you know a and b, use
     exact ⟨ a , b ⟩
 
@@ -25,12 +25,17 @@ This document lists recipes for what to do when faced with a proof in lean.
 
 * ∨ in hypothesis
   If a hypothesis h is of the form 'a ∨ b', then use
-    cases h
+    cases h with
+    | inl h =>
+      -- what do to if a is true
+    | inr h =>
+      -- what to do if b is true
+
 
 
 * ∃ in goal:
   If the goal is of the form '∃ x : ..., ...', specify 'x' using
-    use x,
+    use x
 
 * ∃ in hypothesis:
   If a hypothesis h is of the form '∃ x : ..., ...', 'x' can be extracted using
@@ -41,7 +46,7 @@ This document lists recipes for what to do when faced with a proof in lean.
 
 * ∀ in goal:
   If the goal is of the form '∀ x : ..., ...', get 'x' with
-    intro x,
+    intro x
 
 * ∀ in hypothesis:
   If a hypothesis h is of the form '∀ x : ..., ...', apply to an 'x' using
@@ -60,9 +65,9 @@ This document lists recipes for what to do when faced with a proof in lean.
 
 
 * Adding a statement to be proved later:
-  In a similar vein as '_', if you want to add a hypothesis h that you will
+  In a similar vein as '?_', if you want to add a hypothesis h that you will
   prove later, use
-    suffices h,
+    suffices h
 
 
 * Simplification:
@@ -78,7 +83,8 @@ This document lists recipes for what to do when faced with a proof in lean.
   
   If you use 'simp', you can get lean to tell you what simp used, and replace
   it with a 'simp only' using
-    squeeze_simp,
+    squeeze_simp
+  (not yet supported in lean4)
 
 
 * Rewriting:
@@ -91,7 +97,7 @@ This document lists recipes for what to do when faced with a proof in lean.
   You can chain rw's with
     rw [h1,h2,...]
   You can also rewrite in several hypotheses at once:
-    rw [..]at h1 h2 ...
+    rw [..] at h1 h2 ...
 
 
 * Problems with coercions (↑):
@@ -103,7 +109,9 @@ This document lists recipes for what to do when faced with a proof in lean.
 * If/then statements:
   To write a proof of the form 'if h, then ...', use
     by_cases : h
+    · ...
   which will create two goals: one assuming h and the other assuming ¬h.
+  (the '·' is actually syntactically required)
 
 
 * Proof by contradiction:
@@ -198,6 +206,7 @@ This document lists recipes for what to do when faced with a proof in lean.
   ≇ : \ncong or \~=n
   ≢ : \nequiv or \==n
   ≁ : \nsim or \~n
+  · : \.
   
   subscript : \_...
   superscript : \^...
