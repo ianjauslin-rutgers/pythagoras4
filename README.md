@@ -173,7 +173,18 @@ Configure User Snippets`, then type/select `Lean`. This will create a
 (Alternatively, you can copy `lean.json` to your VSC snippets folder, whose path
 might look something like `$HOME/.config/VSCodium/User/snippets`, at least on Ubuntu.)
 
-## Rough hierarchy of arguments
+## Coding style
+
+### Theorem indentation
+When stating a theorem or lemma, use the following indentation:
+```lean
+theorem name_of_theorem {arguments} (more arguments)
+    (more arguments) :
+    statement := by
+  proof...
+```
+
+### Rough hierarchy of arguments
 
 The logic behind this is that the more fundamental a concept, the higher is should be on the list.
 
@@ -199,7 +210,7 @@ The logic behind this is that the more fundamental a concept, the higher is shou
 - `area`
 - `eq_tri`
 
-## Naming conventions (to be discussed further)
+### Naming conventions (to be discussed further)
 
 The following naming conventions are used for variables. Note that when most of these notations are used for functions that end in Prop, both the term and the negation of the term may carry the same name. This helps with proofs by cases. For example, `aL` can refer to either `online a L` or `¬ online a L`. Since only one of these is ever true, and since the reader should be following with a diagram this should not cause much confusion.
 
