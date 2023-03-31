@@ -542,16 +542,15 @@ theorem proportion_area_of_proportion_base_samevertex (a : point) {b c e f: poin
 a line cuts the sides of the triangle proportionally iff it is parallel to one of the sides of a triangle (version BD:AD = CE:AE)
  https://mathcs.clarku.edu/~djoyce/java/elements/bookVI/propVI2.html -/
 theorem proportional_iff_para {a b c d e: point} {L M N: line}
-(hdL: online d L)
-(heL: online e L)
-(hbM: online b M)
-(hcM: online c M)
-(haN: online a N)
-(hdN: online d N)
-(hneN: ¬ online e N)
-(Badb : B a d b) (Baec : B a e c)
-: proportion (length b d) (length a d) (length c e) (length a e) ↔ para L M
-:= by
+    (hdL: online d L)
+    (heL: online e L)
+    (hbM: online b M)
+    (hcM: online c M)
+    (haN: online a N)
+    (hdN: online d N)
+    (hneN: ¬ online e N)
+    (Badb : B a d b) (Baec : B a e c) :
+    proportion (length b d) (length a d) (length c e) (length a e) ↔ para L M := by
   -- N
   have hbN := online_3_of_B Badb haN hdN
 
