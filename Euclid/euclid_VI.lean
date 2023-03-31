@@ -3,7 +3,7 @@ import Euclid.proportion
 import Euclid.euclid_I_extras
 
 open incidence_geometry
-variable [i: incidence_geometry] {a b c d e f g h j k l m n: i.point} {L M N O P Q: i.line}
+variable [i: incidence_geometry]
 
 /-- technical lemma that really shouldn't be here, but hey... -/
 lemma mul_mul_lt (a b c : ℝ) (hc: 0<c): a<b → a*c<b*c

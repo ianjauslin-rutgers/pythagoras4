@@ -3,7 +3,7 @@ import Euclid.proportion
 import Mathlib.Tactic.SwapVar
 
 open incidence_geometry
-variables [i: incidence_geometry]
+variable [i: incidence_geometry]
 
 
 /-- find two different points on line -/

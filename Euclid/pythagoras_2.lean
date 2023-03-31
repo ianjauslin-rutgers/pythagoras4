@@ -2,7 +2,7 @@ import Euclid.euclid_VI
 
 open incidence_geometry
 
-variables [i: incidence_geometry] {a b c d e f g h j k l m n: i.point} {L M N O P Q: i.line}
+variable [i: incidence_geometry]
 
 /-- colinear API -/
 
