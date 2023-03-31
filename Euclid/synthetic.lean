@@ -143,8 +143,8 @@ theorem sas {a b c d e f : point} (ab : length a b = length d e) (ac : length a 
   : length b c = length e f ∧ angle a b c = angle d e f ∧ angle a c b = angle d f e
   := ⟨(SAS_iff_SSS ab ac).1 Abac, (sss ab ((SAS_iff_SSS ab ac).1 Abac) ac).1, (sss ab ((SAS_iff_SSS ab ac).1 Abac) ac).2.2⟩ --Euclid I.4
 
-lemma len_pos_of_nq {a b : point} (hab : a ≠ b) : 0 < length a b
-  := by sorry --(ne.symm (not_imp_not.2 length_eq_zero_iff.1 hab)).le_iff_lt.mp (length_nonneg a b)
+lemma len_pos_of_nq {a b : point} (git push --set-upstream origin prop1hab : a ≠ b) : 0 < length a b
+  := (ne.symm (not_imp_not.2 length_eq_zero_iff.1 hab)).le_iff_lt.mp (length_nonneg a b)
 
 lemma nq_of_len_pos {a b : point} (length : 0 < length a b) : a ≠ b
   := by sorry --(not_congr (length_eq_zero_iff)).1 (ne_of_gt length)
@@ -367,8 +367,8 @@ lemma para_1_3_of_square {a b d e : point} {L M N O : line}  (sq: square_strong 
 -------------------------------------------------- API --------------------------------------------
 
 lemma makeeqtriaux {a b c : point} (hab : a ≠ b) (h1 : length a b = length a c)
-  (h2 : length b c = length b a) : b ≠ c ∧ c ≠ a := by sorry --⟨λ bc, hab (length_eq_zero_iff.mp (by linarith [length_eq_zero_iff.mpr bc])).symm,
-  --λ ca, hab (length_eq_zero_iff.mp (by linarith [length_eq_zero_iff.mpr ca.symm]))⟩
+  (h2 : length b c = length b a) : b ≠ c ∧ c ≠ a := ⟨λ bc, hab (length_eq_zero_iff.mp (by linarith [length_eq_zero_iff.mpr bc])).symm,
+  λ ca, hab (length_eq_zero_iff.mp (by linarith [length_eq_zero_iff.mpr ca.symm]))⟩
 
 theorem iseqtri_of_ne {a b : point} (hab : a ≠ b) : ∃ (c : point), iseqtri a b c := --Euclid 1.1
   by sorry /-begin

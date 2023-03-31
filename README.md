@@ -41,6 +41,8 @@ open incidence_geometry
 
 instead.
 
+Andre is also working on refactoring synthetic. This process involves the creation of a lot of new API that might serve useful to the rest of the group. It might be worth checking his repo at <https://github.com/ah1112/euclid-book-I> to see if any API you need is there, and has not been ported over to Lean 4 yet.
+
 ## Git dos and don'ts
 
 Git is a version control system that is very feature rich. As such, it can feel
