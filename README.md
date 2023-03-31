@@ -1,5 +1,32 @@
 # Lean Seminar project: Many proofs of the Pythagoras theorem
 
+## Installing lean
+
+There are many ways of installing lean4, however, with mathlib4 being in the
+state that it is in, we recommend using `elan`. It can be downloaded directly
+from <https://github.com/leanprover/elan> (it is also available as a package
+for most mainstream linux distributions).
+
+Download lean using
+```bash
+elan toolchain install leanprover/lean4:nightly
+```
+(As of this writing, mathlib4 does not seem to be compatible with the `stable`
+branch. You may also opt for one fixed nightly build, for instance,
+`nightly-2023-03-17`.)
+
+`elan` allows several versions of lean to be installed on the same system. You
+can set a default lean installation using
+```bash
+elan default leanprover/lean4:nightly
+```
+Alternatively, you can create a file `lean-toolchain` in the project directory
+with the line
+```
+leanprover/lean4:nightly
+```
+
+
 ## Setting up the project
 
 Authorization is needed to contribute to this project. If you are having
@@ -8,18 +35,34 @@ issues, contact Ian.
 To download the project, run
 
 ```bash
-git clone https://github.com/ianjauslin-rutgers/pythagoras4.git && lake update && lake exe cache get
+git clone https://github.com/ianjauslin-rutgers/pythagoras4.git
 ```
 
 or, if you prefer to use SSH,
 
 ```bash
-git clone git@github.com:ianjauslin-rutgers/pythagoras4.git && lake update && lake exe cache get
+git clone git@github.com:ianjauslin-rutgers/pythagoras4.git
 ```
 
-This will download all the files in the project and install a copy of **mathlib**
-in the project directory, along with its oleans. You should now be all set to
-start working!
+This will download all the files in the project. However, this does not install
+mathlib. To do so, `cd` to the project directory and run
+```bash
+lake update
+```
+You will also want to download a pre-compiled version of mathlib (or as close
+to it as you can get) to speed things up. This is done with
+```bash
+lake exe cache get
+```
+This will download the most up to date pre-compiled mathlib that is available.
+However, because we use nighly builds of lean4 and mathlib4, there will most
+likely not be fully up-to-date mathlib builds available, and the first time you
+open a lean file, you might have to wait a bit (a few minutes) while the files
+that are missing from the cache are updated. (You only need to wait once every
+time you update mathlib4 or lean4, so it's not so bad). You can also speed up
+this process by using an older nightly build, for instance,
+`nightly-2023-03-17`.
+
 
 ## Importing Andre's API
 
