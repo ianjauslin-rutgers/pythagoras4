@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+
+#Copyright 2023 Ian Jauslin
+#
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+
+"""
+This script extracts definitions, lemma and theorem statements lean files. This
+is useful for documentations.
+
+The result is written to stdout
+
+Usage:
+    gendoc.py <input_file> [<input_file2> ...]
+"""
+
+import sys
+import re
+
+__author__ = "Ian Jauslin"
+__copyright__ = "Copyright 2023"
+__credits__ = ["Ian Jauslin"]
+__license__ = "Apache 2.0"
+__version__ = "1.0"
+__maintainer__ = "Ian Jauslin"
+__email__ = "ian.jauslin@rutgers.edu"
+__status__ = "Development"
+
+def print_usage(outfile):
+    print("usage: gendoc <input_file> [<input_file2> ...]", file=outfile)
+
+# input file(s)
+if len(sys.argv)<2:
+    print_usage(sys.stderr)
+    exit(-1)
+
+text=""
+for arg in sys.argv[1:]:
+    # add header if multiple files
+    if len(sys.argv)>2:
+        # break line if this is not the first file
+        if text != "":
+            text=text+"\n\n"
+        text=text+"/-  "+arg+"  -/\n\n"
+
+    # read text
+    outfile=open(arg,'r')
+    text=text+outfile.read()
+    outfile.close()
+
+# remove import statements
+text=re.sub(r'^import.*$','', text, flags=re.MULTILINE)
+
+# jump to first theorem
+nexttheo=re.search(r'^(def|lemma|theorem|axiom)', text, flags=re.MULTILINE)
+if nexttheo==None:
+    print(text)
+    exit(0)
+pointer=nexttheo.start()
+outtext=text[:pointer]+"\n"
+
+# loop through theorems
+while pointer<len(text):
+    # find next block
+    theo=re.search(r'^(def|lemma|theorem|axiom)', text[pointer:], flags=re.MULTILINE)
+    # this shouldn't happen
+    if theo==None:
+        break
+    # find beginning of proof
+    pos=text[pointer+theo.start():].find(":=")+pointer+theo.start()
+    # this shouldn't happen
+    if pos<pointer+theo.start():
+        print("error: could not find ':=' in block '"+text[pointer+theo.start():]+"'", file=sys.stderr)
+        exit(-1)
+    # beginning of proof is the first occurence of an indent
+    begin_proof=re.search(r'^  ', text[pos:], flags=re.MULTILINE)
+    if begin_proof==None:
+        end=len(text)
+    else:
+        # end of proof is return to no indent
+        end_proof=re.search(r'^\S', text[pos+begin_proof.start():], flags=re.MULTILINE)
+        if end_proof==None:
+            end=len(text)
+        else:
+            end=end_proof.start()+pos+begin_proof.start()
+
+    # is it a def?
+    if theo.groups()[0]!="def":
+        outtext=outtext+text[pointer:pos]+"\n\n"
+    else:
+        outtext=outtext+text[pointer:end]+"\n\n"
+    pointer=end
+
+
+# remove extra space
+outtext=re.sub(r'^\n+',r'', outtext)
+outtext=re.sub(r'\n\n\n+',r'\n\n', outtext)
+
+print(outtext)

@@ -14,6 +14,9 @@ Here are some tips on migrating
     have := blabla _ _
   instead, you need to do
     have' := blabla _ _
+  or
+    have := blabla ?_ ?_
+  The same holds for refine.
 
 * 'split' is now 'constructor'
 
@@ -36,4 +39,7 @@ Here are some tips on migrating
 
 * 'rw x', 'rwa x', 'rw ← x', 'rwa ← x' is now
   rw [x], rwa [x], rw [← x], rwa [← x], respectively
+  
+* There doesn't seem to be squeeze_simp in mathlib4 yet.
+
 -/
