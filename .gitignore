@@ -1,3 +1,5 @@
+lake-manifest.json
+lean-toolchain
 *.olean
 /build
 /lake-packages
