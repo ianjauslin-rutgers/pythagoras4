@@ -719,8 +719,7 @@ theorem para_implies_eq_area_of_same_base {a b c d : point} {L M : line}
     (hcL: online c L)
     (hdM: online d M)
     (pLM: para L M) :
-    area a b c = area d b c :=
-   by sorry
+    area a b c = area d b c := by sorry
  --
 /-begin
     apply eq_area_of_eq_base haM hbL hcL hdM hbL hcL pLM,
@@ -739,8 +738,7 @@ lemma tri_sum_contra {b c d e: point} {O : line}
     (eb: e ≠ b)
     (hBbed: B b e d)
     (harea: area b c d = area e b c) :
-    false :=
-   by sorry
+    false := by sorry
  --
 /-begin
     have sum:= (area_add_iff_B bd de eb hbO hdO heO hncO).1 hBbed,
@@ -759,22 +757,20 @@ lemma tri_sum_contra {b c d e: point} {O : line}
   equal triangles which are on the same base and on the same side are also in the same parallels
   https://mathcs.clarku.edu/~djoyce/java/elements/bookI/propI39.html -/
   theorem eq_area_of_same_base_implies_para {a b c d : point} {L M O : line}
-  (hbL: online b L)
-  (hcL: online c L)
-  (hnaL: ¬ online a L)
-  (haM: online a M)
-  (hdM: online d M)
-  (hbO: online b O)
-  (hdO: online d O)
-  (hncO: ¬ online c O)
-  (ad: a ≠ d)
-  (bc: b ≠ c)
-  (bd: b ≠ d)
-  (ssadL: sameside a d L)
-  (harea: area a b c = area d b c)
-  : para L M
-  :=
-   by sorry
+    (hbL: online b L)
+    (hcL: online c L)
+    (hnaL: ¬ online a L)
+    (haM: online a M)
+    (hdM: online d M)
+    (hbO: online b O)
+    (hdO: online d O)
+    (hncO: ¬ online c O)
+    (ad: a ≠ d)
+    (bc: b ≠ c)
+    (bd: b ≠ d)
+    (ssadL: sameside a d L)
+    (harea: area a b c = area d b c) :
+    para L M := by sorry
  --
 /-begin
     rcases drawpar bc hbL hcL hnaL with ⟨-, N,_,haN,-,-,pNL⟩,
