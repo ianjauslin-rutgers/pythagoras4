@@ -1,6 +1,4 @@
-import Mathlib.Data.Real.NNReal
-
---open_locale nnreal 
+import Mathlib.Data.Real.Basic
 
 def proportion (r s t u : ℝ) : Prop := 
   0 ≤ r ∧ 0 ≤ s ∧ 0 ≤ t ∧ 0 ≤ u ∧ 
@@ -9,15 +7,17 @@ def proportion (r s t u : ℝ) : Prop :=
   ((n : ℝ) * r < m * s → (n : ℝ) * t < m * u) ∧ 
   ((m : ℝ) * s < n * r → (m : ℝ) * u < n * t)
 
-lemma proportion_of_eq_ratio {r s t u : ℝ} (hr : 0 ≤ r) (hs : 0 ≤ s) (ht : 0 ≤ t) (hu : 0 ≤ u) (s_ne : s ≠ 0) (u_ne : u ≠ 0) 
-  (rstu : r / s = t / u) : 
-  proportion r s t u :=
- by sorry
+lemma proportion_of_eq_ratio {r s t u : ℝ} (hr : 0 ≤ r) (hs : 0 ≤ s) (ht : 0 ≤ t) (hu : 0 ≤ u) 
+  (s_ne : s ≠ 0) (u_ne : u ≠ 0) (rstu : r / s = t / u) : 
+    proportion r s t u := by 
+  refine ⟨hr, hs, ht, hu, ?_⟩
+  intro n m
+  field_simp at rstu
+  constructor
+  · sorry 
+  sorry
  --
 /-begin
-  refine ⟨hr, hs, ht, hu, _⟩,
-  intros n m,
-  field_simp at rstu,
   split,
   { intros h,
     suffices hh : (n : ℝ) * t * s = m * u * s,
