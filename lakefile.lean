@@ -6,4 +6,5 @@ require mathlib from git
 
 package pythagoras
 
+@[default_target]
 lean_lib Pythagoras
