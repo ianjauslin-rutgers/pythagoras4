@@ -1,5 +1,5 @@
-import Euclid.synthetic
-import Euclid.proportion
+import Pythagoras.synthetic
+import Pythagoras.proportion
 import Mathlib.Tactic.SwapVar
 import Mathlib.Tactic.LibrarySearch
 

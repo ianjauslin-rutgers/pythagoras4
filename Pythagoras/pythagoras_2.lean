@@ -1,4 +1,4 @@
-import Euclid.euclid_VI
+import Pythagoras.euclid_VI
 
 open incidence_geometry
 

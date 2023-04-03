@@ -8,7 +8,7 @@ import Mathlib.Data.Real.Basic
 import Mathlib.Data.Set.Finite
 import Mathlib.Data.Matrix.DMatrix
 import Mathlib.Tactic.WLOG
-import Euclid.synthetic_axioms
+import Pythagoras.synthetic_axioms
 
 /-!
 # Synthetic Geometry, Euclid's Elements Book I using Avigad Axioms

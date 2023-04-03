@@ -6,4 +6,4 @@ require mathlib from git
 
 package pythagoras
 
-lean_lib Euclid
+lean_lib Pythagoras

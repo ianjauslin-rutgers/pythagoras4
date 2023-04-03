@@ -1,6 +1,6 @@
-import Euclid.synthetic
-import Euclid.proportion
-import Euclid.euclid_I_extras
+import Pythagoras.synthetic
+import Pythagoras.proportion
+import Pythagoras.euclid_I_extras
 import Std.Tactic.ShowTerm
 
 open incidence_geometry
