@@ -1,0 +1,14 @@
+#!/bin/bash
+
+pkg="Euclid"
+
+cd "$(dirname $0)"/..
+
+rm -f "$pkg".lean
+
+for file in "$pkg"/*.lean; do
+  filename=${file/\//.}
+  filename=${filename%.lean}
+  echo "import $filename" >> "$pkg".lean
+done
+
