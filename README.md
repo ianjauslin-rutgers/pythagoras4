@@ -69,7 +69,7 @@ this process by using an older nightly build, for instance,
 To use Andre's API, add the following at the top of your file:
 
 ```lean
-import synthetic
+import Pythagoras.synthetic
 open incidence_geometry
 ```
 
@@ -78,7 +78,7 @@ imported. Instead, if you only need the axioms, but not the theorems from
 Andre's API, you can use
 
 ```lean
-import synthetic_axioms
+import Pythagoras.synthetic_axioms
 open incidence_geometry
 ```
 
