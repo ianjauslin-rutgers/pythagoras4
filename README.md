@@ -219,3 +219,22 @@ The following naming conventions are used for variables. Note that when most of 
 - `aα` means either that `cen_circ a α` or `oncircle a α` (note that at most one of these can be true for any given circle)
 - `ab_cd` means `length a b = length c d`
 - `αβ` means that`circles_inter α β`
+
+## Building the project
+
+The project can be built using
+```bash
+lake build
+```
+This will compile all the project files, but will nto show warnings or errors.
+To show those, use
+```bash
+lake --verbose build
+```
+
+In reality, `lake build` only compiles one file: `Pythagoras.lean` which
+imports all the project files. `Pythagoras.lean` can be generated automatically
+by running
+```bash
+./scripts/gen_basefile
+```
