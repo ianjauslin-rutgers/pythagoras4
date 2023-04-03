@@ -226,7 +226,7 @@ The project can be built using
 ```bash
 lake build
 ```
-This will compile all the project files, but will nto show warnings or errors.
+This will compile all the project files, but will not show warnings or errors.
 To show those, use
 ```bash
 lake --verbose build
