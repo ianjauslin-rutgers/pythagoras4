@@ -655,12 +655,9 @@ theorem para_implies_eq_area_of_same_base {a b c d : point} {L M : line}
     (hcL: online c L)
     (hdM: online d M)
     (pLM: para L M) :
-    area a b c = area d b c := by sorry
- --
-/-begin
-    apply eq_area_of_eq_base haM hbL hcL hdM hbL hcL pLM,
-    simp,
-   end-/
+    area a b c = area d b c := by
+  apply eq_area_of_eq_base haM hbL hcL hdM hbL hcL pLM
+  simp
 
 
 /-- area of a triangle cannot equal the area of its subtriangle -/
@@ -674,19 +671,16 @@ lemma tri_sum_contra {b c d e: point} {O : line}
     (eb: e ≠ b)
     (hBbed: B b e d)
     (harea: area b c d = area e b c) :
-    false := by sorry
- --
-/-begin
-    have sum:= (area_add_iff_B bd de eb hbO hdO heO hncO).1 hBbed,
-    have bec_eq_ebc : area b e c = area e b c := by 
-      rw [(area_invariant b e c).2, (area_invariant b c e).1],
-    have ced_eq_dec : area c e d = area d e c:= by
-      rw [(area_invariant c e d).1,(area_invariant d e c).2],
-    rw [harea, bec_eq_ebc, ced_eq_dec] at sum,
-    simp at sum,
-    have hcO := (area_zero_iff_online de hdO heO).1 (sum),
-    apply hncO(hcO),
-   end-/
+    False := by
+  have sum:= (area_add_iff_B bd de eb hbO hdO heO hncO).1 hBbed
+  have bec_eq_ebc : area b e c = area e b c := by
+    rw [(area_invariant b e c).2, (area_invariant b c e).1]
+  have ced_eq_dec : area c e d = area d e c:= by
+    rw [(area_invariant c e d).1,(area_invariant d e c).2]
+  rw [harea, bec_eq_ebc, ced_eq_dec] at sum
+  simp at sum
+  have hcO := (area_zero_iff_online de hdO heO).1 (sum)
+  apply hncO hcO
 
 
   /-- ## Euclid I.39
@@ -706,64 +700,60 @@ lemma tri_sum_contra {b c d e: point} {O : line}
     (bd: b ≠ d)
     (ssadL: sameside a d L)
     (harea: area a b c = area d b c) :
-    para L M := by sorry
- --
-/-begin
-    rcases drawpar bc hbL hcL hnaL with ⟨-, N,_,haN,-,-,pNL⟩,
-    have pLN:= para_symm pNL,
-    -- show that N and O intersect
-    have npNO: ¬ para N O :=
-      begin
-      by_contra' pNO,
-      have LO_or_pLO := para_trans pNL pNO,
+    para L M := by
+  rcases drawpar bc hbL hcL hnaL with ⟨-, N,_,haN,-,-,pNL⟩
+  have pLN:= para_symm pNL
+  -- show that N and O intersect
+  have npNO: ¬ para N O := by
+    by_contra pNO
+    have LO_or_pLO := para_trans pNL pNO
 
-      cases LO_or_pLO,
-      -- L = O
-      rw ← LO_or_pLO at hncO,
-      exact hncO(hcL),
+    cases LO_or_pLO with
+    | inl LO =>
+      rw [← LO] at hncO
+      exact hncO hcL
 
-      -- L is parallel to O
-      apply neq_of_para hbL hbO LO_or_pLO,
-      simp,
-      end,
+    | inr pLO =>
+      apply neq_of_para hbL hbO pLO
+      simp
 
-    -- contruct e as intersection of N and O
-    rcases pt_of_line_line npNO with ⟨e, heN, heO⟩,
+  -- contruct e as intersection of N and O
+  rcases pt_of_line_line npNO with ⟨e, heN, heO⟩
 
-    have harea2: area a b c = area e b c := by
-    begin
-      apply eq_area_of_eq_base haN hbL hcL heN hbL hcL pLN,
-      simp,
-    end,
-    have dbc_eq_bcd : area d b c = area b c d := by rw (area_invariant b c d).1,
-    rw [harea, dbc_eq_bcd] at harea2,
+  have harea2: area a b c = area e b c := by
+    apply eq_area_of_eq_base haN hbL hcL heN hbL hcL pLN
+    simp
+  have dbc_eq_bcd : area d b c = area b c d := by rw [(area_invariant b c d).1]
+  rw [harea, dbc_eq_bcd] at harea2
 
-    have be := neq_of_para hbL heN pLN,
-    by_cases de: d = e,
-    -- case d = e
-    rw ← de at heN,
-    rwa line_unique_of_pts ad haM hdM haN heN,
+  have be := neq_of_para hbL heN pLN
+  by_cases de: d = e
+  -- case d = e
+  rw [← de] at heN
+  rwa [line_unique_of_pts ad haM hdM haN heN]
 
-    -- case d != e (cannot actually occur)
-    rw ← ne.def d e at de,
-    exfalso,
+  -- case d != e (cannot actually occur)
+  rw [← Ne.def d e] at de
+  exfalso
 
-    cases B_of_three_online_ne be bd de.symm hbO heO hdO with hBbed hB,
-    -- case B b e d
-    apply tri_sum_contra hbO hdO heO hncO bd de be.symm hBbed harea2,
-    cases hB with hBebd hBbde,
-    swap,
+  cases B_of_three_online_ne be bd de.symm hbO heO hdO with
+  -- case B b e d
+  | inl hBbed =>
+  -- cases B_of_three_online_ne be bd de.symm hbO heO hdO with hBbed hB
+    exact tri_sum_contra hbO hdO heO hncO bd de be.symm hBbed harea2
 
-    -- case B b d e
-    have ebc_eq_bce : area e b c = area b c e := by rw (area_invariant b c e).1,
-    rw ← dbc_eq_bcd at harea2,
-    rw ebc_eq_bce at harea2,
-    apply tri_sum_contra hbO heO hdO hncO be de.symm bd.symm hBbde harea2.symm,
+  | inr hB =>
+    cases hB with
+  -- case B e b d
+    | inl hBebd =>
+    have ssaeL := sameside_of_online_online_para haN heN pNL
+    have ssedL := sameside_symm (sameside_trans ssadL ssaeL)
+    have dsedL:= not_sameside13_of_B123_online2 hBebd hbL
+    exact dsedL ssedL
 
-    -- case B e b d
-    have ssaeL := sameside_of_online_online_para haN heN pNL,
-    have ssdeL := sameside_trans ssadL ssaeL,
-    have dsedL:= not_sameside13_of_B123_online2 hBebd hbL,
-    exact dsedL(sameside_symm ssdeL),
-   end-/
-
+  -- case B b d e
+    | inr hBbde =>
+    have ebc_eq_bce : area e b c = area b c e := by rw [(area_invariant b c e).1]
+    rw [← dbc_eq_bcd] at harea2
+    rw [ebc_eq_bce] at harea2
+    exact tri_sum_contra hbO heO hdO hncO be de.symm bd.symm hBbde harea2.symm
