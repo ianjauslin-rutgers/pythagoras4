@@ -1,4 +1,4 @@
-import Pythagoras.synthetic
+import SyntheticEuclid4
 import Pythagoras.proportion
 import Pythagoras.euclid_I_extras
 import Std.Tactic.ShowTerm

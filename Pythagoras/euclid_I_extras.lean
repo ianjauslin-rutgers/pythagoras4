@@ -1,4 +1,4 @@
-import Pythagoras.synthetic
+import SyntheticEuclid4
 import Pythagoras.proportion
 import Mathlib.Tactic.SwapVar
 import Mathlib.Tactic.LibrarySearch
