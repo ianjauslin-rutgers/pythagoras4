@@ -45,10 +45,10 @@ lemma pts_of_line (L : line) :
     exact C
     swap
     left
-    exact hC.1
+    exact hC.2
     swap
     right
-    exact inside_circle_of_center hC.2
+    exact inside_circle_of_center hC.1
 
     obtain ⟨ e, f, hef ⟩ := pts_of_line_circle_inter this
     use e
@@ -206,14 +206,6 @@ theorem para_trans {L M N : line}
       },
     },
    end-/
-
-/-- diffside is symmetric -/
-lemma diffside_symm {a b : point} {L: line}
-    (hdiff: diffside a b L) :
-    diffside b a L := by
-  dsimp [diffside]
-  dsimp [diffside] at hdiff
-  exact ⟨ hdiff.2.1, hdiff.1, (difsym hdiff.2.2) ⟩
 
 
 /-- reorder areas -/
@@ -438,13 +430,13 @@ theorem same_length_B_of_ne_ge {a b c d : point} (a_ne_b : a ≠ b) (big : lengt
 
   obtain ⟨C, hC⟩ := circle_of_ne a_ne_q
 
-  obtain ⟨p, hp⟩ := pt_oncircle_of_inside_ne a_ne_q (inside_circle_of_center hC.2)
+  obtain ⟨p, hp⟩ := pt_on_circle_of_inside_ne a_ne_q (inside_circle_of_center hC.1)
 
   obtain ⟨AB, hAB⟩ := line_of_pts a b
   have q_online_AB := online_3_of_B hq.1 hAB.2 hAB.1
   have p_online_AB := online_3_of_B (B_symm hp.1) q_online_AB hAB.1
 
-  have := (oncircle_iff_length_eq hp.2 hC.2).mpr hC.1
+  have := (on_circle_iff_length_eq hC.1 hp.2).mpr hC.2
   rw [this.symm] at hq
 
   have b_ne_p : b ≠ p := by

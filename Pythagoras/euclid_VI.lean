@@ -2,6 +2,7 @@ import Pythagoras.synthetic
 import Pythagoras.proportion
 import Pythagoras.euclid_I_extras
 import Std.Tactic.ShowTerm
+import Mathlib.Tactic.WLOG
 
 open incidence_geometry
 variable [i: incidence_geometry]
@@ -686,10 +687,6 @@ theorem proportional_iff_para' {a b c d e: point} {L M N: line}
   rw [length_symm e c]
   exact this
 
-
-/-- Three points are on the same line -/
-def colinear (a b c : point) := ∃ L :
-    line, online a L ∧ online b L ∧ online c L   
 
 /-- colinear is symmetric under odd permutation -/
 theorem colinear_symm1 :
