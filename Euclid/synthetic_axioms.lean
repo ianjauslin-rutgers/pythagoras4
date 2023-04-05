@@ -29,9 +29,9 @@ class incidence_geometry :=
 (online : point → line → Prop)
 (sameside : point → point → line → Prop)
 (B : point → point → point → Prop) -- Betweenness
-(oncircle : point → circle → Prop)
-(in_circ : point → circle → Prop)
-(cen_circ : point → circle → Prop)
+(center_circle : point → circle → Prop)
+(on_circle : point → circle → Prop)
+(in_circle : point → circle → Prop)
 (lines_inter : line → line → Prop)
 (line_circle_inter : line → circle → Prop)
 (circles_inter : circle → circle → Prop)
@@ -41,32 +41,32 @@ class incidence_geometry :=
 (area : point → point → point → ℝ)
 
 (more_pts : ∀ (S : Set point), S.Finite → ∃ (a : point), a ∉ S)
-(pt_B_of_ne : ∀ {b c : point}, b ≠ c → ∃ (a : point), B b a c) -- old (P3)
+(pt_B_of_ne : ∀ {b c : point}, b ≠ c → ∃ (a : point), B b a c)
 (pt_extension_of_ne : ∀ {b c : point}, b ≠ c → ∃ (a : point), B b c a)
 (diffside_of_not_online : ∀ {L : line}, ∀ {b : point}, ¬online b L →
   ∃ (a : point), ¬online a L ∧ ¬sameside a b L)
-(line_of_pts : ∀ (a b : point), ∃ (L :line), online a L ∧ online b L) -- old (LB_of_line_circle_inter)
-(circle_of_ne : ∀ {a b : point}, a ≠ b → ∃ (α : circle),  oncircle b α ∧ cen_circ a α)
+(line_of_pts : ∀ (a b : point), ∃ (L :line), online a L ∧ online b L)
+(circle_of_ne : ∀ {a b : point}, a ≠ b → ∃ (α : circle), center_circle a α ∧ on_circle b α)
 (pt_of_lines_inter : ∀ {L M : line}, lines_inter L M →
   ∃ (a : point), online a L ∧ online a M)
 (pts_of_line_circle_inter : ∀ {L : line}, ∀ {α : circle}, line_circle_inter L α →
-  ∃ (a b : point),  a ≠ b ∧ online a L ∧ online b L ∧ oncircle a α ∧ oncircle b α )
-(pt_oncircle_of_inside_outside : ∀ {b c : point}, ∀ {α : circle},
-  ¬oncircle c α →in_circ b α → ¬in_circ c α →
-  ∃ (a : point), B b a c ∧ oncircle a α )
-(pt_oncircle_of_inside_ne : ∀ {b c : point}, ∀ {α : circle}, b ≠ c →in_circ b α →
-  ∃ (a : point), B a b c ∧ oncircle a α )
+  ∃ (a b : point),  a ≠ b ∧ online a L ∧ online b L ∧ on_circle a α ∧ on_circle b α )
+(pt_on_circle_of_inside_outside : ∀ {b c : point}, ∀ {α : circle},
+  ¬on_circle c α →in_circle b α → ¬in_circle c α →
+  ∃ (a : point), B b a c ∧ on_circle a α )
+(pt_on_circle_of_inside_ne : ∀ {b c : point}, ∀ {α : circle}, b ≠ c →in_circle b α →
+  ∃ (a : point), B a b c ∧ on_circle a α )
 (pts_of_circles_inter : ∀ {α β : circle}, circles_inter α β →
-  ∃ (a b : point), a≠ b∧ oncircle a α ∧ oncircle a β ∧ oncircle b α ∧ oncircle b β )
+  ∃ (a b : point), a≠ b∧ on_circle a α ∧ on_circle a β ∧ on_circle b α ∧ on_circle b β )
 (pt_sameside_of_circles_inter : ∀ {b c d : point}, ∀ {L : line}, ∀ {α β : circle},
-  online c L → online d L →¬online b L  → cen_circ c α → cen_circ d β →circles_inter α β
-  →  ∃ (a : point), sameside a b L∧ oncircle a α ∧  oncircle a β )
+  online c L → online d L →¬online b L  → center_circle c α → center_circle d β →circles_inter α β
+  →  ∃ (a : point), sameside a b L∧ on_circle a α ∧  on_circle a β )
 (line_unique_of_pts : ∀ {a b : point}, ∀ {L M : line}, a ≠ b → online a L → online b L →
   online a M → online b M → L = M)
-(center_circle_unique : ∀ {a b : point}, ∀ {α : circle}, cen_circ a α → cen_circ b α →
+(center_circle_unique : ∀ {a b : point}, ∀ {α : circle}, center_circle a α → center_circle b α →
   a = b)
-(inside_circle_of_center : ∀ {a : point}, ∀ {α : circle}, cen_circ a α → in_circ a α)
-(not_oncircle_of_inside : ∀ {a : point}, ∀ {α : circle}, in_circ a α → ¬oncircle a α)
+(inside_circle_of_center : ∀ {a : point}, ∀ {α : circle}, center_circle a α → in_circle a α)
+(not_on_circle_of_inside : ∀ {a : point}, ∀ {α : circle}, in_circle a α → ¬on_circle a α)
 (B_symm : ∀ {a b c : point}, B a b c → B c b a )
 (ne_12_of_B : ∀ {a b c : point}, B a b c → a ≠ b )
 (ne_13_of_B : ∀ {a b c : point}, B a b c → a ≠ c)
@@ -96,16 +96,16 @@ class incidence_geometry :=
   online c M → online d N → ¬online d M → sameside c d L → ¬sameside b d M →
   sameside b c N)
 (B_of_line_circle_inter : ∀ {a b c : point}, ∀ {L : line}, ∀ {α : circle },b ≠ c → online a L → online b L → online c L
-  → oncircle b α → oncircle c α → in_circ a α →   B b a c)
+  → on_circle b α → on_circle c α → in_circle a α →   B b a c)
 (not_sameside_of_circle_inter : ∀ {a b c d : point}, ∀ {L : line}, ∀ {α β : circle},  c ≠ d→ α ≠ β →  online a L
-  → online b L  → oncircle c α → oncircle c β → oncircle d α → oncircle d β → cen_circ a α → cen_circ b β →
+  → online b L  → on_circle c α → on_circle c β → on_circle d α → on_circle d β → center_circle a α → center_circle b β →
   circles_inter α β → ¬sameside c d L)
 (lines_inter_of_not_sameside : ∀ {a b : point}, ∀ {L M : line}, online a M → online b M → ¬sameside a b L →
   lines_inter L M)
-(line_circle_inter_of_not_sameside : ∀ {a b : point}, ∀ {L : line}, ∀ {α : circle},¬sameside a b L → oncircle a α ∨ in_circ a α→
- oncircle b α ∨ in_circ b α  →  line_circle_inter L α)
-(line_circle_inter_of_inside_online : ∀ {a : point}, ∀ {L : line}, ∀ {α : circle}, online a L → in_circ a α →  line_circle_inter L α)
-(circles_inter_of_inside_oncircle : ∀ {a b : point}, ∀ {α β : circle}, oncircle b α → oncircle a β → in_circ a α →  in_circ b β →
+(line_circle_inter_of_not_sameside : ∀ {a b : point}, ∀ {L : line}, ∀ {α : circle},¬sameside a b L → on_circle a α ∨ in_circle a α→
+ on_circle b α ∨ in_circle b α  →  line_circle_inter L α)
+(line_circle_inter_of_inside_online : ∀ {a : point}, ∀ {L : line}, ∀ {α : circle}, online a L → in_circle a α →  line_circle_inter L α)
+(circles_inter_of_inside_on_circle : ∀ {a b : point}, ∀ {α β : circle}, on_circle b α → on_circle a β → in_circle a α →  in_circle b β →
   circles_inter α β)
 (length_eq_zero_iff : ∀ {a b : point}, length a b = 0 ↔ a = b)
 (length_symm : ∀ (a b : point), length a b = length b a)
@@ -117,10 +117,10 @@ class incidence_geometry :=
 (area_eq_of_SSS : ∀ {a b c a1 b1 c1 : point}, length a b = length a1 b1 → length b c = length b1 c1 →
   length c a = length c1 a1 → area a b c = area a1 b1 c1)
 (length_sum_of_B : ∀ {a b c : point}, B a b c → length a b + length b c = length a c)
-(oncircle_iff_length_eq : ∀ {a b c : point}, ∀ {α : circle},  oncircle b α → cen_circ a α →
-  (length a b = length a c ↔ oncircle c α))
-(incircle_iff_length_lt : ∀ {a b c : point}, ∀ {α : circle}, oncircle b α → cen_circ a α →
-  (length a c < length a b ↔ in_circ c α))
+(on_circle_iff_length_eq : ∀ {a b c : point}, ∀ {α : circle},  center_circle a α → on_circle b α → 
+  (length a b = length a c ↔ on_circle c α))
+(in_circle_iff_length_lt : ∀ {a b c : point}, ∀ {α : circle}, center_circle a α → on_circle b α → 
+  (length a c < length a b ↔ in_circle c α))
 (angle_zero_iff_online : ∀ {a b c : point}, ∀ {L : line}, a ≠ b → a ≠ c → online a L → online b L →
   (online c L ∧ ¬B b a c ↔ angle b a c = 0))--better reformulation?
 (angle_add_iff_sameside : ∀ {a b c d : point}, ∀ {L M : line}, a ≠ b → a ≠ c → online a L → online b L → online a M
@@ -133,7 +133,7 @@ class incidence_geometry :=
 (unparallel_postulate : ∀ {a b c d : point}, ∀ {L M N : line},b ≠ c → online a L → online b L → online b M → online c M →
   online c N → online d N →  sameside a d M → angle a b c + angle b c d < 2 * rightangle →
   ∃ (e : point), online e L ∧ online e N ∧ sameside e a M)
-(area_zero_iff_online : ∀ {a b c : point}, ∀ {L : line},a ≠ b → online a L → online b L →
+(area_zero_iff_online : ∀ {a b c : point}, ∀ {L : line}, a ≠ b → online a L → online b L →
   (area a b c = 0 ↔ online c L))
 (area_add_iff_B : ∀ {a b c d : point}, ∀ {L : line}, a ≠ b → b ≠ c → c ≠ a → online a L → online b L →
   online c L → ¬online d L → (B a c b ↔ area a c d + area d c b = area a d b))
