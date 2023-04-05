@@ -8,24 +8,28 @@ from <https://github.com/leanprover/elan> (it is also available as a package
 for most mainstream linux distributions).
 
 Download lean using
+
 ```bash
 elan toolchain install leanprover/lean4:nightly
 ```
+
 (As of this writing, mathlib4 does not seem to be compatible with the `stable`
 branch. You may also opt for one fixed nightly build, for instance,
 `nightly-2023-03-17`.)
 
 `elan` allows several versions of lean to be installed on the same system. You
 can set a default lean installation using
+
 ```bash
 elan default leanprover/lean4:nightly
 ```
+
 Alternatively, you can create a file `lean-toolchain` in the project directory
 with the line
+
 ```
 leanprover/lean4:nightly
 ```
-
 
 ## Setting up the project
 
@@ -46,14 +50,18 @@ git clone git@github.com:ianjauslin-rutgers/pythagoras4.git
 
 This will download all the files in the project. However, this does not install
 mathlib. To do so, `cd` to the project directory and run
+
 ```bash
 lake update
 ```
+
 You will also want to download a pre-compiled version of mathlib (or as close
 to it as you can get) to speed things up. This is done with
+
 ```bash
 lake exe cache get
 ```
+
 This will download the most up to date pre-compiled mathlib that is available.
 However, because we use nighly builds of lean4 and mathlib4, there will most
 likely not be fully up-to-date mathlib builds available, and the first time you
@@ -63,28 +71,19 @@ time you update mathlib4 or lean4, so it's not so bad). You can also speed up
 this process by using an older nightly build, for instance,
 `nightly-2023-03-17`.
 
+## Importing André's API
 
-## Importing Andre's API
-
-To use Andre's API, add the following at the top of your file:
-
-```lean
-import Pythagoras.synthetic
-open incidence_geometry
-```
-
-This may take some time, as the synthetic file needs to be compiled when it is
-imported. Instead, if you only need the axioms, but not the theorems from
-Andre's API, you can use
+To use André's API, add the following at the top of your file:
 
 ```lean
-import Pythagoras.synthetic_axioms
+import SyntheticEuclid4
 open incidence_geometry
+variable [i: incidence_geometry]
 ```
 
-instead.
+This may take some time, as the synthetic file needs to be compiled when it is imported.
 
-Andre is also working on refactoring synthetic. This process involves the creation of a lot of new API that might serve useful to the rest of the group. It might be worth checking his repo at <https://github.com/ah1112/euclid-book-I> to see if any API you need is there, and has not been ported over to Lean 4 yet.
+André is also working on refactoring synthetic. This process involves the creation of a lot of new API that might serve useful to the rest of the group. It might be worth checking his repo at <https://github.com/ah1112/euclid-book-I> to see if any API you need is there, and has not been ported over to Lean 4 yet. The Lean4 version of this repo is at <https://github.com/ah1112/synthetic_euclid_4> and is a dependency of this project.
 
 ## Git dos and don'ts
 
@@ -170,7 +169,9 @@ might look something like `$HOME/.config/VSCodium/User/snippets`, at least on Ub
 ## Coding style
 
 ### Theorem indentation
+
 When stating a theorem or lemma, use the following indentation:
+
 ```lean
 theorem name_of_theorem {arguments} (more arguments)
     (more arguments) :
@@ -223,11 +224,14 @@ The following naming conventions are used for variables. Note that when most of 
 ## Building the project
 
 The project can be built using
+
 ```bash
 lake build
 ```
+
 This will compile all the project files, but will not show warnings or errors.
 To show those, use
+
 ```bash
 lake --verbose build
 ```
@@ -235,6 +239,7 @@ lake --verbose build
 In reality, `lake build` only compiles one file: `Pythagoras.lean` which
 imports all the project files. `Pythagoras.lean` can be generated automatically
 by running
+
 ```bash
 ./scripts/gen_basefile
 ```
