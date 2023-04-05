@@ -7,72 +7,16 @@ open incidence_geometry
 variable [i: incidence_geometry]
 
 
-/-- find two different points on line -/
-lemma pts_of_line (L : line) :
-    ∃ a b : point, online a L ∧ online b L ∧ a ≠ b := by
-  -- start with two points
-  obtain ⟨ a , ha ⟩ := more_pts ∅ Set.finite_empty
-  obtain ⟨ b , hb ⟩ := more_pts {a} (Set.finite_singleton a)
-
-  -- if they are both on the line, we are done
-  by_cases online a L ∧ online b L
-  · use a
-    use b
-    have h_a_ne_b : a ≠ b := by refine ne_of_mem_of_not_mem (Set.mem_singleton a) hb
-    exact ⟨ h.1, h.2, h_a_ne_b ⟩
-
-  -- select the one that is not on the line
-  by_cases h_nonline_a: online a L 
-  simp only [not_and] at h
-  have h_nonline_a := h h_nonline_a
-  -- swap a and b, so the proof can be done for both goals at once
-  swap_var a ↔ b
-
-  -- at this stage, the two goals can be achieved with the same steps
-  all_goals
-    -- find point on other side of line
-    obtain ⟨ c, hc ⟩ := diffside_of_not_online h_nonline_a
-    have : a ≠ c := by
-      by_contra contra
-      rw [contra.symm] at hc
-      exact hc.2 (sameside_rfl_of_not_online h_nonline_a)
-    -- circle through c centered at a
-    obtain ⟨ C, hC ⟩ := circle_of_ne this
-  
-    -- intersections
-    have' := line_circle_inter_of_not_sameside hc.2 _ _
-    swap
-    exact C
-    swap
-    left
-    exact hC.2
-    swap
-    right
-    exact inside_circle_of_center hC.1
-
-    obtain ⟨ e, f, hef ⟩ := pts_of_line_circle_inter this
-    use e
-    use f
-    exact ⟨ hef.2.1, hef.2.2.1, hef.1 ⟩
-
-
-/-- construct point on line -/
-lemma pt_of_line (L : line) :
-    ∃ a : point, online a L := by
-  obtain ⟨ a, b, hab ⟩ := pts_of_line L
-  use a
-  exact hab.1
-
 /-- find second point on line -/
 lemma pt_of_line_ne_pt {a : point} {L : line} (haL: online a L) :
     ∃ b : point, (b ≠ a) ∧ (online b L) := by
-  obtain ⟨ b, c, hbc ⟩ := pts_of_line L
+  obtain ⟨ b, c, hbc ⟩ := online_ne_of_line L
   by_cases b = a
   · use c
     rw [h] at hbc
-    exact ⟨ hbc.2.2.symm, hbc.2.1 ⟩
+    exact ⟨ hbc.1.symm, hbc.2.2 ⟩
   · use b
-    exact ⟨ h, hbc.1 ⟩
+    exact ⟨ h, hbc.2.1 ⟩
 
 
 /-- intersection of non_parallel lines -/
@@ -291,7 +235,7 @@ lemma not_online_of_triangle {a b c : point} {L M : line}
 lemma parallel_of_line_pt {a : point} {L : line}
     (haL: ¬ online a L) :
     ∃ M : line, (online a M) ∧ (para L M) := by
-  obtain ⟨ b, hb ⟩ := pt_of_line L
+  obtain ⟨ b, hb ⟩ := online_of_line L
   obtain ⟨ c, hc ⟩ := pt_of_line_ne_pt hb
   have := drawpar hc.1 hc.2 hb haL
   obtain ⟨ throwaway,O,hO ⟩ := drawpar hc.1 hc.2 hb haL
