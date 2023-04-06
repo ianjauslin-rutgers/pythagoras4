@@ -64,9 +64,8 @@ lemma rescale_length {a b : point} {L : line} (n : ℕ)
       --simp only [Nat.cast_succ, algebra_map.coe_one]
       rw [(length_sum_of_B he.1).symm,he.2, h_n_ne_1]
       --simp only [nat.cast_succ, algebra_map.coe_one]
-      simp
       ring_nf
-      simp only [eq_self_iff_true, ge_iff_le, le_refl, Ne.def, true_and]
+      simp
 
       constructor
       exact online_3_of_B he.1 haL hbL
@@ -113,9 +112,7 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
     --simp only [algebra_map.coe_one, zero_mul] at hlen
     rw [length_eq_zero_iff.mp hlen]
     rw [area_of_eq a d d _]
-    right
-    right
-    simp only [eq_self_iff_true]
+    tauto
 
   | succ n hn =>
     intros d hdL hlen hB
@@ -198,8 +195,7 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
     rw [this.symm]
 
     have' := eq_area_of_eq_base_samevertex a hbL hcL he.1 hdL _
-    rw [this]
-    rw [@area_invariant_312 i b e a]
+    rw [this, @area_invariant_312 i b e a]
 
     have := length_sum_of_B h_B_bed
     rw [hlen, he.2.1] at this
@@ -261,11 +257,7 @@ lemma rescale_triangle_of_base__notcbd (a : point) {b c d : point} {L : line} {n
   have := len_pos_of_nq h_b_ne_c
   have n_ge1 := gt1_of_n1_n0 h_n_ne_0 h_n_ne_1
   rw [gt_iff_lt] at n_ge1
-  -- I can't replace this by the one line proof of mul_mul_lt, for some annoying coercion reason...
-  have' := mul_mul_lt 1 ↑n (length b c) this _
-  simp only [one_mul] at this
-  exact this
-  norm_cast
+  simp [*]
 
 -- full version
 lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
@@ -279,11 +271,9 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
   · rw [(area_of_eq a b d _)]
     rw [(area_of_eq a b c _)]
     simp only [mul_zero]
-    right
-    right
+    repeat right
     exact h_b_ne_c
-    right
-    right
+    repeat right
     rw [length_eq_zero_iff.mpr h_b_ne_c] at hlen
     simp only [mul_zero] at hlen
     exact length_eq_zero_iff.mp hlen
@@ -294,7 +284,7 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
     --simp only [algebra_map.coe_zero, zero_mul]
     simp
     rw [area_of_eq a b d _]
-    right;right
+    repeat right
     rw [h_n_ne_0] at hlen
     --simp only [algebra_map.coe_zero, zero_mul] at hlen
     simp at hlen
@@ -459,7 +449,7 @@ lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
     have := (area_zero_iff_online h_b_ne_c hbL hcL).not.mpr h_a_nonline_L
     rw [(area_invariant b c a).1] at this
     exact (Ne.symm this).lt_of_le (area_nonneg a b c)
-    right;right
+    repeat right
     exact h_e_ne_f
 
   -- construct parallelogram from d e f

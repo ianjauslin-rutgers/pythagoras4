@@ -355,8 +355,7 @@ theorem same_length_B_of_ne_ge {a b c d : point} (a_ne_b : a ≠ b) (big : lengt
 
   have a_ne_q : a ≠ q := by
     by_contra contra
-    rw [contra] at hq
-    rw [length_eq_zero_iff.mpr (Eq.refl q)] at hq
+    rw [contra, length_eq_zero_iff.mpr (Eq.refl q)] at hq
     rw [hq.2.symm] at big
     have := length_nonneg a b
     exact not_lt_of_ge this big
@@ -440,9 +439,7 @@ theorem eq_of_parallelogram_of_eq_basis_of_diffside {a b c d e f g h: point} {L 
   have eq1 := parallelarea haL hdL hbM hcM heL hhL haK hbK hdN hcN hQ.1 hQ.2 hR.1 hR.2 parLM parKN parQR
 
   have eq2 := parallelarea hbM hcM heL hhL hfM hgM hQ.1 hQ.2 hR.1 hR.2 heO hfO hhP hgP (para_symm parLM) parQR parOP
-  rw [(area_invariant e b c).2] at eq2
-  rw [(area_invariant c e h).2] at eq2
-  rw [add_comm] at eq2
+  rw [(area_invariant e b c).2, (area_invariant c e h).2, add_comm] at eq2
   rw [eq2] at eq1
 
   have arp := (area_of_parallelogram haL hdL hdN hcN hcM hbM hbK haK parLM (para_symm parKN)).1
@@ -454,8 +451,7 @@ theorem eq_of_parallelogram_of_eq_basis_of_diffside {a b c d e f g h: point} {L 
   rw [arp]
 
   have arp := (area_of_parallelogram haL hdL hdN hcN hcM hbM hbK haK parLM (para_symm parKN)).2
-  rw [area_invariant_321] at arp
-  rw [(area_invariant d c b).2] at arp
+  rw [area_invariant_321, (area_invariant d c b).2] at arp
   rw [arp] at eq1
   rw [eq1]
 
@@ -487,23 +483,18 @@ theorem eq_of_parallelogram_of_eq_basis {a b c d e f g h: point} {L M K N O P: l
 
     have h_e_eq_h := (length_eq_zero_iff.mp (Eq.trans h_fg_eq_eh (length_eq_zero_iff.mpr h_f_eq_g)))
 
-    rw [(area_of_eq a b c _)]
-    rw [(area_of_eq a d c _)]
-    rw [(area_of_eq e f g _)]
-    rw [(area_of_eq e h g _)]
-
+    rw [area_of_eq a b c _, area_of_eq a d c _, area_of_eq e f g _, area_of_eq e h g _]
+    
     left
     exact h_e_eq_h
 
-    right
-    right
+    repeat right
     exact h_f_eq_g
 
     left
     exact h_a_eq_d
 
-    right
-    right
+    repeat right
     exact h_b_ne_c
 
   have h_e_ne_h : e ≠ h := by
@@ -526,10 +517,8 @@ theorem eq_of_parallelogram_of_eq_basis {a b c d e f g h: point} {L M K N O P: l
     -- invert parallelogram
     rw [length_symm b c] at hlen
     have := eq_of_parallelogram_of_eq_basis_of_diffside hdL haL heL hhL hcM hbM hfM hgM hdN hcN haK hbK heO hfO hhP hgP parLM (para_symm parKN) parOP hlen hQ.1 hQ.2 (diffside_symm hside) h_b_ne_c.symm
-    rw [area_invariant_321] at this
-    rw [@area_invariant_321 i d a b, add_comm] at this
-    rw [this.symm]
-    rw [(area_of_parallelogram haK hbK hbM hcM hcN hdN hdL haL parKN (para_symm parLM)).2]
+    rw [area_invariant_321, @area_invariant_321 i d a b, add_comm] at this
+    rw [this.symm, (area_of_parallelogram haK hbK hbM hcM hcN hdN hdL haL parKN (para_symm parLM)).2]
     rw [(area_of_parallelogram haK hbK hbM hcM hcN hdN hdL haL parKN (para_symm parLM)).1]
 
 /-- ## Euclid I.38
@@ -547,15 +536,12 @@ theorem eq_area_of_eq_base {a b c d e f : point} {L M : line}
     area a b c=area d e f := by
   -- trivial case: b=c
   by_cases h_b_ne_c: b=c
-  · rw [area_of_eq a b c _]
-    rw [area_of_eq d e f _]
+  · rw [area_of_eq a b c _, area_of_eq d e f _]
 
-    right
-    right
+    repeat right
     exact length_eq_zero_iff.mp (Eq.trans hlen.symm (length_eq_zero_iff.mpr h_b_ne_c))
 
-    right
-    right
+    repeat right
     exact h_b_ne_c
 
 
@@ -583,8 +569,7 @@ theorem eq_area_of_eq_base {a b c d e f : point} {L M : line}
     (para_symm pLM) (para_symm hg.2.2.2) hh.2.2.2
     hlen
 
-  rw [@area_invariant_321 i g b c] at this
-  rw [@area_invariant_321 i g a c] at this
+  rw [@area_invariant_321 i g b c, @area_invariant_321 i g a c] at this
 
   rw [(area_of_parallelogram hbL hcL hK.2 hK.1 haM hg.1 hg.2.1 hg.2.2.1 pLM hg.2.2.2).2] at this
   rw [(area_invariant b c a).1] at this
@@ -607,15 +592,8 @@ theorem eq_area_of_eq_base_samevertex (a : point) {b c e f : point} {L : line}
   by_cases h_b_ne_c : b=c
   · rw [length_eq_zero_iff.mpr h_b_ne_c] at hlen
     have := length_eq_zero_iff.mp hlen.symm
-    rw [(area_of_eq a b c _)]
-    rw [(area_of_eq a e f _)]
-    right
-    right
-    exact this
-
-    right
-    right
-    exact h_b_ne_c
+    rw [area_of_eq a b c _, area_of_eq a e f _]
+    repeat tauto
 
   have h_e_ne_f : e ≠ f := by
     have := length_eq_zero_iff.not.mpr h_b_ne_c
@@ -625,10 +603,8 @@ theorem eq_area_of_eq_base_samevertex (a : point) {b c e f : point} {L : line}
   -- trivial case online a L
   by_cases h_a_nonline_L : online a L
   · have := (area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L
-    rw [@area_invariant_231 i a b c]
-    rw [this]
+    rw [@area_invariant_231 i a b c, @area_invariant_231 i a e f, this]
     have := (area_zero_iff_online h_e_ne_f heL hfL).mpr h_a_nonline_L
-    rw [@area_invariant_231 i a e f]
     exact this.symm
 
   obtain ⟨ M, hM ⟩ := parallel_of_line_pt h_a_nonline_L
@@ -669,7 +645,7 @@ lemma tri_sum_contra {b c d e: point} {O : line}
   rw [harea, bec_eq_ebc, ced_eq_dec] at sum
   simp at sum
   have hcO := (area_zero_iff_online de hdO heO).1 (sum)
-  apply hncO hcO
+  exact hncO hcO
 
 
   /-- ## Euclid I.39
@@ -704,14 +680,14 @@ lemma tri_sum_contra {b c d e: point} {O : line}
 
     | inr pLO =>
       apply neq_of_para hbL hbO pLO
-      simp
+      rfl
 
   -- contruct e as intersection of N and O
   rcases pt_of_line_line npNO with ⟨e, heN, heO⟩
 
   have harea2: area a b c = area e b c := by
     apply eq_area_of_eq_base haN hbL hcL heN hbL hcL pLN
-    simp
+    rfl
   have dbc_eq_bcd : area d b c = area b c d := by rw [(area_invariant b c d).1]
   rw [harea, dbc_eq_bcd] at harea2
 
@@ -743,6 +719,5 @@ lemma tri_sum_contra {b c d e: point} {O : line}
   -- case B b d e
     | inr hBbde =>
     have ebc_eq_bce : area e b c = area b c e := by rw [(area_invariant b c e).1]
-    rw [← dbc_eq_bcd] at harea2
-    rw [ebc_eq_bce] at harea2
+    rw [← dbc_eq_bcd, ebc_eq_bce] at harea2
     exact tri_sum_contra hbO heO hdO hncO be de.symm bd.symm hBbde harea2.symm
