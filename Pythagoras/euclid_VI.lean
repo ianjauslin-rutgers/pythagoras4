@@ -138,11 +138,10 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
       simp
       ring_nf
 
-      have := (area_add_iff_B h_b_ne_d h_c_ne_d.symm h_b_ne_c.symm hbL hdL hcL h_a_nonline_L).mp hB
-      rw [(@area_invariant_213 i b a d)] at this
-      rw [this.symm]
-      rw [(area_invariant b c a).1]
-      rw [Eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hcL hdL _)]
+      have := ((area_add_iff_B h_b_ne_d h_c_ne_d.symm h_b_ne_c.symm hbL hdL hcL h_a_nonline_L).mp hB).symm
+      permute [213] at this
+      rw [this, Eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hcL hdL _)]
+      permute [312]
       ring
 
       rw [h_n_ne_1, (length_sum_of_B hB).symm] at hlen
@@ -190,12 +189,12 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
       have : ↑n < ↑n+1 := by simp
       linarith [len_pos_of_nq h_b_ne_c]
     
-    have := (area_add_iff_B h_b_ne_d h_e_ne_d.symm h_b_ne_e.symm hbL hdL he.1 h_a_nonline_L).mp h_B_bed
-    rw [@area_invariant_213 i b a d] at this
-    rw [this.symm]
+    have := ((area_add_iff_B h_b_ne_d h_e_ne_d.symm h_b_ne_e.symm hbL hdL he.1 h_a_nonline_L).mp h_B_bed).symm
+    permute [213] at this
+    rw [this]
 
-    have' := eq_area_of_eq_base_samevertex a hbL hcL he.1 hdL _
-    rw [this, @area_invariant_312 i b e a]
+    rw [eq_area_of_eq_base_samevertex a hbL hcL he.1 hdL _]
+    permute [312]
 
     have := length_sum_of_B h_B_bed
     rw [hlen, he.2.1] at this
@@ -304,12 +303,11 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
   -- trivial case: online a L
   by_cases h_a_nonline_L : online a L
   · have := (area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L
-    rw [(area_invariant b c a).1] at this
+    permute [312] at this
     rw [this]
     simp only [mul_zero]
     have := (area_zero_iff_online h_b_ne_d hbL hdL).mpr h_a_nonline_L
-    rw [(area_invariant b d a).1] at this
-    rw [this]
+    permute
 
   by_cases h_B_cbd : B c b d
     -- reflect c about b
@@ -352,13 +350,14 @@ lemma lt_area_of_lt_base__sameedge_Bbfc (a : point) {b c f: point} {L: line}
     (length b c)>(length b f) → (area a b c)>(area a b f) := by
   intro
   have := (area_add_iff_B h_b_ne_c h_c_ne_f h_b_ne_f.symm hbL hcL hfL h_a_nonline_L).mp hB
-  rw [@area_invariant_213 i a b c]
-  rw [@area_invariant_231 i a b f]
-  rw [this.symm]
+  permute [213]
+  permute [312] at this
+  have := this.symm
+  rw [this]
   simp only [gt_iff_lt, lt_add_iff_pos_right]
   have : area a f c ≠ 0 := by
     by_contra contra
-    rw [area_invariant_321] at contra
+    permute [321] at contra
     rw [(area_zero_iff_online h_c_ne_f hcL hfL)] at contra
     exact h_a_nonline_L contra
   exact (Ne.symm this).lt_of_le (area_nonneg a f c)
@@ -447,7 +446,7 @@ lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
   · simp only [gt_iff_lt]
     rw [area_of_eq d e f _]
     have := (area_zero_iff_online h_b_ne_c hbL hcL).not.mpr h_a_nonline_L
-    rw [(area_invariant b c a).1] at this
+    permute [312] at this
     exact (Ne.symm this).lt_of_le (area_nonneg a b c)
     repeat right
     exact h_e_ne_f
@@ -598,14 +597,9 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
     exact proportion_area_of_proportion_base_samevertex e hbN hdN haN hdN hneN
   have hceae_by_prop_vi_i : proportion (length c e) (length a e) (area d c e) (area d a e) := by
    exact proportion_area_of_proportion_base_samevertex d hcO heO haO heO hndO
-  have ead_eq_dae : area e a d = area d a e := by
-    rw [(area_invariant e a d).1,(area_invariant d e a).2]
-  have ead_eq_ade : area e a d = area a d e := by
-    rw [(area_invariant a d e).1]
-  have ebd_eq_bde : area e b d = area b d e := by
-    rw [(area_invariant b d e).1]
-  have dce_eq_cde : area d c e = area c d e := by
-    rw [(area_invariant d c e).2, (area_invariant d e c).1]
+  have ead_eq_dae : area e a d = area d a e := by permute [321]
+  have ebd_eq_bde : area e b d = area b d e := by permute [231]
+  have dce_eq_cde : area d c e = area c d e := by permute [213]
   have len_ad_neq_0 : length a d ≠ 0 := by
     by_contra contra
     have h1 : a = d := by exact (length_eq_zero_iff.1 contra)
@@ -617,7 +611,7 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
   have area_ade_neq_0 : area a d e ≠ 0 := by
     by_contra contra
     exact hneN ((area_zero_iff_online ad haN hdN).1 contra)
-  have area_ead_neq_0 : area e a d ≠ 0 := by rwa [← ead_eq_ade] at area_ade_neq_0
+  have area_ead_neq_0 : area e a d ≠ 0 := by permute [231]; assumption
   have area_dae_neq_0 : area d a e ≠ 0 := by rwa [ead_eq_dae] at area_ead_neq_0
   have ratio_bd_ad := eq_ratio_of_proportion len_ad_neq_0 area_ead_neq_0 hbdad
   have ratio_ce_ae := eq_ratio_of_proportion len_ae_neq_0 area_dae_neq_0 hceae_by_prop_vi_i
@@ -632,7 +626,7 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
     exact len_ae_neq_0
   have area_bde_eq_cde : proportion (length b d) (length a d) (length c e) (length a e) ↔ area b d e = area c d e := by
     rw [proportion_lhs, ead_eq_dae, ebd_eq_bde, dce_eq_cde]
-    apply div_left_inj' area_dae_neq_0
+    field_simp
   constructor
   -- apply I.3
   intro harea
