@@ -111,7 +111,7 @@ theorem para_trans {L M N : line}
     have hne'O : ¬ online e' O := fun he'O => hLO (line_unique_of_pts e'd he'L hdL he'O hdO)
     by_cases nsaeO: sameside a e' O
     have nse'eO := not_sameside13_of_B123_online2 (B_symm Bede') hdO
-    have dsaeO := difsamedif (sameside_symm nsaeO) ⟨hne'O, hneO, nse'eO⟩
+    have dsaeO := diffside_of_sameside_diffside (sameside_symm nsaeO) ⟨hne'O, hneO, nse'eO⟩
     swap
     swap_var e ↔ e'
     swap_var heL ↔ he'L
@@ -119,7 +119,7 @@ theorem para_trans {L M N : line}
     swap_var hneO ↔ hne'O
     have dsaeO: diffside a e O := ⟨hnaO, hneO, nsaeO⟩
     all_goals {
-      have dsbeO := difsamedif ssabO dsaeO
+      have dsbeO := diffside_of_sameside_diffside ssabO dsaeO
       have acd := parapostcor ed haM hcM hdL heL hdO hcO (para_symm pLM) dsaeO
       have bcd := parapostcor ed hbN hcN hdL heL hdO hcO (para_symm pLN) dsbeO
 
@@ -351,22 +351,22 @@ theorem same_length_B_of_ne_ge {a b c d : point} (a_ne_b : a ≠ b) (big : lengt
     have := length_nonneg a b
     exact not_lt_of_ge this big
 
-  obtain ⟨q,hq⟩ := same_length_B_of_ne_four a_ne_b.symm c_ne_d
+  obtain ⟨q,hq⟩ := length_eq_B_of_ne_four a_ne_b.symm c_ne_d
 
   have a_ne_q : a ≠ q := by
     by_contra contra
     rw [contra, length_eq_zero_iff.mpr (Eq.refl q)] at hq
-    rw [hq.2.symm] at big
+    rw [hq.2] at big
     have := length_nonneg a b
     exact not_lt_of_ge this big
 
   obtain ⟨C, hC⟩ := circle_of_ne a_ne_q
 
-  obtain ⟨p, hp⟩ := pt_on_circle_of_inside_ne a_ne_q (inside_circle_of_center hC.1)
+  obtain ⟨p, hp⟩ := pt_oncircle_of_inside_ne a_ne_q.symm (inside_circle_of_center hC.1)
 
   obtain ⟨AB, hAB⟩ := line_of_pts a b
   have q_online_AB := online_3_of_B hq.1 hAB.2 hAB.1
-  have p_online_AB := online_3_of_B (B_symm hp.1) q_online_AB hAB.1
+  have p_online_AB := online_3_of_B hp.1 q_online_AB hAB.1
 
   have := (on_circle_iff_length_eq hC.1 hp.2).mpr hC.2
   rw [this.symm] at hq
@@ -378,19 +378,19 @@ theorem same_length_B_of_ne_ge {a b c d : point} (a_ne_b : a ≠ b) (big : lengt
     rw [hq.2] at big
     simp at big
 
-  rw [hq.2.symm] at big
+  rw [hq.2] at big
 
-  have a_ne_p := (ne_12_of_B hp.1).symm
+  have a_ne_p := (ne_12_of_B (B_symm hp.1)).symm
 
   use p
-  refine' ⟨_, hq.2⟩
+  refine' ⟨_, hq.2.symm⟩
   have B3 := B_of_three_online_ne_short big a_ne_b a_ne_p b_ne_p hAB.1 hAB.2 p_online_AB
   cases B3 with
   | inl B3 =>
     exact B3
   | inr B3 =>
     exfalso
-    exact (not_B324_of_B123_B124 (B_symm hq.1) (B_symm hp.1)) B3
+    exact (not_B324_of_B123_B124 (B_symm hq.1) hp.1) B3
 
 
 /-- ## Euclid I.33

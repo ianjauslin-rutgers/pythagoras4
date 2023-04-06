@@ -58,7 +58,7 @@ lemma rescale_length {a b : point} {L : line} (n : ℕ)
 
     -- separate case n=1
     by_cases h_n_ne_1 : n=1
-    · obtain ⟨ e, he ⟩ := same_length_B_of_ne_four h_a_ne_b h_a_ne_b
+    · obtain ⟨ e, he ⟩ := length_eq_B_of_ne_four h_a_ne_b h_a_ne_b
       use e
       simp
       --simp only [Nat.cast_succ, algebra_map.coe_one]
@@ -79,7 +79,7 @@ lemma rescale_length {a b : point} {L : line} (n : ℕ)
       rw [hd.2.1]
       simp only [Nat.pos_of_ne_zero hnz, zero_lt_mul_left, Nat.cast_pos]
       exact len_pos_of_nq h_a_ne_b
-    obtain ⟨ e, he ⟩ := same_length_B_of_ne_four h_a_ne_d h_a_ne_b
+    obtain ⟨ e, he ⟩ := length_eq_B_of_ne_four h_a_ne_d h_a_ne_b
     use e
     rw [(length_sum_of_B he.1).symm, hd.2.1, he.2]
     simp only [Nat.cast_succ, ge_iff_le, Ne.def, and_imp]
@@ -917,7 +917,7 @@ lemma length_lt_of_length_lt {a b c d e f : point}
 
   have b_nonline_AC := not_online_of_not_colinear hAC.1 hAC.2 tri_abc
 
-  obtain ⟨g, hg⟩ := same_length_B_of_ne_le d_ne_f lineq
+  obtain ⟨g, hg⟩ := B_length_eq_of_ne_lt d_ne_f lineq
   have g_online_AC := online_2_of_B hg.1 hAC.1 hAC.2
   have g_nonline_BC : ¬ online g BC := by
     by_contra contra
@@ -1057,8 +1057,8 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
 
   have b_nonline_AC := not_online_of_not_colinear hAC.1 hAC.2 tri_abc
 
-  obtain ⟨g, hg⟩ := same_length_B_of_ne_le d_ne_f lineq
-  obtain ⟨h, hh⟩ := same_length_B_of_ne_le d_ne_e lineq2
+  obtain ⟨g, hg⟩ := B_length_eq_of_ne_lt d_ne_f lineq
+  obtain ⟨h, hh⟩ := B_length_eq_of_ne_lt d_ne_e lineq2
   obtain ⟨HG, hHG⟩ := line_of_pts h g
 
   have g_online_AC := online_2_of_B hg.1 hAC.1 hAC.2
