@@ -55,21 +55,30 @@ mathlib. To do so, `cd` to the project directory and run
 lake update
 ```
 
-You will also want to download a pre-compiled version of mathlib (or as close
-to it as you can get) to speed things up. This is done with
+## Cached oleans
+
+A pre-compiled version of mathlib is made available by the Mathlib community.
+You can download it by running
 
 ```bash
 lake exe cache get
 ```
 
-This will download the most up to date pre-compiled mathlib that is available.
-However, because we use nighly builds of lean4 and mathlib4, there will most
-likely not be fully up-to-date mathlib builds available, and the first time you
-open a lean file, you might have to wait a bit (a few minutes) while the files
-that are missing from the cache are updated. (You only need to wait once every
-time you update mathlib4 or lean4, so it's not so bad). You can also speed up
-this process by using an older nightly build, for instance,
-`nightly-2023-03-17`.
+However, this will only work if you are running the same version of lean as the
+one that was used to compile mathlib (otherwise the oleans are unusable, and
+your system will recompile all files). You can find out which nightly build of
+lean was used by the latest mathlib in the file
+<https://github.com/leanprover-community/mathlib4/blob/master/lean-toolchain>
+You can then install that toolchain by running
+
+```bash
+elan toolchain install <mathlib_nightly>
+elan default <mathlib_nightly>
+```
+
+in which you should replace `<mathlib_nightly>` with the contents of the file
+<https://github.com/leanprover-community/mathlib4/blob/master/lean-toolchain>
+
 
 ## Importing André's API
 
