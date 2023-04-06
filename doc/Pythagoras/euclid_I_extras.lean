@@ -3,7 +3,7 @@ variable [i: incidence_geometry]
 
 /-- find second point on line -/
 
-lemma pt_of_line_ne_pt {a : point} {L : line} (haL: online a L) :
+lemma pt_of_line_ne_pt (a : point) (L : line) :
     ∃ b : point, (b ≠ a) ∧ (online b L) 
 
 /-- intersection of non_parallel lines -/
