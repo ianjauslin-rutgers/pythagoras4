@@ -40,6 +40,12 @@
     "description": "Cases snippet"
   },
 
+  "By cases snippet": {
+    "prefix": "by_cases",
+    "body": ["by_cases ${1:h} : ${2:x} \n· \n· "],
+    "description": "By cases snippet"
+  },
+
   "Obtain snippet": {
     "prefix": "obtain",
     "body": ["obtain ⟨${1:x, hx}⟩ := $2,"],
