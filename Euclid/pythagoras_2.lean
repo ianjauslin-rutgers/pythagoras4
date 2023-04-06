@@ -2,7 +2,7 @@ import Euclid.euclid_VI
 
 open incidence_geometry
 
-variables [i: incidence_geometry] {a b c d e f g h j k l m n: i.point} {L M N O P Q: i.line}
+variable [i: incidence_geometry]
 
 /-- colinear API -/
 
@@ -78,20 +78,12 @@ theorem pythagorean_proof_two {a b c : point} (tri_abc : ¬ colinear a b c)
     (not_colinear_T (not_colinear_T tri_abc)) ang_c.symm ((ang_d.trans ang_a.symm).trans 
     (angle_symm b a c)))
   field_simp at ybba
-  rw [sq] at ybba xcca
+  rw [← sq] at ybba xcca
   rw [length_symm a c, length_symm a b, ← xcca, ← ybba, length_symm b c, ← right_distrib]
-  
-  
-  sorry
- --
-/-begin
-
-  rw ← sq at ybba xcca,
-  rw [length_symm a c, length_symm a b, ← xcca, ← ybba, length_symm b c, ← right_distrib],
-  have : length b d + length c d = length c b,
-  { convert length_sum_of_B Bbdc using 1,
-    congr' 1,
-    exact length_symm _ _,
-    exact length_symm _ _, },
-  rw [this, sq],  end-/
+  have : length b d + length c d = length c b := by
+    convert length_sum_of_B Bbdc using 1
+    congr 1
+    exact length_symm _ _
+    exact length_symm _ _
+  rw [this, sq]
 
