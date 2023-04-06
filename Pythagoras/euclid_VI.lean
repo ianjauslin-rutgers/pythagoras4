@@ -106,7 +106,7 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
     ∀ d:point, (online d L) → (length b d = n*(length b c)) → B b c d → area a b d = n*(area a b c) := by
   induction n with
   | zero =>
-    intros d hdL hlen hB
+    intros d _ hlen _
     simp
     simp at hlen
     --simp only [algebra_map.coe_one, zero_mul]

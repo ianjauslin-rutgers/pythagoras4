@@ -8,7 +8,7 @@ variable [i: incidence_geometry]
 
 
 /-- find second point on line -/
-lemma pt_of_line_ne_pt {a : point} {L : line} (haL: online a L) :
+lemma pt_of_line_ne_pt (a : point) (L : line):
     ∃ b : point, (b ≠ a) ∧ (online b L) := by
   obtain ⟨ b, c, hbc ⟩ := online_ne_of_line L
   by_cases b = a
@@ -99,7 +99,7 @@ theorem para_trans {L M N : line}
     have ss: sameside d a N ∨ sameside d b M := by tauto
 
     -- choose e on L so that it lies on the opposite side w.r.t. to O than a, b
-    obtain ⟨e0, e0d, -⟩ := pt_of_line_ne_pt hdL
+    obtain ⟨e0, e0d, -⟩ := pt_of_line_ne_pt d L
     obtain ⟨β, hβ⟩ := circle_of_ne e0d.symm
     have dβ := inside_circle_of_center hβ.1
     have βL := line_circle_inter_of_inside_online hdL dβ
@@ -225,7 +225,7 @@ lemma parallel_of_line_pt {a : point} {L : line}
     (haL: ¬ online a L) :
     ∃ M : line, (online a M) ∧ (para L M) := by
   obtain ⟨ b, hb ⟩ := online_of_line L
-  obtain ⟨ c, hc ⟩ := pt_of_line_ne_pt hb
+  obtain ⟨ c, hc ⟩ := pt_of_line_ne_pt b L
   have := drawpar hc.1 hc.2 hb haL
   obtain ⟨ throwaway,O,hO ⟩ := drawpar hc.1 hc.2 hb haL
   use O
