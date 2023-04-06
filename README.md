@@ -57,8 +57,10 @@ lake update
 
 ## Cached oleans
 
-A pre-compiled version of mathlib is made available by the Mathlib community.
-You can download it by running
+By default, lean will compile the files it needs to compile the project. This
+can be very time consuming. To make this process quicker, a pre-compiled
+version of mathlib is made available by the Mathlib community.  You can
+download it by running
 
 ```bash
 lake exe cache get
