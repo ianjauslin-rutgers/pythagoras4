@@ -10,7 +10,7 @@ variables [i: incidence_geometry]
 
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L 
 
-class ConvexPolygon := 
+structure ConvexPolygon := 
   (n : ℕ)
   (hn : n ≠ 0)
   (vertex : ZMod n → point)
@@ -112,9 +112,9 @@ def is_triangulation (T : Finset Triangle) (P : ConvexPolygon) :=
   -- termination is dictated by P.n
   termination_by is_triangulation T P => P.n
   decreasing_by
-    have := decreasing_ConvexPolygon_split_L P i j hij hijp hijm
-    have := decreasing_ConvexPolygon_split_R P i j hij hijp hijm
-    decreasing_tactic
+    simp_wf
+    try exact decreasing_ConvexPolygon_split_L P i j hij hijp hijm
+    try exact decreasing_ConvexPolygon_split_R P i j hij hijp hijm
 
 
 
