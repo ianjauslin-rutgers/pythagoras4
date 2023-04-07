@@ -106,15 +106,15 @@ def is_triangulation (T : Finset Triangle) (P : ConvexPolygon) :=
   | 2 => T = Finset.empty
   | 3 => T.card = 1 ∧ (∀ t ∈ T, triangle_eq_of_pts (P.vertex 0) (P.vertex 1) (P.vertex 2) t)
   | Nat.succ n => 
-    ∃ i j k : ZMod P.n, (hij: i≠j) → (hijm: i≠j-1) → (hijp: i≠j+1) → k≠i ∧ k≠j ∧ (triangle_in_set (P.vertex i) (P.vertex j) (P.vertex k) T)
+    ∃ i j k : ZMod P.n, ∃ h : i≠j ∧ (i≠j-1) ∧ (i≠j+1) ∧ k≠i ∧ k≠j,  (triangle_in_set (P.vertex i) (P.vertex j) (P.vertex k) T)
     ∧ is_triangulation (Finset.filter (fun t:Triangle => triangle_in_ConvexPolygon t (ConvexPolygon_split_L P i j)) T) (ConvexPolygon_split_L P i j)
     ∧ is_triangulation (Finset.filter (fun t:Triangle => triangle_in_ConvexPolygon t (ConvexPolygon_split_R P i j)) T) (ConvexPolygon_split_R P i j)
   -- termination is dictated by P.n
   termination_by is_triangulation T P => P.n
   decreasing_by
     simp_wf
-    try exact decreasing_ConvexPolygon_split_L P i j hij hijp hijm
-    try exact decreasing_ConvexPolygon_split_R P i j hij hijp hijm
+    try exact decreasing_ConvexPolygon_split_L P i j h.1 h.2.2.1 h.2.1
+    try exact decreasing_ConvexPolygon_split_R P i j h.1 h.2.2.1 h.2.1
 
 
 
