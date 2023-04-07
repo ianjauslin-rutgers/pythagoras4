@@ -5,6 +5,7 @@ lean-toolchain
 /lake-packages
 /lean_packages
 _cache
+.cache
 __pycache__
 all.lean
 *.depend
