@@ -167,19 +167,12 @@ lemma area_of_parallelogram {a b c d : point} {L M N O : line}
     area a b c + area a d c = 2*(area a b c)
     ∧ area b a d + area b c d = 2*(area a b c) := by
   constructor
-  have := (parasianar hbL haL hcN hdN hbM hcM haO hdO parLN parMO).2.2
-  permute [321] at this
-  rw [this.symm]
-  ring_nf
+  rw [← (parasianar hbL haL hcN hdN hbM hcM haO hdO parLN parMO).2.2]
+  permute then ring_nf
 
-  have := (parasianar haL hbL hdN hcN haO hdO hbM hcM parLN (para_symm parMO)).2.2
-  permute [321] at this
-  rw [this.symm]
-  ring_nf
-
-  permute [312, ←321]
-  field_simp
-  exact triarea hdN hcN hbL haL (para_symm parLN)
+  rw [←(parasianar haL hbL hdN hcN haO hdO hbM hcM parLN (para_symm parMO)).2.2]
+  have := (triarea hdN hcN hbL haL (para_symm parLN)).symm
+  permute [321] at this; rw [this]; permute then {permute then ring_nf}
 
 
 /-- non-degeneracy of triangle -/
@@ -554,7 +547,6 @@ theorem eq_area_of_eq_base {a b c d e f : point} {L M : line}
   permute [321] 2 at this
 
   rw [(area_of_parallelogram hbL hcL hK.2 hK.1 haM hg.1 hg.2.1 hg.2.2.1 pLM hg.2.2.2).2] at this
-  -- permute [312] at this
   rw [(area_of_parallelogram hN.1 hN.2 heL hfL hh.2.2.1 hh.2.1 hh.1 hdM hh.2.2.2 pLM).1] at this
   simp at this
   permute
@@ -585,10 +577,8 @@ theorem eq_area_of_eq_base_samevertex (a : point) {b c e f : point} {L : line}
   -- trivial case online a L
   by_cases h_a_nonline_L : online a L
   · have := (area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L
-    permute [231]
-    rw [this]
-    apply Eq.symm
-    have := (area_zero_iff_online h_e_ne_f heL hfL).mpr h_a_nonline_L
+    have : area a b c = 0 := by permute at this
+    rw [this, ← (area_zero_iff_online h_e_ne_f heL hfL).mpr h_a_nonline_L]
     permute
 
   obtain ⟨ M, hM ⟩ := parallel_of_line_pt h_a_nonline_L
@@ -605,8 +595,7 @@ theorem para_implies_eq_area_of_same_base {a b c d : point} {L M : line}
     (hdM: online d M)
     (pLM: para L M) :
     area a b c = area d b c := by
-  apply eq_area_of_eq_base haM hbL hcL hdM hbL hcL pLM
-  simp
+  apply eq_area_of_eq_base haM hbL hcL hdM hbL hcL pLM; rfl
 
 
 /-- area of a triangle cannot equal the area of its subtriangle -/
@@ -621,12 +610,13 @@ lemma tri_sum_contra {b c d e: point} {O : line}
     (hBbed: B b e d)
     (harea: area b c d = area e b c) :
     False := by
+  apply hncO _
+  apply (area_zero_iff_online de hdO heO).1 _
   have sum:= (area_add_iff_B bd de eb hbO hdO heO hncO).1 hBbed
   rw [harea] at sum
-  permute [213, 321] at sum
-  simp at sum
-  have hcO : online c O := (area_zero_iff_online de hdO heO).1 (by permute)
-  contradiction
+  have : area b e c = area e b c := by permute
+  rw [this] at sum; simp at sum
+  permute
 
 
   /-- ## Euclid I.39
@@ -666,11 +656,9 @@ lemma tri_sum_contra {b c d e: point} {O : line}
   -- contruct e as intersection of N and O
   rcases pt_of_line_line npNO with ⟨e, heN, heO⟩
 
-  have harea2: area a b c = area e b c := by
-    apply eq_area_of_eq_base haN hbL hcL heN hbL hcL pLN
-    rfl
-  rw [harea] at harea2
-  permute [231] at harea2
+  have harea2: area b c d = area e b c := by
+    have := eq_area_of_eq_base haN hbL hcL heN hbL hcL pLN (by rfl)
+    rw [harea] at this; permute
 
   have be := neq_of_para hbL heN pLN
   by_cases de: d = e
@@ -685,7 +673,6 @@ lemma tri_sum_contra {b c d e: point} {O : line}
   cases B_of_three_online_ne be bd de.symm hbO heO hdO with
   -- case B b e d
   | inl hBbed =>
-  -- cases B_of_three_online_ne be bd de.symm hbO heO hdO with hBbed hB
     exact tri_sum_contra hbO hdO heO hncO bd de be.symm hBbed harea2
 
   | inr hB =>
@@ -699,7 +686,5 @@ lemma tri_sum_contra {b c d e: point} {O : line}
 
   -- case B b d e
   | inr hBbde =>
-    permute [312] at harea2
-    have := harea2.symm
-    permute [231] at this
-    exact tri_sum_contra hbO heO hdO hncO be de.symm bd.symm hBbde this
+    apply tri_sum_contra hbO heO hdO hncO be de.symm bd.symm hBbde _
+    permute at harea2 then {rw [harea2]; permute}
