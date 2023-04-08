@@ -13,7 +13,7 @@ Usage (partially mimicking the `rw` syntax):
 - `permute [213] 2` performs the rewrite on the second summand of the goal
 - `permute [213] 2 at h` performs the rewrite on the second summand of h
  -/
-syntax "permute " "["? ("←"?num),* "]"? (num)? ("at" Lean.Parser.Tactic.locationHyp)? : tactic
+syntax "permute " "["? ("←"?num),* "]"? (num)? ("at" Lean.Parser.Tactic.locationHyp)? ("then" Lean.Parser.Tactic.tacticSeq)? : tactic
 
 macro_rules
 -- explicit versions
@@ -41,6 +41,15 @@ macro_rules
    permute [321]
   })
 
+  | `(tactic| permute then $t) => `(tactic|
+  {
+   permute [132]; try $t
+   permute [312]; try $t
+   permute [231]; try $t
+   permute [213]; try $t
+   permute [321]; try $t
+  })
+
   | `(tactic| permute at $h) => `(tactic|
   {
     -- TODO: rw of h, perhaps with Lean.Parser.Tactic.rwRule?
@@ -49,6 +58,16 @@ macro_rules
    permute [231] at $h
    permute [213] at $h
    permute [321] at $h
+  })
+
+  | `(tactic| permute at $h then $t) => `(tactic|
+  {
+    -- TODO: rw of h, perhaps with Lean.Parser.Tactic.rwRule?
+   permute [132] at $h; try $t
+   permute [312] at $h; try $t
+   permute [231] at $h; try $t
+   permute [213] at $h; try $t
+   permute [321] at $h; try $t
   })
 
 -- backwards and iterative versions
