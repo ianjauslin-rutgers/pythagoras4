@@ -1,5 +1,17 @@
 import SyntheticEuclid4
 open incidence_geometry
+variable [i: incidence_geometry]
+
+lemma ar132 {a b c : point} : area a b c = area a c b
+  := by exact (area_invariant a b c).2
+lemma ar312 {a b c : point} : area a b c = area c a b
+  := by exact (area_invariant a b c).1
+lemma ar231 {a b c : point} : area a b c = area b c a
+  := by rw [(area_invariant a b c).1]; rw [(area_invariant c a b).1]
+lemma ar213 {a b c : point} : area a b c = area b a c
+  := by rw [(area_invariant a b c).2]; rw [(area_invariant a c b).1]
+lemma ar321 {a b c : point} : area a b c = area c b a
+  := by rw [(area_invariant a b c).2]; rw [(area_invariant c b a).1]
 
 /-- ## Tactic permute
 A custom experimental tactic for rewriting the order of operands, currently only working for triangle areas.
@@ -17,19 +29,18 @@ syntax "permute " "["? ("←"?num),* "]"? (num)? ("at" Lean.Parser.Tactic.locati
 
 macro_rules
 -- explicit versions
-  | `(tactic| permute [132]) => `(tactic| try rw [(area_invariant _ _ _).2]; try assumption)
-  | `(tactic| permute [312]) => `(tactic| try rw [(area_invariant _ _ _).1]; try assumption)
-  | `(tactic| permute [231]) => `(tactic| permute [312]; permute [312])
-  | `(tactic| permute [213]) => `(tactic| permute [231]; permute [132])
-  | `(tactic| permute [321]) => `(tactic| permute [312]; permute [132])
-  -- TODO: what should be the behavior for the composite cases?
+  | `(tactic| permute [132]) => `(tactic| try rw [@ar132 _ _ _]; try assumption)
+  | `(tactic| permute [312]) => `(tactic| try rw [@ar312 _ _ _]; try assumption)
+  | `(tactic| permute [231]) => `(tactic| try rw [@ar231 _ _ _]; try assumption)
+  | `(tactic| permute [213]) => `(tactic| try rw [@ar213 _ _ _]; try assumption)
+  | `(tactic| permute [321]) => `(tactic| try rw [@ar321 _ _ _]; try assumption)
 
--- TODO: change the type of h and use exact instead of rwa
-  | `(tactic| permute [132] at $h) => `(tactic| try rw [(area_invariant _ _ _).2] at $h; try assumption)
-  | `(tactic| permute [312] at $h) => `(tactic| try rw [(area_invariant _ _ _).1] at $h; try assumption)
-  | `(tactic| permute [231] at $h) => `(tactic| permute [312] at $h; permute [312] at $h)
-  | `(tactic| permute [213] at $h) => `(tactic| permute [231] at $h; permute [132] at $h)
-  | `(tactic| permute [321] at $h) => `(tactic| permute [312] at $h; permute [132] at $h)
+-- TODO: generalize the type of h and use exact instead of assumption
+  | `(tactic| permute [132] at $h) => `(tactic| try rw [@ar132 _ _ _] at $h; try assumption)
+  | `(tactic| permute [312] at $h) => `(tactic| try rw [@ar312 _ _ _] at $h; try assumption)
+  | `(tactic| permute [231] at $h) => `(tactic| try rw [@ar231 _ _ _] at $h; try assumption)
+  | `(tactic| permute [213] at $h) => `(tactic| try rw [@ar213 _ _ _] at $h; try assumption)
+  | `(tactic| permute [321] at $h) => `(tactic| try rw [@ar321 _ _ _] at $h; try assumption)
 
 -- implicit versions
   | `(tactic| permute) => `(tactic|
