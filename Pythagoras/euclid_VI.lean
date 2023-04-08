@@ -597,9 +597,9 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
     exact proportion_area_of_proportion_base_samevertex e hbN hdN haN hdN hneN
   have hceae_by_prop_vi_i : proportion (length c e) (length a e) (area d c e) (area d a e) := by
    exact proportion_area_of_proportion_base_samevertex d hcO heO haO heO hndO
-  have ead_eq_dae : area e a d = area d a e := by permute [321]
-  have ebd_eq_bde : area e b d = area b d e := by permute [231]
-  have dce_eq_cde : area d c e = area c d e := by permute [213]
+  have ead_eq_dae : area e a d = area d a e := by permute
+  have ebd_eq_bde : area e b d = area b d e := by permute
+  have dce_eq_cde : area d c e = area c d e := by permute
   have len_ad_neq_0 : length a d ≠ 0 := by
     by_contra contra
     have h1 : a = d := by exact (length_eq_zero_iff.1 contra)
@@ -611,7 +611,7 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
   have area_ade_neq_0 : area a d e ≠ 0 := by
     by_contra contra
     exact hneN ((area_zero_iff_online ad haN hdN).1 contra)
-  have area_ead_neq_0 : area e a d ≠ 0 := by permute [231]; assumption
+  have area_ead_neq_0 : area e a d ≠ 0 := by permute
   have area_dae_neq_0 : area d a e ≠ 0 := by rwa [ead_eq_dae] at area_ead_neq_0
   have ratio_bd_ad := eq_ratio_of_proportion len_ad_neq_0 area_ead_neq_0 hbdad
   have ratio_ce_ae := eq_ratio_of_proportion len_ae_neq_0 area_dae_neq_0 hceae_by_prop_vi_i

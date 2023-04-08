@@ -152,14 +152,8 @@ lemma area_of_eq (a b c : point)
     exact degenerate_area b c
   | inr h =>
     cases h with
-    | inl ac =>
-      rw [ac]
-      permute [132]
-      exact degenerate_area c b
-    | inr bc =>
-      rw [bc]
-      permute [321]
-      exact degenerate_area c a
+    | inl ac => rw [ac, ←degenerate_area c b]; permute
+    | inr bc => rw [bc, ←degenerate_area c a]; permute
 
 
 /-- equivalent areas of paralellogram -/
@@ -563,8 +557,8 @@ theorem eq_area_of_eq_base {a b c d e f : point} {L M : line}
   -- permute [312] at this
   rw [(area_of_parallelogram hN.1 hN.2 heL hfL hh.2.2.1 hh.2.1 hh.1 hdM hh.2.2.2 pLM).1] at this
   simp at this
-  permute [231]
-  exact this
+  permute
+
 
 /-- ## Euclid I.38
 triangles which are on equal bases and in the same parallels equal one another (version where the vertex is the same for both triangles)
@@ -630,8 +624,8 @@ lemma tri_sum_contra {b c d e: point} {O : line}
   have sum:= (area_add_iff_B bd de eb hbO hdO heO hncO).1 hBbed
   rw [harea] at sum
   permute [213, 321] at sum
-  try simp at sum
-  have hcO := (area_zero_iff_online de hdO heO).1 (sum)
+  simp at sum
+  have hcO : online c O := (area_zero_iff_online de hdO heO).1 (by permute)
   contradiction
 
 
