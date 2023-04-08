@@ -408,9 +408,9 @@ theorem eq_of_parallelogram_of_eq_basis_of_diffside {a b c d e f g h: point} {L 
   have eq1 := parallelarea haL hdL hbM hcM heL hhL haK hbK hdN hcN hQ.1 hQ.2 hR.1 hR.2 parLM parKN parQR
 
   have eq2 := parallelarea hbM hcM heL hhL hfM hgM hQ.1 hQ.2 hR.1 hR.2 heO hfO hhP hgP (para_symm parLM) parQR parOP
-  permute [132] at eq2
   rw [add_comm] at eq2
-  permute [132] at eq2
+  have : area c h e + area e c b =  area c e h + area e b c := by permute 2
+  rw [this] at eq1
   rw [eq2] at eq1
 
   have arp := (area_of_parallelogram haL hdL hdN hcN hcM hbM hbK haK parLM (para_symm parKN)).1
@@ -422,14 +422,13 @@ theorem eq_of_parallelogram_of_eq_basis_of_diffside {a b c d e f g h: point} {L 
   rw [arp]
 
   have arp := (area_of_parallelogram haL hdL hdN hcN hcM hbM hbK haK parLM (para_symm parKN)).2
-  permute [321] at arp
-  permute [132] 2 at arp
-  rw [arp] at eq1
+  have : area b a d + area d b c = area d a b + area d c b:= by permute 2
+  rw [this, arp] at eq1
   rw [eq1]
 
   have arp := (area_of_parallelogram heL hhL hhP hgP hgM hfM hfO heO parLM (para_symm parOP)).2
-  permute [312] at arp
-  rw [arp.symm, add_comm]
+  rw [← arp, add_comm]
+  permute
 
   rw [Eq.symm (parasianar hfM hgM heL hhL hfO heO hgP hhP (para_symm parLM) parOP).1]
   rw [hlen.symm]
@@ -489,10 +488,9 @@ theorem eq_of_parallelogram_of_eq_basis {a b c d e f g h: point} {L M K N O P: l
     -- invert parallelogram
     rw [length_symm b c] at hlen
     have := eq_of_parallelogram_of_eq_basis_of_diffside hdL haL heL hhL hcM hbM hfM hgM hdN hcN haK hbK heO hfO hhP hgP parLM (para_symm parKN) parOP hlen hQ.1 hQ.2 (diffside_symm hside) h_b_ne_c.symm
-    permute [321] at this
-    permute [321] 2 at this
-    rw [add_comm] at this
-    rw [this.symm, (area_of_parallelogram haK hbK hbM hcM hcN hdN hdL haL parKN (para_symm parLM)).2]
+    rw [← this]
+    have : area b a d + area b c d = area d c b + area d a b := by rw [add_comm];permute 2
+    rw [← this, (area_of_parallelogram haK hbK hbM hcM hcN hdN hdL haL parKN (para_symm parLM)).2]
     rw [(area_of_parallelogram haK hbK hbM hcM hcN hdN hdL haL parKN (para_symm parLM)).1]
 
 /-- ## Euclid I.38

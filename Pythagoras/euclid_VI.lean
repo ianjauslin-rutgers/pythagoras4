@@ -141,8 +141,7 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
       have := ((area_add_iff_B h_b_ne_d h_c_ne_d.symm h_b_ne_c.symm hbL hdL hcL h_a_nonline_L).mp hB).symm
       permute [213] at this
       rw [this, Eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hcL hdL _)]
-      permute [312]
-      ring
+      permute then {permute then ring_nf}
 
       rw [h_n_ne_1, (length_sum_of_B hB).symm] at hlen
       --simp only [Nat.cast_succ, algebra_map.coe_one] at hlen
@@ -191,10 +190,8 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
     
     have := ((area_add_iff_B h_b_ne_d h_e_ne_d.symm h_b_ne_e.symm hbL hdL he.1 h_a_nonline_L).mp h_B_bed).symm
     permute [213] at this
-    rw [this]
-
-    rw [eq_area_of_eq_base_samevertex a hbL hcL he.1 hdL _]
-    permute [312]
+    rw [this, eq_area_of_eq_base_samevertex a hbL hcL he.1 hdL _]
+    permute
 
     have := length_sum_of_B h_B_bed
     rw [hlen, he.2.1] at this
@@ -351,10 +348,10 @@ lemma lt_area_of_lt_base__sameedge_Bbfc (a : point) {b c f: point} {L: line}
   intro
   have := (area_add_iff_B h_b_ne_c h_c_ne_f h_b_ne_f.symm hbL hcL hfL h_a_nonline_L).mp hB
   permute [213]
-  permute [312] at this
-  have := this.symm
-  rw [this]
-  simp only [gt_iff_lt, lt_add_iff_pos_right]
+  rw [← this]
+  permute [312]
+  simp only [lt_add_iff_pos_right]
+
   have : area a f c ≠ 0 := by
     by_contra contra
     permute [321] at contra

@@ -45,47 +45,59 @@ macro_rules
 -- implicit versions
   | `(tactic| permute) => `(tactic|
   {
-   permute [132]
-   permute [312]
-   permute [231]
-   permute [213]
-   permute [321]
+   try {permute [132]}
+   try {permute [312]}
+   try {permute [231]}
+   try {permute [213]}
+   try {permute [321]}
   })
 
   | `(tactic| permute then $t) => `(tactic|
   {
-   permute [132]; try $t
-   permute [312]; try $t
-   permute [231]; try $t
-   permute [213]; try $t
-   permute [321]; try $t
+   try {permute [132]; try $t}
+   try {permute [312]; try $t}
+   try {permute [231]; try $t}
+   try {permute [213]; try $t}
+   try {permute [321]; try $t}
   })
 
   | `(tactic| permute at $h) => `(tactic|
   {
     -- TODO: rw of h, perhaps with Lean.Parser.Tactic.rwRule?
-   permute [132] at $h
-   permute [312] at $h
-   permute [231] at $h
-   permute [213] at $h
-   permute [321] at $h
+   try {permute [132] at $h}
+   try {permute [312] at $h}
+   try {permute [231] at $h}
+   try {permute [213] at $h}
+   try {permute [321] at $h}
   })
 
   | `(tactic| permute at $h then $t) => `(tactic|
   {
     -- TODO: rw of h, perhaps with Lean.Parser.Tactic.rwRule?
-   permute [132] at $h; try $t
-   permute [312] at $h; try $t
-   permute [231] at $h; try $t
-   permute [213] at $h; try $t
-   permute [321] at $h; try $t
+   try {permute [132] at $h; try $t}
+   try {permute [312] at $h; try $t}
+   try {permute [231] at $h; try $t}
+   try {permute [213] at $h; try $t}
+   try {permute [321] at $h; try $t}
+  })
+
+-- subexpression versions
+  | `(tactic| permute [$a] $n) => `(tactic| conv => lhs; arg $n; tactic => permute [$a])
+  | `(tactic| permute [$a] 2 at $h) => `(tactic| rw [add_comm] at $h; permute [$a] at $h; try rw [add_comm] at $h)
+  -- TODO: generalize this by allowing h to be of type ident
+  | `(tactic| permute $n) => `(tactic|
+  {
+  -- TODO : recurse with n-1
+   try {permute [132] $n; try permute}
+   try {permute [312] $n; try permute}
+   try {permute [231] $n; try permute}
+   try {permute [213] $n; try permute}
+   try {permute [321] $n; try permute}
   })
 
 -- backwards and iterative versions
 -- TODO: ← should invoke the backwards rw instead; both should also have a h version
   | `(tactic| permute [←$a]) => `(tactic| apply Eq.symm; permute [$a]; try apply Eq.symm)
-  | `(tactic| permute [$a] 2) => `(tactic| rw [add_comm]; permute [$a]; try rw [add_comm])
-  | `(tactic| permute [$a] 2 at $h) => `(tactic| rw [add_comm] at $h; permute [$a] at $h; try rw [add_comm] at $h)
   | `(tactic| permute [$a, ←$b]) => `(tactic| permute [$a]; permute [←$b])
   | `(tactic| permute [←$a, $b]) => `(tactic| permute [←$a]; permute [$b])
   | `(tactic| permute [←$a, ←$b]) => `(tactic| permute [←$a]; permute [←$b])
