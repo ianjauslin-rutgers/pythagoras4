@@ -152,8 +152,8 @@ lemma area_of_eq (a b c : point)
     exact degenerate_area b c
   | inr h =>
     cases h with
-    | inl ac => rw [ac, ←degenerate_area c b]; permute
-    | inr bc => rw [bc, ←degenerate_area c a]; permute
+    | inl ac => rw [ac, ←degenerate_area c b]; perm
+    | inr bc => rw [bc, ←degenerate_area c a]; perm
 
 
 /-- equivalent areas of paralellogram -/
@@ -168,11 +168,11 @@ lemma area_of_parallelogram {a b c d : point} {L M N O : line}
     ∧ area b a d + area b c d = 2*(area a b c) := by
   constructor
   rw [← (parasianar hbL haL hcN hdN hbM hcM haO hdO parLN parMO).2.2]
-  permute then ring_nf
+  perm then ring_nf
 
   rw [←(parasianar haL hbL hdN hcN haO hdO hbM hcM parLN (para_symm parMO)).2.2]
   have := (triarea hdN hcN hbL haL (para_symm parLN)).symm
-  permute [321] at this; rw [this]; permute then {permute then ring_nf}
+  perm [321] at this; rw [this]; perm then {perm then ring_nf}
 
 
 /-- non-degeneracy of triangle -/
@@ -409,7 +409,7 @@ theorem eq_of_parallelogram_of_eq_basis_of_diffside {a b c d e f g h: point} {L 
 
   have eq2 := parallelarea hbM hcM heL hhL hfM hgM hQ.1 hQ.2 hR.1 hR.2 heO hfO hhP hgP (para_symm parLM) parQR parOP
   rw [add_comm] at eq2
-  have : area c h e + area e c b =  area c e h + area e b c := by permute 2
+  have : area c h e + area e c b =  area c e h + area e b c := by perm 2
   rw [this] at eq1
   rw [eq2] at eq1
 
@@ -422,13 +422,13 @@ theorem eq_of_parallelogram_of_eq_basis_of_diffside {a b c d e f g h: point} {L 
   rw [arp]
 
   have arp := (area_of_parallelogram haL hdL hdN hcN hcM hbM hbK haK parLM (para_symm parKN)).2
-  have : area b a d + area d b c = area d a b + area d c b:= by permute 2
+  have : area b a d + area d b c = area d a b + area d c b:= by perm 2
   rw [this, arp] at eq1
   rw [eq1]
 
   have arp := (area_of_parallelogram heL hhL hhP hgP hgM hfM hfO heO parLM (para_symm parOP)).2
   rw [← arp, add_comm]
-  permute
+  perm
 
   rw [Eq.symm (parasianar hfM hgM heL hhL hfO heO hgP hhP (para_symm parLM) parOP).1]
   rw [hlen.symm]
@@ -489,7 +489,7 @@ theorem eq_of_parallelogram_of_eq_basis {a b c d e f g h: point} {L M K N O P: l
     rw [length_symm b c] at hlen
     have := eq_of_parallelogram_of_eq_basis_of_diffside hdL haL heL hhL hcM hbM hfM hgM hdN hcN haK hbK heO hfO hhP hgP parLM (para_symm parKN) parOP hlen hQ.1 hQ.2 (diffside_symm hside) h_b_ne_c.symm
     rw [← this]
-    have : area b a d + area b c d = area d c b + area d a b := by rw [add_comm];permute 2
+    have : area b a d + area b c d = area d c b + area d a b := by rw [add_comm]; perm 2
     rw [← this, (area_of_parallelogram haK hbK hbM hcM hcN hdN hdL haL parKN (para_symm parLM)).2]
     rw [(area_of_parallelogram haK hbK hbM hcM hcN hdN hdL haL parKN (para_symm parLM)).1]
 
@@ -541,13 +541,13 @@ theorem eq_area_of_eq_base {a b c d e f : point} {L M : line}
     (para_symm pLM) (para_symm hg.2.2.2) hh.2.2.2
     hlen
 
-  permute [321] at this
-  permute [321] 2 at this
+  perm [321] at this
+  perm [321] 2 at this
 
   rw [(area_of_parallelogram hbL hcL hK.2 hK.1 haM hg.1 hg.2.1 hg.2.2.1 pLM hg.2.2.2).2] at this
   rw [(area_of_parallelogram hN.1 hN.2 heL hfL hh.2.2.1 hh.2.1 hh.1 hdM hh.2.2.2 pLM).1] at this
   simp at this
-  permute
+  perm
 
 
 /-- ## Euclid I.38
@@ -575,9 +575,9 @@ theorem eq_area_of_eq_base_samevertex (a : point) {b c e f : point} {L : line}
   -- trivial case online a L
   by_cases h_a_nonline_L : online a L
   · have := (area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L
-    have : area a b c = 0 := by permute at this
+    have : area a b c = 0 := by perm at this
     rw [this, ← (area_zero_iff_online h_e_ne_f heL hfL).mpr h_a_nonline_L]
-    permute
+    perm
 
   obtain ⟨ M, hM ⟩ := parallel_of_line_pt h_a_nonline_L
   exact eq_area_of_eq_base hM.1 hbL hcL hM.1 heL hfL hM.2 hlen
@@ -612,9 +612,9 @@ lemma tri_sum_contra {b c d e: point} {O : line}
   apply (area_zero_iff_online de hdO heO).1 _
   have sum:= (area_add_iff_B bd de eb hbO hdO heO hncO).1 hBbed
   rw [harea] at sum
-  have : area b e c = area e b c := by permute
+  have : area b e c = area e b c := by perm
   rw [this] at sum; simp at sum
-  permute
+  perm
 
 
   /-- ## Euclid I.39
@@ -656,7 +656,7 @@ lemma tri_sum_contra {b c d e: point} {O : line}
 
   have harea2: area b c d = area e b c := by
     have := eq_area_of_eq_base haN hbL hcL heN hbL hcL pLN (by rfl)
-    rw [harea] at this; permute
+    rw [harea] at this; perm
 
   have be := neq_of_para hbL heN pLN
   by_cases de: d = e
@@ -685,4 +685,4 @@ lemma tri_sum_contra {b c d e: point} {O : line}
   -- case B b d e
   | inr hBbde =>
     apply tri_sum_contra hbO heO hdO hncO be de.symm bd.symm hBbde _
-    permute at harea2 then {rw [harea2]; permute}
+    perm at harea2 then {rw [harea2]; perm}
