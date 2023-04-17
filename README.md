@@ -31,6 +31,13 @@ with the line
 leanprover/lean4:nightly
 ```
 
+A nice trick to avoid having a version of lean that clashes with mathlib is to
+link the mathlib `lean-toolchain` file:
+
+```bash
+ln -s lake-packages/mathlib/lean-toolchain ./
+```
+
 ## Setting up the project
 
 Authorization is needed to contribute to this project. If you are having
@@ -80,6 +87,13 @@ elan default <mathlib_nightly>
 
 in which you should replace `<mathlib_nightly>` with the contents of the file
 <https://github.com/leanprover-community/mathlib4/blob/master/lean-toolchain>
+
+An easier approach is to link the mathlib `lean-toolchain` file:
+
+```bash
+ln -s lake-packages/mathlib/lean-toolchain ./
+```
+which will ensure that your version of lean is the same as mathlib's.
 
 
 ## Importing André's API
