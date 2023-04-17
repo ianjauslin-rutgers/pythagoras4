@@ -195,6 +195,7 @@ lemma area_of_parallelogram {a b c d : point} {L M N O : line}
   rw [area_invariant_321] at this
   rw [this.symm]
   ring_nf
+  exact trivial
 
   have := (parasianar haL hbL hdN hcN haO hdO hbM hcM parLN (para_symm parMO)).2.2
   rw [area_invariant_321] at this
@@ -637,12 +638,13 @@ lemma tri_sum_contra {b c d e: point} {O : line}
     (hBbed: B b e d)
     (harea: area b c d = area e b c) :
     False := by
-  have sum:= (area_add_iff_B bd de eb hbO hdO heO hncO).1 hBbed
-  have bec_eq_ebc : area b e c = area e b c := by
-    rw [(area_invariant b e c).2, (area_invariant b c e).1]
-  have ced_eq_dec : area c e d = area d e c:= by
-    rw [(area_invariant c e d).1,(area_invariant d e c).2]
-  rw [harea, bec_eq_ebc, ced_eq_dec] at sum
+  have sum:= (area_add_iff_B eb.symm de.symm bd.symm hbO heO hdO hncO).1 hBbed
+  have cbe_eq_ebc : area c b e = area e b c := by
+    rw [area_invariant_321]
+  have cde_eq_dec : area c d e = area d e c:= by
+    rw [area_invariant_231]
+  rw [area_invariant_213] at harea
+  rw [harea, cbe_eq_ebc, cde_eq_dec] at sum
   simp at sum
   have hcO := (area_zero_iff_online de hdO heO).1 (sum)
   exact hncO hcO

@@ -138,10 +138,9 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
       simp
       ring_nf
 
-      have := (area_add_iff_B h_b_ne_d h_c_ne_d.symm h_b_ne_c.symm hbL hdL hcL h_a_nonline_L).mp hB
-      rw [(@area_invariant_213 i b a d)] at this
+      have := (area_add_iff_B h_b_ne_c h_c_ne_d h_b_ne_d.symm hbL hcL hdL h_a_nonline_L).mp hB
       rw [this.symm]
-      rw [(area_invariant b c a).1]
+      rw [(area_invariant a d c).2]
       rw [Eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hcL hdL _)]
       ring
 
@@ -190,12 +189,12 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
       have : ↑n < ↑n+1 := by simp
       linarith [len_pos_of_nq h_b_ne_c]
     
-    have := (area_add_iff_B h_b_ne_d h_e_ne_d.symm h_b_ne_e.symm hbL hdL he.1 h_a_nonline_L).mp h_B_bed
-    rw [@area_invariant_213 i b a d] at this
+    have := (area_add_iff_B h_b_ne_e h_e_ne_d h_b_ne_d.symm hbL he.1 hdL h_a_nonline_L).mp h_B_bed
     rw [this.symm]
 
     have' := eq_area_of_eq_base_samevertex a hbL hcL he.1 hdL _
-    rw [this, @area_invariant_312 i b e a]
+    rw [@area_invariant_132 i a e d] at this
+    rw [this]
 
     have := length_sum_of_B h_B_bed
     rw [hlen, he.2.1] at this
@@ -351,11 +350,10 @@ lemma lt_area_of_lt_base__sameedge_Bbfc (a : point) {b c f: point} {L: line}
     (h_a_nonline_L: ¬ online a L) :
     (length b c)>(length b f) → (area a b c)>(area a b f) := by
   intro
-  have := (area_add_iff_B h_b_ne_c h_c_ne_f h_b_ne_f.symm hbL hcL hfL h_a_nonline_L).mp hB
-  rw [@area_invariant_213 i a b c]
-  rw [@area_invariant_231 i a b f]
+  have := (area_add_iff_B h_b_ne_f h_c_ne_f.symm h_b_ne_c.symm hbL hfL hcL h_a_nonline_L).mp hB
   rw [this.symm]
   simp only [gt_iff_lt, lt_add_iff_pos_right]
+  rw [area_invariant_132]
   have : area a f c ≠ 0 := by
     by_contra contra
     rw [area_invariant_321] at contra
@@ -967,11 +965,11 @@ lemma length_lt_of_length_lt {a b c d e f : point}
     have' := parallel_of_similar hAB.1 h_online_AB hAB.2 hAC.1 g_online_AC hAC.2 hHG.1 hHG.2 hBC.1 hBC.2 (ne_23_of_B hh.1).symm (ne_13_of_B hh.1) (ne_12_of_B hg.1) h_ne_g b_ne_c a_ne_c h_nonline_AC ang_b_eq_h.2.2.symm hh.1 _
 
     have ss1 := sameside_of_online_online_para hHG.1 hHG.2 this
-    have ss2 := sameside23_of_B123_online1_not_online2 (B_symm hg.1) hBC.2 g_nonline_BC
+    have ss2 := sameside_of_B_not_online_2 (B_symm hg.1) hBC.2 g_nonline_BC
     have := sameside_trans (sameside_symm ss1) ss2
     exact (not_sameside13_of_B123_online2 hh.1 hBC.1) (sameside_symm this)
 
-    exact sameside_symm (sameside23_of_B123_online1_not_online2 hg.1 hAB.1 g_nonline_AB)
+    exact sameside_symm (sameside_of_B_not_online_2 hg.1 hAB.1 g_nonline_AB)
 
   | inr contra =>
     obtain ⟨DF, hDF⟩ := line_of_pts d f
@@ -1093,7 +1091,7 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
   rw [ang_b_eq_e.symm] at ang_b_eq_h
   exact ang_b_eq_h.2.2
 
-  refine' sameside23_of_B123_online1_not_online2 hg.1 hAB.1 _
+  refine' sameside_of_B_not_online_2 hg.1 hAB.1 _
   by_contra contra
   have := line_unique_of_pts (ne_12_of_B hg.1) hAB.1 contra hAC.1 g_online_AC
   rw [this] at hAB
