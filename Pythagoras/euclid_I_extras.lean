@@ -56,7 +56,7 @@ theorem para_trans {L M N : line}
   simp only [not_or] at npMN
   rcases pt_of_line_line npMN.2 with ⟨c, hcM, hcN⟩
   have hncL := online_of_online_para hcN (para_symm pLN)
-  rcases perppointnon hncL with ⟨-, d, -, -, hdL, -, -, -, -⟩
+  rcases perpendicular_of_not_online hncL with ⟨-, -, d, -, -, -, hdL, -, -⟩
   obtain ⟨O, hcO, hdO⟩ := line_of_pts c d
   have cd : c ≠ d := neq_of_para hcM hdL (para_symm pLM)
   have hLO : L ≠ O := fun LO => hncL (by rwa [← LO] at hcO)
