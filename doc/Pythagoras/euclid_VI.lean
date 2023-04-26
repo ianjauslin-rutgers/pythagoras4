@@ -193,6 +193,10 @@ lemma neq_23_of_not_colinear {a b c : point} (h: ¬ colinear a b c) :
 lemma not_online_of_not_colinear {a b c : point} {L : line} (haL: online a L) (hbL : online b L) (h: ¬ colinear a b c) :
     ¬ online c L 
 
+/-- technical lemma: can always find a point beyond two points -/
+lemma pt_extension_of_ne {b c : point} :
+    b ≠ c → ∃ a : point, B b c a 
+
 /-- similar triangles (should follow from Euclid VI.2) -/
 -- show resulting lines are parallel
 lemma parallel_of_similar {a b c g h : point} {AB AC BC HG: line}

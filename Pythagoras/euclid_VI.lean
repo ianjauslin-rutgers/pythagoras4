@@ -744,6 +744,13 @@ lemma not_online_of_not_colinear {a b c : point} {L : line} (haL: online a L) (h
   simp only [not_exists, not_and] at h
   exact h L haL hbL
     
+/-- technical lemma: can always find a point beyond two points -/
+lemma pt_extension_of_ne {b c : point} :
+    b ≠ c → ∃ a : point, B b c a := by
+  intro hbc
+  obtain ⟨ a, ha ⟩ := length_eq_B_of_ne hbc hbc.symm
+  use a
+  exact ha.1
 
 /-- similar triangles (should follow from Euclid VI.2) -/
 -- show resulting lines are parallel
