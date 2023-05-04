@@ -41,8 +41,7 @@ lemma rescale_length {a b : point} {L : line} (n : ℕ)
   | zero =>
     use a
     rw [length_eq_zero_iff.mpr]
-    simp
-    --simp only [algebra_map.coe_zero, zero_mul, eq_self_iff_true, ge_iff_le, le_zero_iff, bit0_eq_zero, nat.one_ne_zero, false_and, is_empty.forall_iff, and_true]
+    simp only [Nat.zero_eq, Nat.cast_zero, zero_mul, ne_eq, false_and, IsEmpty.forall_iff, and_self, and_true]
     exact haL
     simp only [eq_self_iff_true]
 
@@ -53,19 +52,16 @@ lemma rescale_length {a b : point} {L : line} (n : ℕ)
       constructor
       exact hbL
       rw [hnz]
-      --simp only [algebra_map.coe_one, one_mul, eq_self_iff_true, ge_iff_le, ne.def, and_imp, true_and]
-      simp
+      simp only [Nat.cast_succ, Nat.cast_zero, zero_add, one_mul, ne_eq, false_and, IsEmpty.forall_iff, and_self]
 
     -- separate case n=1
     by_cases h_n_ne_1 : n=1
     · obtain ⟨ e, he ⟩ := length_eq_B_of_ne_four h_a_ne_b h_a_ne_b
       use e
-      simp
-      --simp only [Nat.cast_succ, algebra_map.coe_one]
+      simp only [Nat.cast_succ, ge_iff_le, ne_eq, and_imp]
       rw [(length_sum_of_B he.1).symm,he.2, h_n_ne_1]
-      --simp only [nat.cast_succ, algebra_map.coe_one]
       ring_nf
-      simp
+      simp only [forall_true_left, true_and]
 
       constructor
       exact online_3_of_B he.1 haL hbL
@@ -106,10 +102,8 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
   induction n with
   | zero =>
     intros d _ hlen _
-    simp
-    simp at hlen
-    --simp only [algebra_map.coe_one, zero_mul]
-    --simp only [algebra_map.coe_one, zero_mul] at hlen
+    simp only [Nat.zero_eq, Nat.cast_zero, zero_mul]
+    simp only [Nat.zero_eq, Nat.cast_zero, zero_mul] at hlen
     rw [length_eq_zero_iff.mp hlen]
     rw [area_of_eq a d d _]
     tauto
@@ -125,8 +119,7 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
     by_cases h_n_ne_0 : n = 0
     · exfalso
       rw [h_n_ne_0] at hlen
-      --simp only [algebra_map.coe_one, one_mul] at hlen
-      simp at hlen
+      simp only [Nat.cast_succ, Nat.cast_zero, zero_add, one_mul] at hlen
       rw [Eq.symm (length_sum_of_B hB)] at hlen
       simp only [add_right_eq_self] at hlen
       exact h_c_ne_d (length_eq_zero_iff.mp hlen)
@@ -134,8 +127,7 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
     -- special case: n=1
     by_cases h_n_ne_1 : n = 1
     · rw [h_n_ne_1]
-      --simp only [Nat.cast_succ, algebra_map.coe_one]
-      simp
+      simp only [Nat.cast_succ, Nat.cast_one]
       ring_nf
 
       have := (area_add_iff_B h_b_ne_c h_c_ne_d h_b_ne_d.symm hbL hcL hdL h_a_nonline_L).mp hB
@@ -145,10 +137,9 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
       ring
 
       rw [h_n_ne_1, (length_sum_of_B hB).symm] at hlen
-      --simp only [Nat.cast_succ, algebra_map.coe_one] at hlen
-      simp at hlen
+      simp only [Nat.cast_succ, Nat.cast_one] at hlen
       rw [add_mul] at hlen
-      simp only [one_mul, add_right_inj] at hlen
+      simp only [Nat.cast_zero, zero_add, one_mul, add_right_inj] at hlen
       exact hlen.symm
 
     -- split off n+1'st bit
@@ -230,10 +221,8 @@ lemma rescale_triangle_of_base__notcbd (a : point) {b c d : point} {L : line} {n
   by_cases h_n_ne_1 : n=1
   · rw [h_n_ne_1] at hlen
     rw [h_n_ne_1]
-    --simp only [algebra_map.coe_one, one_mul] at hlen
-    --simp only [algebra_map.coe_one, one_mul]
-    simp at hlen
-    simp
+    simp only [Nat.cast_one, one_mul] at hlen
+    simp only [Nat.cast_one, one_mul]
     exact Eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hbL hdL hlen.symm)
 
   have h_c_ne_d: c ≠ d := by
@@ -280,13 +269,11 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
   -- trivial case: n=0
   by_cases h_n_ne_0 : n=0
   · rw [h_n_ne_0]
-    --simp only [algebra_map.coe_zero, zero_mul]
-    simp
+    simp only [Nat.cast_zero, zero_mul]
     rw [area_of_eq a b d _]
     repeat right
     rw [h_n_ne_0] at hlen
-    --simp only [algebra_map.coe_zero, zero_mul] at hlen
-    simp at hlen
+    simp only [Nat.cast_zero, zero_mul] at hlen
     exact length_eq_zero_iff.mp hlen
 
   have h_b_ne_d: b ≠ d := by

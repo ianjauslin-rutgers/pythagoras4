@@ -128,14 +128,14 @@ theorem para_trans {L M N : line}
       | inl ssdaN =>
         have sum := (angle_add_iff_sameside bc.symm cd hcN hbN hcO hdO hnaO hnaN hNO).2 ⟨sameside_symm ssabO, ssdaN⟩
         rw [acd, bcd] at sum
-        simp at sum
+        simp only [self_eq_add_left] at sum
         exact hnaN ((angle_zero_iff_online bc.symm ac.symm hcN hbN).2 sum).1
 
       | inr ssdbM =>
       -- sameside d b M
         have sum := (angle_add_iff_sameside ac.symm cd hcM haM hcO hdO hnbO hnbM hMO).2 ⟨ssabO, ssdbM⟩
         rw [acd, bcd] at sum
-        simp at sum
+        simp only [self_eq_add_left] at sum
         exact hnbM ((angle_zero_iff_online ac.symm bc.symm hcM haM).2 sum).1
     }
   }
@@ -377,7 +377,7 @@ theorem same_length_B_of_ne_ge {a b c d : point} (a_ne_b : a ≠ b) (big : lengt
     rw [contra.symm] at hq
     rw [contra] at hq big
     rw [hq.2] at big
-    simp at big
+    simp only [lt_self_iff_false] at big
 
   rw [hq.2] at big
 
@@ -575,7 +575,7 @@ theorem eq_area_of_eq_base {a b c d e f : point} {L M : line}
   rw [(area_of_parallelogram hbL hcL hK.2 hK.1 haM hg.1 hg.2.1 hg.2.2.1 pLM hg.2.2.2).2] at this
   rw [(area_invariant b c a).1] at this
   rw [(area_of_parallelogram hN.1 hN.2 heL hfL hh.2.2.1 hh.2.1 hh.1 hdM hh.2.2.2 pLM).1] at this
-  simp at this
+  simp only [mul_eq_mul_left_iff, OfNat.ofNat_ne_zero, or_false] at this
   exact this
 
 
@@ -623,7 +623,7 @@ theorem para_implies_eq_area_of_same_base {a b c d : point} {L M : line}
     (pLM: para L M) :
     area a b c = area d b c := by
   apply eq_area_of_eq_base haM hbL hcL hdM hbL hcL pLM
-  simp
+  tauto
 
 
 /-- area of a triangle cannot equal the area of its subtriangle -/
@@ -645,7 +645,7 @@ lemma tri_sum_contra {b c d e: point} {O : line}
     rw [area_invariant_231]
   rw [area_invariant_213] at harea
   rw [harea, cbe_eq_ebc, cde_eq_dec] at sum
-  simp at sum
+  simp only [add_right_eq_self] at sum
   have hcO := (area_zero_iff_online de hdO heO).1 (sum)
   exact hncO hcO
 
