@@ -33,17 +33,17 @@ lemma rescale_length {a b : point} {L : line} (n : ℕ)
   · use a
     rw [h_a_ne_b.symm]
     rw [length_eq_zero_iff.mpr,mul_zero]
-    simp only [eq_self_iff_true, Ne.def, not_true, and_false, IsEmpty.forall_iff, and_true]
+    simp [eq_self_iff_true, Ne.def, not_true, and_false, IsEmpty.forall_iff, and_true]
     exact haL
-    simp only [eq_self_iff_true]
+    simp [eq_self_iff_true]
 
   induction n with
   | zero =>
     use a
     rw [length_eq_zero_iff.mpr]
-    simp only [Nat.zero_eq, Nat.cast_zero, zero_mul, ne_eq, false_and, IsEmpty.forall_iff, and_self, and_true]
+    simp [Nat.zero_eq, Nat.cast_zero, zero_mul, ne_eq, false_and, IsEmpty.forall_iff, and_self, and_true]
     exact haL
-    simp only [eq_self_iff_true]
+    simp [eq_self_iff_true]
 
   | succ n hn =>
     -- trivial case: n=0
@@ -52,16 +52,16 @@ lemma rescale_length {a b : point} {L : line} (n : ℕ)
       constructor
       exact hbL
       rw [hnz]
-      simp only [Nat.cast_succ, Nat.cast_zero, zero_add, one_mul, ne_eq, false_and, IsEmpty.forall_iff, and_self]
+      simp [Nat.cast_succ, Nat.cast_zero, zero_add, one_mul, ne_eq, false_and, IsEmpty.forall_iff, and_self]
 
     -- separate case n=1
     by_cases h_n_ne_1 : n=1
     · obtain ⟨ e, he ⟩ := length_eq_B_of_ne_four h_a_ne_b h_a_ne_b
       use e
-      simp only [Nat.cast_succ, ge_iff_le, ne_eq, and_imp]
+      simp [Nat.cast_succ, ge_iff_le, ne_eq, and_imp]
       rw [(length_sum_of_B he.1).symm,he.2, h_n_ne_1]
       ring_nf
-      simp only [forall_true_left, true_and]
+      simp [forall_true_left, true_and]
 
       constructor
       exact online_3_of_B he.1 haL hbL
@@ -73,14 +73,14 @@ lemma rescale_length {a b : point} {L : line} (n : ℕ)
     have h_a_ne_d : a ≠ d := by
       convert nq_of_len_pos _
       rw [hd.2.1]
-      simp only [Nat.pos_of_ne_zero hnz, zero_lt_mul_left, Nat.cast_pos]
+      simp [Nat.pos_of_ne_zero hnz, zero_lt_mul_left, Nat.cast_pos]
       exact len_pos_of_nq h_a_ne_b
     obtain ⟨ e, he ⟩ := length_eq_B_of_ne_four h_a_ne_d h_a_ne_b
     use e
     rw [(length_sum_of_B he.1).symm, hd.2.1, he.2]
-    simp only [Nat.cast_succ, ge_iff_le, Ne.def, and_imp]
+    simp [Nat.cast_succ, ge_iff_le, Ne.def, and_imp]
     ring_nf
-    simp only [eq_self_iff_true, true_and]
+    simp [eq_self_iff_true, true_and]
 
     constructor
     exact online_3_of_B he.1 haL hd.1
@@ -102,8 +102,8 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
   induction n with
   | zero =>
     intros d _ hlen _
-    simp only [Nat.zero_eq, Nat.cast_zero, zero_mul]
-    simp only [Nat.zero_eq, Nat.cast_zero, zero_mul] at hlen
+    simp [Nat.zero_eq, Nat.cast_zero, zero_mul]
+    simp [Nat.zero_eq, Nat.cast_zero, zero_mul] at hlen
     rw [length_eq_zero_iff.mp hlen]
     rw [area_of_eq a d d _]
     tauto
@@ -119,15 +119,15 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
     by_cases h_n_ne_0 : n = 0
     · exfalso
       rw [h_n_ne_0] at hlen
-      simp only [Nat.cast_succ, Nat.cast_zero, zero_add, one_mul] at hlen
+      simp [Nat.cast_succ, Nat.cast_zero, zero_add, one_mul] at hlen
       rw [Eq.symm (length_sum_of_B hB)] at hlen
-      simp only [add_right_eq_self] at hlen
+      simp [add_right_eq_self] at hlen
       exact h_c_ne_d (length_eq_zero_iff.mp hlen)
 
     -- special case: n=1
     by_cases h_n_ne_1 : n = 1
     · rw [h_n_ne_1]
-      simp only [Nat.cast_succ, Nat.cast_one]
+      simp [Nat.cast_succ, Nat.cast_one]
       ring_nf
 
       have := (area_add_iff_B h_b_ne_c h_c_ne_d h_b_ne_d.symm hbL hcL hdL h_a_nonline_L).mp hB
@@ -137,15 +137,15 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
       ring
 
       rw [h_n_ne_1, (length_sum_of_B hB).symm] at hlen
-      simp only [Nat.cast_succ, Nat.cast_one] at hlen
+      simp [Nat.cast_succ, Nat.cast_one] at hlen
       rw [add_mul] at hlen
-      simp only [Nat.cast_zero, zero_add, one_mul, add_right_inj] at hlen
+      simp [Nat.cast_zero, zero_add, one_mul, add_right_inj] at hlen
       exact hlen.symm
 
     -- split off n+1'st bit
-    simp only [Nat.cast_succ]
+    simp [Nat.cast_succ]
     rw [add_mul]
-    simp only [one_mul]
+    simp [one_mul]
 
     -- construct n-triangle
     obtain ⟨ e, he ⟩ := rescale_length n hbL hcL
@@ -158,7 +158,7 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
       have := he.2.1
       rw [contra] at this
       have := Eq.trans this.symm hlen
-      simp only [Nat.cast_succ, mul_eq_mul_right_iff, self_eq_add_right, one_ne_zero, false_or] at this
+      simp [Nat.cast_succ, mul_eq_mul_right_iff, self_eq_add_right, one_ne_zero, false_or] at this
       exact h_b_ne_c (length_eq_zero_iff.mp this)
 
     -- split abd
@@ -176,7 +176,7 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
         exact h1 this
 
       rw [he.2.1,hlen]
-      simp only [Nat.cast_succ]
+      simp [Nat.cast_succ]
       have : ↑n < ↑n+1 := by simp
       linarith [len_pos_of_nq h_b_ne_c]
     
@@ -189,9 +189,9 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
 
     have := length_sum_of_B h_B_bed
     rw [hlen, he.2.1] at this
-    simp only [Nat.cast_succ] at this
+    simp [Nat.cast_succ] at this
     rw [add_mul] at this
-    simp only [one_mul, add_right_inj] at this
+    simp [one_mul, add_right_inj] at this
     exact this.symm
 
 -- lemma with B b c d as a hypothesis
@@ -221,8 +221,8 @@ lemma rescale_triangle_of_base__notcbd (a : point) {b c d : point} {L : line} {n
   by_cases h_n_ne_1 : n=1
   · rw [h_n_ne_1] at hlen
     rw [h_n_ne_1]
-    simp only [Nat.cast_one, one_mul] at hlen
-    simp only [Nat.cast_one, one_mul]
+    simp [Nat.cast_one, one_mul] at hlen
+    simp [Nat.cast_one, one_mul]
     exact Eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hbL hdL hlen.symm)
 
   have h_c_ne_d: c ≠ d := by
@@ -258,29 +258,29 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
   by_cases h_b_ne_c : b=c
   · rw [(area_of_eq a b d _)]
     rw [(area_of_eq a b c _)]
-    simp only [mul_zero]
+    simp [mul_zero]
     repeat right
     exact h_b_ne_c
     repeat right
     rw [length_eq_zero_iff.mpr h_b_ne_c] at hlen
-    simp only [mul_zero] at hlen
+    simp [mul_zero] at hlen
     exact length_eq_zero_iff.mp hlen
 
   -- trivial case: n=0
   by_cases h_n_ne_0 : n=0
   · rw [h_n_ne_0]
-    simp only [Nat.cast_zero, zero_mul]
+    simp [Nat.cast_zero, zero_mul]
     rw [area_of_eq a b d _]
     repeat right
     rw [h_n_ne_0] at hlen
-    simp only [Nat.cast_zero, zero_mul] at hlen
+    simp [Nat.cast_zero, zero_mul] at hlen
     exact length_eq_zero_iff.mp hlen
 
   have h_b_ne_d: b ≠ d := by
     by_contra contra
     have := length_eq_zero_iff.mpr contra
     rw [this] at hlen
-    simp only [zero_eq_mul, Nat.cast_eq_zero] at hlen
+    simp [zero_eq_mul, Nat.cast_eq_zero] at hlen
     cases hlen with
     | inl hlen =>
       exact h_n_ne_0 hlen
@@ -292,7 +292,7 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
   · have := (area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L
     rw [(area_invariant b c a).1] at this
     rw [this]
-    simp only [mul_zero]
+    simp [mul_zero]
     have := (area_zero_iff_online h_b_ne_d hbL hdL).mpr h_a_nonline_L
     rw [(area_invariant b d a).1] at this
     rw [this]
@@ -303,7 +303,7 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
     have h_B_cbe : B c b e := by
       have : 2 ≥ 2 ∧ c ≠ b := by
         constructor
-        simp only [ge_iff_le]
+        simp [ge_iff_le]
         rw [(Ne.def b c).symm] at h_b_ne_c
         exact h_b_ne_c.symm
       exact  he.2.2 this
@@ -339,7 +339,7 @@ lemma lt_area_of_lt_base__sameedge_Bbfc (a : point) {b c f: point} {L: line}
   intro
   have := (area_add_iff_B h_b_ne_f h_c_ne_f.symm h_b_ne_c.symm hbL hfL hcL h_a_nonline_L).mp hB
   rw [this.symm]
-  simp only [gt_iff_lt, lt_add_iff_pos_right]
+  simp [gt_iff_lt, lt_add_iff_pos_right]
   rw [area_invariant_132]
   have : area a f c ≠ 0 := by
     by_contra contra
@@ -359,12 +359,12 @@ lemma lt_area_of_lt_base__sameedge_nBfbc (a : point) {b c f: point} {L: line}
     (hB: ¬ B f b c) :
     (length b c)>(length b f) → (area a b c)>(area a b f) := by
   intro hlen
-  simp only [gt_iff_lt] at hlen
+  simp [gt_iff_lt] at hlen
 
   have h_c_ne_f: c ≠ f := by
     by_contra contra
     rw [contra] at hlen
-    simp only [gt_iff_lt, lt_self_iff_false] at hlen
+    simp [gt_iff_lt, lt_self_iff_false] at hlen
 
   have := B_of_three_online_ne_short hlen h_b_ne_f h_b_ne_c h_c_ne_f.symm hbL hfL hcL
 
@@ -389,7 +389,7 @@ lemma lt_area_of_lt_base__sameedge (a : point) {b c f: point} {L: line}
   by_cases hB: B f b c
     -- reflect f about b
   · obtain ⟨ e, he ⟩ := rescale_length 2 hfL hbL
-    have : 2 ≥ 2 := by simp only [ge_iff_le]
+    have : 2 ≥ 2 := by simp [ge_iff_le]
     have h_B_fbe := he.2.2 ⟨ this, h_b_ne_f.symm ⟩
     have lbe : length b e = length b f := by
       have := length_sum_of_B h_B_fbe
@@ -424,12 +424,12 @@ lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
     rw [(length_eq_zero_iff.mpr contra)] at hlen
     exact (not_le_of_gt hlen) (length_nonneg e f)
 
-  have h_a_nonline_L := online_of_online_para haM (para_symm hpar)
-  have h_d_nonline_L := online_of_online_para hdM (para_symm hpar)
+  have h_a_nonline_L := offline_of_para haM (para_symm hpar)
+  have h_d_nonline_L := offline_of_para hdM (para_symm hpar)
 
   -- trivial case: e=f
   by_cases h_e_ne_f: e=f
-  · simp only [gt_iff_lt]
+  · simp [gt_iff_lt]
     rw [area_of_eq d e f _]
     have := (area_zero_iff_online h_b_ne_c hbL hcL).not.mpr h_a_nonline_L
     rw [(area_invariant b c a).1] at this
@@ -438,11 +438,17 @@ lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
     exact h_e_ne_f
 
   -- construct parallelogram from d e f
-  obtain ⟨ O, hO ⟩ := line_of_pts d e
-  have := not_online_of_triangle hO.1 hO.2 heL hfL h_d_nonline_L h_e_ne_f
-  obtain ⟨ g, N, hg ⟩ := parallel_projection hfL hpar (not_para_of_online_online hO.2 heL) this
+  obtain ⟨ O, hdO, heO ⟩ := line_of_pts d e
+  have := not_online_of_triangle hdO heO heL hfL h_d_nonline_L h_e_ne_f
+  obtain ⟨ g, N, hgM, hgN, hfN, pON ⟩ := parallel_projection hfL hpar (not_para_of_online_online heO heL) this
 
-  have hlen_ef_dg := (parasianar heL hfL hdM hg.1 hO.2 hO.1 hg.2.2.1 hg.2.1 hpar hg.2.2.2).1
+  have pg : paragram e f g d L N M O := by
+    splitAll
+    repeat assumption
+    exact para_symm pON
+
+  have hlen_ef_dg := (len_ang_area_eq_of_parallelogram pg ).1
+  rw [length_symm g d] at hlen_ef_dg
 
   have h_d_ne_g : d ≠ g := by
     have := length_eq_zero_iff.not.mpr h_e_ne_f
@@ -450,13 +456,20 @@ lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
     exact length_eq_zero_iff.not.mp this
 
   -- construct parallelogram from b d g
-  obtain ⟨ P, hP ⟩ := line_of_pts b d
-  have := not_online_of_triangle hP.1 hP.2 hdM hg.1 (online_of_online_para hbL hpar) h_d_ne_g
-  obtain ⟨ h, R, hh ⟩ := parallel_projection hg.1 (para_symm hpar) (not_para_of_online_online hP.2 hdM) this
+  obtain ⟨ P, hbP, hdP ⟩ := line_of_pts b d
+  have := not_online_of_triangle hbP hdP hdM hgM (offline_of_para hbL hpar) h_d_ne_g
+  obtain ⟨ h, R, hhL, hhR, hGR, pPR ⟩ := parallel_projection hgM (para_symm hpar) (not_para_of_online_online hdP hdM) this
+
+  have pg2 : paragram b h g d L R M P := by
+    splitAll
+    repeat assumption
+    exact para_symm pPR
 
   have hlen_ef_bh : length e f = length b h := by
-    have := (parasianar hdM hg.1 hbL hh.1 hP.2 hP.1 hh.2.2.1 hh.2.1 (para_symm hpar) hh.2.2.2).1
-    rw [this.symm, hlen_ef_dg.symm]
+    -- have := (parasianar hdM hg.1 hbL hh.1 hP.2 hP.1 hh.2.2.1 hh.2.1 (para_symm hpar) hh.2.2.2).1
+    have := (len_ang_area_eq_of_parallelogram pg2).1
+    rw [this, hlen_ef_dg]
+    perm
 
   have h_b_ne_h : b ≠ h := by
     have := length_eq_zero_iff.not.mpr h_e_ne_f
@@ -467,9 +480,9 @@ lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
     rw [hlen_ef_bh.symm]
     exact hlen
 
-  rw [eq_area_of_eq_base hdM heL hfL haM hbL hh.1 hpar hlen_ef_bh]
+  rw [eq_area_of_eq_base hdM heL hfL haM hbL hhL hpar hlen_ef_bh]
 
-  exact lt_area_of_lt_base__sameedge a hbL hcL hh.1 h_b_ne_c h_b_ne_h h_a_nonline_L this
+  exact lt_area_of_lt_base__sameedge a hbL hcL hhL h_b_ne_c h_b_ne_h h_a_nonline_L this
   
 
 /-- ## Euclid VI.1
@@ -654,10 +667,10 @@ theorem proportional_iff_para' {a b c d e: point} {L M N: line}
   rw [(proportion_iff (length_nonneg b d) (length_nonneg a d) (length_nonneg c e) (length_nonneg a e) ad ae).symm] at this
   rw [(length_sum_of_B Badb).symm]
   rw [(length_sum_of_B Baec).symm]
-  simp only [add_div] at this
-  simp only [add_div]
+  simp [add_div] at this
+  simp [add_div]
   rw [div_self ad, div_self ae]
-  simp only [add_right_inj]
+  simp [add_right_inj]
   rw [length_symm d b]
   rw [length_symm e c]
   exact this
@@ -690,7 +703,7 @@ theorem colinear_symm2 :
 lemma colinear_of_eq_23 (a b : point) :
     colinear a b b := by
   dsimp [colinear]
-  simp only [and_self]
+  simp [and_self]
   exact line_of_pts a b
 
 /-- equal points are colinear -/
@@ -728,7 +741,7 @@ lemma neq_23_of_not_colinear {a b c : point} (h: ¬ colinear a b c) :
 lemma not_online_of_not_colinear {a b c : point} {L : line} (haL: online a L) (hbL : online b L) (h: ¬ colinear a b c) :
     ¬ online c L := by
   dsimp [colinear] at h
-  simp only [not_exists, not_and] at h
+  simp [not_exists, not_and] at h
   exact h L haL hbL
     
 /-- technical lemma: can always find a point beyond two points -/
@@ -770,14 +783,8 @@ lemma parallel_of_similar {a b c g h : point} {AB AC BC HG: line}
     have := ne_13_of_B contra
     exact this rfl
 
-  -- point on other side of h on line hg
-  obtain ⟨t, ht⟩ := pt_extension_of_ne h_ne_g.symm
-
-  have t_online_HG := online_3_of_B ht hgHG hhHG
-
-  have t_nonline_AB : ¬ online t AB := by
-    by_contra contra
-    have AB_HG := line_unique_of_pts (ne_23_of_B ht).symm contra hhAB t_online_HG hhHG
+  have AB_ne_HG: AB ≠ HG := by
+    by_contra AB_HG
     rw [AB_HG] at haAB
     have : a = g := by
       by_contra contra
@@ -787,28 +794,27 @@ lemma parallel_of_similar {a b c g h : point} {AB AC BC HG: line}
       exact b_nonline_AC hbAB
     exact a_ne_g this
 
-  refine' para_symm (angeqpar (ne_23_of_B ht).symm b_ne_h.symm b_ne_c _ hhHG hbBC hcBC hhAB hbAB _ _)
+  -- point on other side of h on line hg
+  obtain ⟨t, ht, -⟩ := length_eq_B_of_ne h_ne_g.symm h_ne_g
+  have htHG := online_3_of_B ht hgHG hhHG
 
-  exact online_3_of_B ht hgHG hhHG
+  have hntAB : ¬ online t AB := by
+    by_contra contra
+    have AB_HG := line_unique_of_pts (ne_23_of_B ht).symm contra hhAB htHG hhHG
+    exact AB_ne_HG AB_HG
 
-  have := vertang haAB hbAB t_nonline_AB hB (B_symm ht)
-  rw [angle_symm, this.symm, angle_symm]
-  rw [an]
-  exact hbc_abc.symm
+  have hngAB : ¬ online g AB := by
+    by_contra contra
+    have AB_HG := line_unique_of_pts (ne_12_of_B ht) contra hhAB hgHG hhHG
+    exact AB_ne_HG AB_HG
+
+  apply para_of_ang_eq b_ne_h hcBC hbBC hbAB hhAB hhHG htHG _ _
 
   have nss := not_sameside13_of_B123_online2 ht hhAB
-  dsimp [diffside]
+  exact diffside_of_sameside_diffside hss ⟨hngAB, hntAB, nss⟩ 
 
-  refine' ⟨t_nonline_AB, _, _⟩
-  swap
-
-  by_contra contra
-  exact nss (sameside_trans (sameside_symm hss) (sameside_symm contra))
-
-  by_contra contra
-  have := line_unique_of_pts a_ne_c haAC hcAC haAB contra
-  rw [this] at b_nonline_AC
-  exact b_nonline_AC hbAB
+  have ahg_thb := vertical_angle hB ht haAB hhAB hngAB
+  rw [hbc_abc, ← an, ahg_thb]
 
 /-- two similar triangles that share an edge are equal -/
 lemma length_eq_of_length_eq {a b c d e f : point}
@@ -958,7 +964,7 @@ lemma length_lt_of_length_lt {a b c d e f : point}
 
     have' := parallel_of_similar hAB.1 h_online_AB hAB.2 hAC.1 g_online_AC hAC.2 hHG.1 hHG.2 hBC.1 hBC.2 (ne_23_of_B hh.1).symm (ne_13_of_B hh.1) (ne_12_of_B hg.1) h_ne_g b_ne_c a_ne_c h_nonline_AC ang_b_eq_h.2.2.symm hh.1 _
 
-    have ss1 := sameside_of_online_online_para hHG.1 hHG.2 this
+    have ss1 := sameside_of_para_online hHG.1 hHG.2 this
     have ss2 := sameside_of_B_not_online_2 (B_symm hg.1) hBC.2 g_nonline_BC
     have := sameside_trans (sameside_symm ss1) ss2
     exact (not_sameside13_of_B123_online2 hh.1 hBC.1) (sameside_symm this)
@@ -982,7 +988,9 @@ lemma length_lt_of_length_lt {a b c d e f : point}
     rw [@angle_symm i f d e] at ang_a_eq_d
     rw [angle_symm] at ang_b_eq_e
     rw [@angle_symm i d e f] at ang_b_eq_e
-    exact (asa d_ne_e hDE.1 hDE.2 f_nonline_DE contra ang_a_eq_d ang_b_eq_e).2.2
+
+    perm at tri_abc
+    exact (asa tri_abc contra ang_a_eq_d (by perma [ang_b_eq_e])).2.2
 
 /-- Two triangles are similar if they have two angles equal -/
 theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_def : ¬ colinear d e f) 
@@ -996,7 +1004,7 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
   have e_ne_f := neq_23_of_not_colinear tri_def
 
   by_cases dfde_ne_acab : length d f = length a c ∨ length d e = length a b
-  · wlog df_ne_ac : length d f = length a c
+  . wlog df_ne_ac : length d f = length a c
     swap
     have := length_eq_of_length_eq tri_abc tri_def ang_a_eq_d ang_b_eq_e df_ne_ac
     rw [this, df_ne_ac.symm]
@@ -1027,7 +1035,9 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
     rw [@angle_symm i f d e] at ang_a_eq_d
     rw [angle_symm] at ang_b_eq_e
     rw [@angle_symm i d e f] at ang_b_eq_e
-    refine (asa d_ne_e hDE.1 hDE.2 f_nonline_DE leq.symm ang_a_eq_d ang_b_eq_e).2.2
+
+    perm at tri_abc
+    apply (asa tri_abc leq.symm ang_a_eq_d (by perma [ang_b_eq_e])).2.2
 
   rw [not_or] at dfde_ne_acab
   rw [(Ne.def (length d f) (length a c)).symm] at dfde_ne_acab
@@ -1035,7 +1045,7 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
 
   wlog lineq : length d f < length a c
   refine' proportion_inv (this tri_def tri_abc ang_a_eq_d.symm ang_b_eq_e.symm a_ne_c d_ne_f a_ne_b d_ne_e e_ne_f b_ne_c ⟨dfde_ne_acab.1.symm,dfde_ne_acab.2.symm⟩ _)
-  simp only [not_lt] at lineq
+  simp [not_lt] at lineq
   exact (Ne.symm dfde_ne_acab.1).lt_of_le lineq
 
   obtain ⟨AC, hAC⟩ := line_of_pts a c
