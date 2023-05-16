@@ -662,7 +662,6 @@ lemma tri_sum_contra {b c d e: point} {O : line}
     (hdO: online d O)
     (hncO: ¬ online c O)
     (ad: a ≠ d)
-    (bc: b ≠ c)
     (bd: b ≠ d)
     (ssadL: sameside a d L)
     (harea: area a b c = area d b c) :

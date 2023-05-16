@@ -584,10 +584,6 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
     by_contra contra
     rw [contra.symm] at hndO
     exact hndO hcO
-  have de : d ≠ e := by
-    by_contra contra
-    rw [contra] at hndO
-    exact hndO heO
   have hneP : ¬ online e P := by
     by_contra contra
     exact PO (line_unique_of_pts ce hcP contra hcO heO)
@@ -638,7 +634,7 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
   have nsabL:= not_sameside13_of_B123_online2 Badb hdL
   have nsacL:= not_sameside13_of_B123_online2 Baec heL
   have ssbcL := sameside_of_diffside_diffside ⟨hnaL, hnbL, nsabL⟩ ⟨hnaL, hncL, nsacL⟩
-  apply eq_area_of_same_base_implies_para hdL heL hnbL hbM hcM hdP hcP hneP bc de cd.symm ssbcL harea
+  apply eq_area_of_same_base_implies_para hdL heL hnbL hbM hcM hdP hcP hneP bc cd.symm ssbcL harea
   -- apply I.3
   intro pLM
   rw [area_bde_eq_cde]
@@ -755,19 +751,12 @@ lemma pt_extension_of_ne {b c : point} :
 /-- similar triangles (should follow from Euclid VI.2) -/
 -- show resulting lines are parallel
 lemma parallel_of_similar {a b c g h : point} {AB AC BC HG: line}
-    (haAB: online a AB)
-    (hbAB: online b AB)
-    (hhAB: online h AB)
-    (haAC: online a AC)
-    (hcAC: online c AC)
-    (hgAC: online g AC)
-    (hbBC: online b BC)
-    (hcBC: online c BC)
-    (hhHG: online h HG)
-    (hgHG: online g HG)
+    (haAB: online a AB) (hbAB: online b AB) (hhAB: online h AB)
+    (haAC: online a AC) (hgAC: online g AC)
+    (hbBC: online b BC) (hcBC: online c BC)
+    (hhHG: online h HG) (hgHG: online g HG)
     (b_ne_h: b ≠ h)
     (a_ne_b: a ≠ b)
-    (a_ne_c: a ≠ c)
     (b_ne_c: b ≠ c)
     (h_ne_g: h ≠ g)
     (a_ne_g: a ≠ g)
@@ -867,7 +856,7 @@ lemma length_eq_of_length_eq {a b c d e f : point}
   have ang_b_eq_h := sas leq.symm hh.2 ang_a_eq_d
   rw [ang_b_eq_e.symm] at ang_b_eq_h
 
-  have := parallel_of_similar hAB.1 h_online_AB hAB.2 hAC.1 hAC.2 hAC.2 hHC.1 hHC.2 hBC.1 hBC.2 (ne_23_of_B hh.1).symm (ne_13_of_B hh.1) a_ne_c h_ne_c b_ne_c a_ne_c h_nonline_AC ang_b_eq_h.2.2.symm hh.1 (sameside_rfl_of_not_online c_nonline_AB)
+  have := parallel_of_similar hAB.1 h_online_AB hAB.2 hAC.1 hAC.2 hHC.1 hHC.2 hBC.1 hBC.2 (ne_23_of_B hh.1).symm (ne_13_of_B hh.1) h_ne_c b_ne_c a_ne_c h_nonline_AC ang_b_eq_h.2.2.symm hh.1 (sameside_rfl_of_not_online c_nonline_AB)
 
   have := neq_of_para hHC.2 hBC.2 this
   exact this rfl
@@ -962,7 +951,7 @@ lemma length_lt_of_length_lt {a b c d e f : point}
     have ang_b_eq_h := sas hg.2 hh.2 ang_a_eq_d
     rw [ang_b_eq_e.symm] at ang_b_eq_h
 
-    have' := parallel_of_similar hAB.1 h_online_AB hAB.2 hAC.1 g_online_AC hAC.2 hHG.1 hHG.2 hBC.1 hBC.2 (ne_23_of_B hh.1).symm (ne_13_of_B hh.1) (ne_12_of_B hg.1) h_ne_g b_ne_c a_ne_c h_nonline_AC ang_b_eq_h.2.2.symm hh.1 _
+    have' := parallel_of_similar hAB.1 h_online_AB hAB.2 hAC.1 hAC.2 hHG.1 hHG.2 hBC.1 hBC.2 (ne_23_of_B hh.1).symm (ne_13_of_B hh.1) h_ne_g b_ne_c a_ne_c h_nonline_AC ang_b_eq_h.2.2.symm hh.1 _
 
     have ss1 := sameside_of_para_online hHG.1 hHG.2 this
     have ss2 := sameside_of_B_not_online_2 (B_symm hg.1) hBC.2 g_nonline_BC
@@ -1080,7 +1069,7 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
     have := online_3_of_B hh.1 hAC.1 (online_2_of_B hg.1 hAC.1 hAC.2)
     exact (not_online_of_not_colinear hAC.1 hAC.2 tri_abc) this
 
-  refine' para_symm (parallel_of_similar hAB.1 hAB.2 h_online_AB hAC.1 hAC.2 g_online_AC hBC.1 hBC.2 hHG.1 hHG.2 (ne_23_of_B hh.1).symm a_ne_b a_ne_c b_ne_c h_ne_g (ne_12_of_B hg.1) b_nonline_AC _ hh.1 _)
+  refine' para_symm (parallel_of_similar hAB.1 hAB.2 h_online_AB hAC.1 g_online_AC hBC.1 hBC.2 hHG.1 hHG.2 (ne_23_of_B hh.1).symm a_ne_b b_ne_c h_ne_g (ne_12_of_B hg.1) b_nonline_AC _ hh.1 _)
 
   have hag_bac : angle h a g = angle b a c := by
     rw [(angle_extension_of_B a_ne_c hh.1).symm]
