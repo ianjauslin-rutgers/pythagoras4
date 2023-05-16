@@ -18,32 +18,27 @@ lemma proportion_of_eq_ratio {r s t u : ℝ} (hr : 0 ≤ r) (hs : 0 ≤ s) (ht :
     suffices hh : (n : ℝ) * t * s = m * u * s
     · convert (congr_arg (fun x => x / s) hh) using 1; field_simp; field_simp
     · convert (congr_arg (fun x => x * u) h) using 1 
-      · rw [mul_assoc, ← rstu]
-        ring
+      · rw [mul_assoc, ← rstu]; ring
       · ring
   · constructor
     · intro h
       suffices hh : (n : ℝ) * t * s < m * u * s
-      · convert mul_lt_mul hh (by simp : (1:ℝ)/s ≤ 1/s) (by positivity) (by positivity) using 1; 
-        field_simp; field_simp
+      · convert mul_lt_mul hh (by simp : (1:ℝ)/s ≤ 1/s) (by positivity)  (by positivity) using 1
+        iterate 2 field_simp
       · rw [mul_assoc, ← rstu, ← mul_assoc]
         convert mul_lt_mul h (by simp : u ≤ u) (by positivity) (by positivity) using 1; ring 
     · intros h
       suffices hh : (m : ℝ) * u * s < n * t * s
-      · convert mul_lt_mul hh (by simp : (1:ℝ)/s ≤ 1/s) (by positivity) (by positivity) using 1;
-        field_simp; field_simp
+      · convert mul_lt_mul hh (by simp : (1:ℝ)/s ≤ 1/s) (by positivity) (by positivity) using 1
+        iterate 2 field_simp
       · rw [(by ring : (n : ℝ) * t * s = n * (t * s)), ← rstu]
-        convert mul_lt_mul h (by simp : u ≤ u) (by positivity) (by positivity) using 1; 
-        ring; ring
+        convert mul_lt_mul h (by simp : u ≤ u) (by positivity) (by positivity) using 1
+        iterate 2 ring
 
 
 lemma eq_ratio_of_proportion {r s t u : ℝ} (s_ne : s ≠ 0) (u_ne : u ≠ 0) (h : proportion r s t u) : 
-    r / s = t / u := by 
-  have hr := h.1
-  have hs := h.2.1
-  have ht := h.2.2.1
-  have hu := h.2.2.2.1
-  have h := h.2.2.2.2
+    r / s = t / u := by
+  obtain ⟨ hr, hs, ht, hu, h⟩ := h
   by_contra hh
   change r / s ≠ t / u at hh
   by_cases rstu : r / s < t / u
@@ -59,8 +54,7 @@ lemma eq_ratio_of_proportion {r s t u : ℝ} (s_ne : s ≠ 0) (u_ne : u ≠ 0) (
       have nn_gt : 0 < nn := Rat.num_pos_iff_pos.mpr q_gt
       let n := nn.toNat
       have n_nn : (n:ℤ) = nn := Int.toNat_of_nonneg (le_of_lt nn_gt)
-      use n -- use n m doesn't work???
-      use m
+      use n, m
       have : (n : ℝ) / m = q := by
         have : (nn : ℝ) / m = q := by exact_mod_cast (q.num_den)
         convert this using 2
@@ -74,15 +68,9 @@ lemma eq_ratio_of_proportion {r s t u : ℝ} (s_ne : s ≠ 0) (u_ne : u ≠ 0) (
     · suffices hh : (n:ℝ) * u < m * t
       · exact (lt_self_iff_false ((m : ℝ) * t)).mp (this.trans hh)         
       · convert mul_lt_mul hnm_le_tu (by simp : u * m ≤ u * m) (by positivity) (by positivity) using 1
-        · field_simp
-          ring
-        · field_simp
-          ring
+        all_goals (field_simp; ring)
     convert mul_lt_mul hrs_le_nm (by simp : s * m ≤ s * m) (by positivity) (by positivity) using 1
-    · field_simp
-      ring
-    · field_simp
-      ring
+    all_goals (field_simp; ring)
   · have turs : t / u < r / s := (or_iff_right rstu).mp (lt_or_lt_iff_ne.mpr hh)
     have : ∃ n m : ℕ, t / u < n / m ∧ (n:ℝ) / m < r / s ∧ n ≠ 0 ∧ m ≠ 0
     · obtain ⟨q, hq⟩ := exists_rat_btwn turs
@@ -95,8 +83,7 @@ lemma eq_ratio_of_proportion {r s t u : ℝ} (s_ne : s ≠ 0) (u_ne : u ≠ 0) (
       have nn_gt : 0 < nn := Rat.num_pos_iff_pos.mpr q_gt
       let n := nn.toNat
       have n_nn : (n:ℤ) = nn := Int.toNat_of_nonneg (le_of_lt nn_gt)
-      use n -- use n m doesn't work???
-      use m
+      use n, m
       have : (n : ℝ) / m = q := by
         have : (nn : ℝ) / m = q := by exact_mod_cast (q.num_den)
         convert this using 2
@@ -108,17 +95,11 @@ lemma eq_ratio_of_proportion {r s t u : ℝ} (s_ne : s ≠ 0) (u_ne : u ≠ 0) (
     have mrns : (n : ℝ) * s < m * r → (n : ℝ) * u < m * t := by exact_mod_cast (h m n).2.2
     have : (n : ℝ) * s < m * r := by
       convert mul_lt_mul hnm_le_tu (by simp : s * m ≤ s * m) (by positivity) (by positivity) using 1
-      · field_simp 
-        ring
-      · field_simp
-        ring
+      all_goals (field_simp; ring)
     have := mrns this
     have : t * m < n * u := by
       convert mul_lt_mul hrs_le_nm (by simp : u * m ≤ u * m) (by positivity) (by positivity) using 1;
-      · field_simp
-        ring
-      · field_simp
-        ring
+      all_goals (field_simp; ring)
     linarith
 
 lemma proportion_iff {r s t u : ℝ} (hr : 0 ≤ r) (hs : 0 ≤ s) (ht : 0 ≤ t) (hu : 0 ≤ u) 
@@ -136,10 +117,10 @@ lemma proportion_inv {r s t u : ℝ} (h : proportion r s t u) :
   have := h.2.2.2.2 m n
   exact ⟨fun h => (this.1 h.symm).symm, ⟨fun h => (this.2.2 h), fun h => (this.2.1 h)⟩⟩ 
 
+
 lemma proportion_inv_iff {r s t u : ℝ} : proportion r s t u ↔ proportion s r u t := by
   constructor
-  all_goals
-    exact fun h => proportion_inv h
+  all_goals exact fun h => proportion_inv h
 
 
 lemma zero_of_proportion_iff { r s t u : ℝ } (h : proportion r s t u) :
@@ -160,9 +141,7 @@ lemma zero_of_proportion_iff { r s t u : ℝ } (h : proportion r s t u) :
     have := hh this
     linarith
 
-lemma proportion_of_zero : proportion 0 0 0 0 := by
-  dsimp [proportion]
-  simp
+lemma proportion_of_zero : proportion 0 0 0 0 := by dsimp [proportion]; simp
     
 
 lemma proportion_symm {r s t u : ℝ} (s_ne : s ≠ 0) (u_ne : u ≠ 0) (h : proportion r s t u) :
@@ -186,12 +165,8 @@ lemma proportion_symm' {r s t u : ℝ} (h : proportion r s t u) :
   · have u_ne := (zero_of_proportion_iff h).not.mp s_ne
     exact proportion_symm s_ne u_ne h
   
-lemma proportion_symm_iff {r s t u : ℝ} : 
-    proportion r s t u ↔ proportion t u r s := 
+lemma proportion_symm_iff {r s t u : ℝ} : proportion r s t u ↔ proportion t u r s := 
 ⟨fun h => proportion_symm' h, fun h => proportion_symm' h⟩ 
 
-lemma proportion_eq {r s : ℝ} (hr : 0 ≤ r) (hs : 0 ≤ s) (r_ne : r ≠ 0) (s_ne : s ≠ 0) : 
-    proportion r r s s := by
-  rw [(proportion_iff hr hr hs hs r_ne s_ne).symm]
-  field_simp
-
+lemma proportion_eq {r s : ℝ} (hr : 0 ≤ r) (hs : 0 ≤ s) (r_ne : r ≠ 0) (s_ne : s ≠ 0) : proportion r r s s := by
+  rw [(proportion_iff hr hr hs hs r_ne s_ne).symm]; field_simp

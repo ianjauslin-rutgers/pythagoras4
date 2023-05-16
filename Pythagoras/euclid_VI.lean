@@ -8,19 +8,16 @@ open incidence_geometry
 variable [i: incidence_geometry]
 
 /-- technical lemma that really shouldn't be here, but hey... -/
-lemma mul_mul_lt (a b c : ℝ) (hc: 0<c):
-    a<b → a*c<b*c := by
-  exact (mul_lt_mul_right hc).mpr
+lemma mul_mul_lt (a b c : ℝ) (hc: 0 < c):
+    a<b → a*c<b*c := (mul_lt_mul_right hc).mpr
 /-- technical lemma that really shouldn't be here, but hey... -/
 lemma ge2_of_n1_n0 {n : ℕ}
     (h0: n ≠ 0) (h1: n ≠ 1) :
-    n ≥ 2 := by
-  exact ge_iff_le.mpr ((Nat.two_le_iff n).mpr ⟨ h0,h1 ⟩)
+    n ≥ 2 := ge_iff_le.mpr ((Nat.two_le_iff n).mpr ⟨ h0, h1 ⟩)
 /-- technical lemma that really shouldn't be here, but hey... -/
 lemma gt1_of_n1_n0 {n : ℕ}
     (h0: n ≠ 0) (h1: n ≠ 1) :
-    n > 1 := by
-  exact gt_iff_lt.mpr (lt_of_lt_of_le one_lt_two (ge_iff_le.mp (ge2_of_n1_n0 h0 h1)))
+    n > 1 := gt_iff_lt.mpr (lt_of_lt_of_le one_lt_two (ge_iff_le.mp (ge2_of_n1_n0 h0 h1)))
 
 /-- from segment of length l, construct a new segment of length n*l
     based on I.3 -/
@@ -98,14 +95,13 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
     (hbL: online b L)
     (hcL: online c L)
     (h_a_nonline_L: ¬ online a L) :
-    ∀ d:point, (online d L) → (length b d = n*(length b c)) → B b c d → area a b d = n*(area a b c) := by
+    ∀ d:point, (online d L) → (length b d = n*(length b c)) → B b c d → area a b d = n * (area a b c) := by
   induction n with
   | zero =>
     intros d _ hlen _
     simp [Nat.zero_eq, Nat.cast_zero, zero_mul]
     simp [Nat.zero_eq, Nat.cast_zero, zero_mul] at hlen
-    rw [length_eq_zero_iff.mp hlen]
-    rw [area_of_eq a d d _]
+    rw [length_eq_zero_iff.mp hlen, area_of_eq a d d _]
     tauto
 
   | succ n hn =>
@@ -130,22 +126,17 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
       simp [Nat.cast_succ, Nat.cast_one]
       ring_nf
 
-      have := (area_add_iff_B h_b_ne_c h_c_ne_d h_b_ne_d.symm hbL hcL hdL h_a_nonline_L).mp hB
-      rw [this.symm]
-      rw [(area_invariant a d c).2]
-      rw [Eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hcL hdL _)]
-      ring
+      rw [((area_add_iff_B h_b_ne_c h_c_ne_d h_b_ne_d.symm hbL hcL hdL h_a_nonline_L).mp hB).symm]
+      simp [mul_two]
+      perm
+      apply (eq_area_of_eq_base_samevertex a hbL hcL hcL hdL _).symm
 
       rw [h_n_ne_1, (length_sum_of_B hB).symm] at hlen
       simp [Nat.cast_succ, Nat.cast_one] at hlen
-      rw [add_mul] at hlen
-      simp [Nat.cast_zero, zero_add, one_mul, add_right_inj] at hlen
-      exact hlen.symm
+      linarith
 
     -- split off n+1'st bit
-    simp [Nat.cast_succ]
-    rw [add_mul]
-    simp [one_mul]
+    simp [Nat.cast_succ]; rw [add_mul]; simp [one_mul]
 
     -- construct n-triangle
     obtain ⟨ e, he ⟩ := rescale_length n hbL hcL
@@ -166,43 +157,37 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
       have' := B_of_three_online_ne_short _ h_b_ne_e h_b_ne_d h_e_ne_d hbL he.1 hdL
       
       cases this with
-      | inl h =>
-        exact h
-
-      |inr h =>
+      | inl h => exact h
+      | inr h =>
         exfalso
-        have h1 := not_B324_of_B123_B124 h_B_bce hB
-        have := B124_of_B134_B123 h (B_symm h_B_bce)
-        exact h1 this
+        apply not_B324_of_B123_B124 h_B_bce hB
+        exact B124_of_B134_B123 h (B_symm h_B_bce)
 
       rw [he.2.1,hlen]
       simp [Nat.cast_succ]
       have : ↑n < ↑n+1 := by simp
       linarith [len_pos_of_nq h_b_ne_c]
     
-    have := (area_add_iff_B h_b_ne_e h_e_ne_d h_b_ne_d.symm hbL he.1 hdL h_a_nonline_L).mp h_B_bed
-    rw [this.symm]
+    rw [((area_add_iff_B h_b_ne_e h_e_ne_d h_b_ne_d.symm hbL he.1 hdL h_a_nonline_L).mp h_B_bed).symm]
 
     have' := eq_area_of_eq_base_samevertex a hbL hcL he.1 hdL _
-    rw [@area_invariant_132 i a e d] at this
+    perm at *
     rw [this]
 
     have := length_sum_of_B h_B_bed
     rw [hlen, he.2.1] at this
-    simp [Nat.cast_succ] at this
-    rw [add_mul] at this
-    simp [one_mul, add_right_inj] at this
-    exact this.symm
+    simp [one_mul] at this
+    linarith
 
 -- lemma with B b c d as a hypothesis
 lemma rescale_triangle_of_base__B (a : point) {b c d : point} {L : line} {n : ℕ}
     (hbL: online b L)
     (hcL: online c L)
     (hdL: online d L)
-    (hlen: length b d = n*(length b c))
+    (hlen: length b d = n * (length b c))
     (hB: B b c d)
     (h_a_nonline_L: ¬ online a L) :
-    area a b d = n*(area a b c) := by
+    area a b d = n * (area a b c) := by
   exact rescale_triangle_of_base__inductive a hbL hcL h_a_nonline_L d hdL hlen hB
 
 -- not B c b d
@@ -219,10 +204,8 @@ lemma rescale_triangle_of_base__notcbd (a : point) {b c d : point} {L : line} {n
     area a b d = n*(area a b c) := by
   -- trivial case: n=1
   by_cases h_n_ne_1 : n=1
-  · rw [h_n_ne_1] at hlen
-    rw [h_n_ne_1]
-    simp [Nat.cast_one, one_mul] at hlen
-    simp [Nat.cast_one, one_mul]
+  · rw [h_n_ne_1] at hlen; rw [h_n_ne_1]
+    simp [Nat.cast_one] at hlen; simp [Nat.cast_one]
     exact Eq.symm (eq_area_of_eq_base_samevertex a hbL hcL hbL hdL hlen.symm)
 
   have h_c_ne_d: c ≠ d := by
@@ -237,7 +220,7 @@ lemma rescale_triangle_of_base__notcbd (a : point) {b c d : point} {L : line} {n
   cases hBs with
   | inl hBs =>
     exact rescale_triangle_of_base__B a hbL hcL hdL hlen hBs h_a_nonline_L
-  |inr hBs =>
+  | inr hBs =>
     exfalso
     exact hB hBs
 
@@ -255,26 +238,24 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
     (hlen: length b d = n*(length b c)) :
     area a b d = n*(area a b c) := by
   -- trivial case: b=c
-  by_cases h_b_ne_c : b=c
-  · rw [(area_of_eq a b d _)]
+  by_cases h_b_ne_c : b = c
+  · rw [length_eq_zero_iff.mpr h_b_ne_c] at hlen
+    simp [mul_zero] at hlen
+    have := length_eq_zero_iff.mp hlen
+    rw [(area_of_eq a b d _)]
     rw [(area_of_eq a b c _)]
     simp [mul_zero]
-    repeat right
-    exact h_b_ne_c
-    repeat right
-    rw [length_eq_zero_iff.mpr h_b_ne_c] at hlen
-    simp [mul_zero] at hlen
-    exact length_eq_zero_iff.mp hlen
+    repeat tauto
 
-  -- trivial case: n=0
-  by_cases h_n_ne_0 : n=0
+  -- trivial case: n = 0
+  by_cases h_n_ne_0 : n = 0
   · rw [h_n_ne_0]
-    simp [Nat.cast_zero, zero_mul]
+    simp [Nat.cast_zero]
     rw [area_of_eq a b d _]
-    repeat right
     rw [h_n_ne_0] at hlen
-    simp [Nat.cast_zero, zero_mul] at hlen
-    exact length_eq_zero_iff.mp hlen
+    simp [Nat.cast_zero] at hlen
+    have := length_eq_zero_iff.mp hlen
+    tauto
 
   have h_b_ne_d: b ≠ d := by
     by_contra contra
@@ -282,20 +263,16 @@ lemma rescale_triangle_of_base (a : point) {b c d : point} {L : line} {n : ℕ}
     rw [this] at hlen
     simp [zero_eq_mul, Nat.cast_eq_zero] at hlen
     cases hlen with
-    | inl hlen =>
-      exact h_n_ne_0 hlen
-    | inr hlen =>
-      exact h_b_ne_c (length_eq_zero_iff.mp hlen)
+    | inl hlen => exact h_n_ne_0 hlen
+    | inr hlen => exact h_b_ne_c (length_eq_zero_iff.mp hlen)
 
   -- trivial case: online a L
   by_cases h_a_nonline_L : online a L
-  · have := (area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L
-    rw [(area_invariant b c a).1] at this
+  · perm [(area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L]
+    rw [this]
+    perm[(area_zero_iff_online h_b_ne_d hbL hdL).mpr h_a_nonline_L]
     rw [this]
     simp [mul_zero]
-    have := (area_zero_iff_online h_b_ne_d hbL hdL).mpr h_a_nonline_L
-    rw [(area_invariant b d a).1] at this
-    rw [this]
 
   by_cases h_B_cbd : B c b d
     -- reflect c about b
@@ -335,18 +312,17 @@ lemma lt_area_of_lt_base__sameedge_Bbfc (a : point) {b c f: point} {L: line}
     (h_b_ne_f: b ≠ f)
     (h_c_ne_f: c ≠ f)
     (h_a_nonline_L: ¬ online a L) :
-    (length b c)>(length b f) → (area a b c)>(area a b f) := by
+    (length b c) > (length b f) → (area a b c) > (area a b f) := by
   intro
   have := (area_add_iff_B h_b_ne_f h_c_ne_f.symm h_b_ne_c.symm hbL hfL hcL h_a_nonline_L).mp hB
   rw [this.symm]
   simp [gt_iff_lt, lt_add_iff_pos_right]
-  rw [area_invariant_132]
-  have : area a f c ≠ 0 := by
+  perm
+  have : area a c f ≠ 0 := by
     by_contra contra
-    rw [area_invariant_321] at contra
-    rw [(area_zero_iff_online h_c_ne_f hcL hfL)] at contra
-    exact h_a_nonline_L contra
-  exact (Ne.symm this).lt_of_le (area_nonneg a f c)
+    apply h_a_nonline_L
+    apply (area_zero_iff_online h_c_ne_f hcL hfL).mp (by perma only [area] at *)
+  exact (Ne.symm this).lt_of_le (area_nonneg a c f)
 
 -- case where they share a side and not B f b c
 lemma lt_area_of_lt_base__sameedge_nBfbc (a : point) {b c f: point} {L: line}
@@ -357,14 +333,14 @@ lemma lt_area_of_lt_base__sameedge_nBfbc (a : point) {b c f: point} {L: line}
     (h_b_ne_f: b ≠ f)
     (h_a_nonline_L: ¬ online a L)
     (hB: ¬ B f b c) :
-    (length b c)>(length b f) → (area a b c)>(area a b f) := by
+    (length b c) > (length b f) → (area a b c) > (area a b f) := by
   intro hlen
   simp [gt_iff_lt] at hlen
 
   have h_c_ne_f: c ≠ f := by
     by_contra contra
     rw [contra] at hlen
-    simp [gt_iff_lt, lt_self_iff_false] at hlen
+    simp [lt_self_iff_false] at hlen
 
   have := B_of_three_online_ne_short hlen h_b_ne_f h_b_ne_c h_c_ne_f.symm hbL hfL hcL
 
@@ -383,7 +359,7 @@ lemma lt_area_of_lt_base__sameedge (a : point) {b c f: point} {L: line}
     (h_b_ne_c: b ≠ c)
     (h_b_ne_f: b ≠ f)
     (h_a_nonline_L: ¬ online a L) :
-    (length b c)>(length b f) → (area a b c)>(area a b f) := by
+    (length b c) > (length b f) → (area a b c) > (area a b f) := by
   intro hlen
 
   by_cases hB: B f b c
@@ -393,8 +369,7 @@ lemma lt_area_of_lt_base__sameedge (a : point) {b c f: point} {L: line}
     have h_B_fbe := he.2.2 ⟨ this, h_b_ne_f.symm ⟩
     have lbe : length b e = length b f := by
       have := length_sum_of_B h_B_fbe
-      rw [he.2.1] at this
-      rw [length_symm f b] at this
+      rw [he.2.1, length_symm f b] at this
       norm_cast at this
       linarith
     rw [lbe.symm] at hlen
@@ -415,7 +390,7 @@ lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
     (heL: online e L)
     (hfL: online f L)
     (hpar: para L M) :
-    (length b c)>(length e f) → (area a b c)>(area d e f) := by
+    (length b c) > (length e f) → (area a b c) > (area d e f) := by
 
   intro hlen
 
@@ -431,11 +406,9 @@ lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
   by_cases h_e_ne_f: e=f
   · simp [gt_iff_lt]
     rw [area_of_eq d e f _]
-    have := (area_zero_iff_online h_b_ne_c hbL hcL).not.mpr h_a_nonline_L
-    rw [(area_invariant b c a).1] at this
+    perm [(area_zero_iff_online h_b_ne_c hbL hcL).not.mpr h_a_nonline_L]
     exact (Ne.symm this).lt_of_le (area_nonneg a b c)
-    repeat right
-    exact h_e_ne_f
+    tauto
 
   -- construct parallelogram from d e f
   obtain ⟨ O, hdO, heO ⟩ := line_of_pts d e
@@ -497,7 +470,6 @@ theorem proportion_area_of_proportion_base {a b c d e f: point} {L M : line}
     (hfL: online f L)
     (hpar: para L M) :
     proportion (length b c) (length e f) (area a b c) (area d e f) := by
-  dsimp [proportion]
 
   refine' ⟨ length_nonneg b c, length_nonneg e f, area_nonneg a b c, area_nonneg d e f, _ ⟩
   intros n m
@@ -508,12 +480,10 @@ theorem proportion_area_of_proportion_base {a b c d e f: point} {L M : line}
   rw [(rescale_triangle_of_base a hbL hcL hh.1 hh.2.1).symm, hh.2.1.symm]
   rw [(rescale_triangle_of_base d heL hfL hl.1 hl.2.1).symm, hl.2.1.symm]
 
-  constructor
-  exact eq_area_of_eq_base haM hbL hh.1 hdM heL hl.1 hpar
-  constructor
-  exact lt_area_of_lt_base hdM heL hl.1 haM hbL hh.1 hpar
-  exact lt_area_of_lt_base haM hbL hh.1 hdM heL hl.1 hpar
-
+  exact ⟨ eq_area_of_eq_base haM hbL hh.1 hdM heL hl.1 hpar,
+          lt_area_of_lt_base hdM heL hl.1 haM hbL hh.1 hpar,
+          lt_area_of_lt_base haM hbL hh.1 hdM heL hl.1 hpar ⟩
+  
 
 /-- version where the vertex is the same for both triangles -/
 theorem proportion_area_of_proportion_base_samevertex (a : point) {b c e f: point} {L : line}
@@ -531,30 +501,16 @@ theorem proportion_area_of_proportion_base_samevertex (a : point) {b c e f: poin
 a line cuts the sides of the triangle proportionally iff it is parallel to one of the sides of a triangle (version BD:AD = CE:AE)
  https://mathcs.clarku.edu/~djoyce/java/elements/bookVI/propVI2.html -/
 theorem proportional_iff_para {a b c d e: point} {L M N: line}
-    (hdL: online d L)
-    (heL: online e L)
-    (hbM: online b M)
-    (hcM: online c M)
-    (haN: online a N)
-    (hdN: online d N)
+    (hdL: online d L) (heL: online e L)
+    (hbM: online b M) (hcM: online c M)
+    (haN: online a N) (hdN: online d N)
     (hneN: ¬ online e N)
     (Badb : B a d b) (Baec : B a e c) :
     proportion (length b d) (length a d) (length c e) (length a e) ↔ para L M := by
-  -- N
   have hbN := online_3_of_B Badb haN hdN
-
-  -- O
-  obtain ⟨O, hO⟩ := line_of_pts a e
-  -- for compatibility
-  have haO := hO.1
-  have heO := hO.2
+  obtain ⟨O, haO, heO⟩ := line_of_pts a e
   have hcO := online_3_of_B Baec haO heO
-
-  -- P
-  obtain ⟨P, hP⟩ := line_of_pts c d
-  -- for compatibility
-  have hcP := hP.1
-  have hdP := hP.2
+  obtain ⟨P, hcP, hdP⟩ := line_of_pts c d
 
   -- non-degeneracy
   have ab : a ≠ b := ne_13_of_B Badb
@@ -564,22 +520,19 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
   have ce : c ≠ e := ne_12_of_B (B_symm Baec)
   have NO : N ≠ O := by
     by_contra contra
-    rw [contra] at hneN
-    exact hneN heO
+    exact hneN (by rwa [← contra] at heO)
   have PO : P ≠ O := by
     by_contra contra
-    rw [contra] at hdP
-    exact NO (line_unique_of_pts ad haO hdP haN hdN).symm
+    exact NO (line_unique_of_pts ad haO (by rwa [contra] at hdP) haN hdN).symm
   have hndO: ¬ online d O := by
     by_contra contra
     exact NO (line_unique_of_pts ad haN hdN haO contra)
-  have hnaL:= fun haL => hneN (by rwa [line_unique_of_pts ad haL hdL haN hdN] at heL)
-  have hnbL:= fun hbL => hneN (by rwa [line_unique_of_pts bd hbL hdL hbN hdN] at heL)
+  have hnaL := fun haL => hneN (by rwa [line_unique_of_pts ad haL hdL haN hdN] at heL)
+  have hnbL := fun hbL => hneN (by rwa [line_unique_of_pts bd hbL hdL hbN hdN] at heL)
   have hncL:= fun hcL => (by rwa [← line_unique_of_pts ce hcO heO hcL heL] at hnaL : ¬ online a O) haO
   have bc : b ≠ c := by
     by_contra contra
-    rw [contra.symm] at hcO
-    exact NO (line_unique_of_pts ab haN hbN haO hcO)
+    exact NO (line_unique_of_pts ab haN hbN haO (by rwa [contra.symm] at hcO))
   have cd : c ≠ d := by
     by_contra contra
     rw [contra.symm] at hndO
@@ -590,67 +543,52 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
 
   have hbdad : proportion (length b d) (length a d) (area e b d) (area e a d) := by
     exact proportion_area_of_proportion_base_samevertex e hbN hdN haN hdN hneN
-  have hceae_by_prop_vi_i : proportion (length c e) (length a e) (area d c e) (area d a e) := by
+  have hceae : proportion (length c e) (length a e) (area d c e) (area d a e) := by
    exact proportion_area_of_proportion_base_samevertex d hcO heO haO heO hndO
-  have ead_eq_dae : area e a d = area d a e := by
-    rw [(area_invariant e a d).1,(area_invariant d e a).2]
-  have ead_eq_ade : area e a d = area a d e := by
-    rw [(area_invariant a d e).1]
-  have ebd_eq_bde : area e b d = area b d e := by
-    rw [(area_invariant b d e).1]
-  have dce_eq_cde : area d c e = area c d e := by
-    rw [(area_invariant d c e).2, (area_invariant d e c).1]
   have len_ad_neq_0 : length a d ≠ 0 := by
     by_contra contra
-    have h1 : a = d := by exact (length_eq_zero_iff.1 contra)
-    exact ad h1
+    exact ad (length_eq_zero_iff.1 contra)
   have len_ae_neq_0 : length a e ≠ 0 := by
     by_contra contra
-    have h1 : a = e := by exact (length_eq_zero_iff.1 contra)
-    exact ae h1
+    exact ae (length_eq_zero_iff.1 contra)
   have area_ade_neq_0 : area a d e ≠ 0 := by
     by_contra contra
     exact hneN ((area_zero_iff_online ad haN hdN).1 contra)
-  have area_ead_neq_0 : area e a d ≠ 0 := by rwa [← ead_eq_ade] at area_ade_neq_0
-  have area_dae_neq_0 : area d a e ≠ 0 := by rwa [ead_eq_dae] at area_ead_neq_0
-  have ratio_bd_ad := eq_ratio_of_proportion len_ad_neq_0 area_ead_neq_0 hbdad
-  have ratio_ce_ae := eq_ratio_of_proportion len_ae_neq_0 area_dae_neq_0 hceae_by_prop_vi_i
-  have ratio_iff : length b d / length a d = length c e / length a e ↔ area e b d / area e a d = area d c e / area d a e := by rw [ratio_bd_ad, ratio_ce_ae]
+  perm at *
+  
+  have ratio_iff : length b d / length a d = length c e / length a e ↔ area e b d / area e a d = area d c e / area d a e := by
+   rw [eq_ratio_of_proportion len_ad_neq_0 area_ade_neq_0 hbdad,  
+       eq_ratio_of_proportion len_ae_neq_0 area_ade_neq_0 hceae]
+   perm
   have proportion_lhs : proportion (length b d) (length a d) (length c e) (length a e) ↔ area e b d / area e a d = area d c e / area d a e := by
-    rwa [← proportion_iff]
-    exact length_nonneg b d
-    exact length_nonneg a d
-    exact length_nonneg c e
-    exact length_nonneg a e
-    exact len_ad_neq_0
-    exact len_ae_neq_0
+    rwa [← proportion_iff (length_nonneg b d) (length_nonneg a d) (length_nonneg c e) (length_nonneg a e) (len_ad_neq_0) (len_ae_neq_0)]
   have area_bde_eq_cde : proportion (length b d) (length a d) (length c e) (length a e) ↔ area b d e = area c d e := by
-    rw [proportion_lhs, ead_eq_dae, ebd_eq_bde, dce_eq_cde]
-    apply div_left_inj' area_dae_neq_0
+    rw [proportion_lhs]
+    perm
+    field_simp
+  
+  -- apply I.39
   constructor
-  -- apply I.3
   intro harea
   rw [area_bde_eq_cde] at harea
   have nsabL:= not_sameside13_of_B123_online2 Badb hdL
   have nsacL:= not_sameside13_of_B123_online2 Baec heL
   have ssbcL := sameside_of_diffside_diffside ⟨hnaL, hnbL, nsabL⟩ ⟨hnaL, hncL, nsacL⟩
-  apply eq_area_of_same_base_implies_para hdL heL hnbL hbM hcM hdP hcP hneP bc cd.symm ssbcL harea
-  -- apply I.3
-  intro pLM
+  exact eq_area_of_same_base_implies_para hdL heL hnbL hbM hcM hdP hcP hneP bc cd.symm ssbcL harea
+
+  -- apply I.37
   rw [area_bde_eq_cde]
-  apply para_implies_eq_area_of_same_base hbM hdL heL hcM pLM
+  intro pLM
+  exact para_implies_eq_area_of_same_base hbM hcM hdL heL pLM
 
 
 /-- ## Euclid VI.2'
 a line cuts the sides of the triangle proportionally iff it is parallel to one of the sides of a triangle (version AB:AD = AC:AE)
  https://mathcs.clarku.edu/~djoyce/java/elements/bookVI/propVI2.html -/
 theorem proportional_iff_para' {a b c d e: point} {L M N: line}
-    (hdL: online d L)
-    (heL: online e L)
-    (hbM: online b M)
-    (hcM: online c M)
-    (haN: online a N)
-    (hdN: online d N)
+    (hdL: online d L) (heL: online e L)
+    (hbM: online b M) (hcM: online c M)
+    (haN: online a N) (hdN: online d N)
     (hneN: ¬ online e N)
     (Badb : B a d b) (Baec : B a e c) :
     proportion (length a b) (length a d) (length a c) (length a e) ↔ para L M := by
@@ -661,39 +599,12 @@ theorem proportional_iff_para' {a b c d e: point} {L M N: line}
 
   rw [(proportion_iff (length_nonneg a b) (length_nonneg a d) (length_nonneg a c) (length_nonneg a e) ad ae).symm]
   rw [(proportion_iff (length_nonneg b d) (length_nonneg a d) (length_nonneg c e) (length_nonneg a e) ad ae).symm] at this
-  rw [(length_sum_of_B Badb).symm]
-  rw [(length_sum_of_B Baec).symm]
-  simp [add_div] at this
-  simp [add_div]
-  rw [div_self ad, div_self ae]
-  simp [add_right_inj]
-  rw [length_symm d b]
-  rw [length_symm e c]
-  exact this
-
-
-/-- colinear is symmetric under odd permutation -/
-theorem colinear_symm1 :
-    colinear a b c ↔ colinear b a c := by
-  dsimp [colinear]
-  constructor
-  all_goals
-    intro L
-    obtain ⟨ l,hl ⟩ := L
-    use l
-    exact and_left_comm.mp hl
-
-/-- colinear is symmetric under even permutation -/
-theorem colinear_symm2 :
-    colinear a b c ↔ colinear b c a := by
-  dsimp [colinear]
-  constructor
-  all_goals
-    intro L
-    obtain ⟨ l,hl ⟩ := L
-    use l
-  exact and_rotate.mp hl
-  exact and_rotate.mpr hl
+  rw [(length_sum_of_B Badb).symm, (length_sum_of_B Baec).symm]
+  field_simp at this;  rw [← this]
+  perm
+  field_simp
+  ring_nf
+  simp [*]
 
 /-- equal points are colinear -/
 lemma colinear_of_eq_23 (a b : point) :
@@ -705,14 +616,12 @@ lemma colinear_of_eq_23 (a b : point) :
 /-- equal points are colinear -/
 lemma colinear_of_eq_12 (a b : point) :
     colinear a a b := by
-  rw [colinear_symm2]
-  rw [colinear_symm2]
+  rw [col321]
   exact colinear_of_eq_23 b a
+
 /-- equal points are colinear -/
 lemma colinear_of_eq_13 (a b : point) :
-    colinear a b a := by
-  rw [colinear_symm2]
-  exact colinear_of_eq_23 b a
+    colinear a b a := by perma [colinear_of_eq_12 a b]
 
 /-- not colinear implies different -/
 lemma neq_12_of_not_colinear {a b c : point} (h: ¬ colinear a b c) :
@@ -769,8 +678,8 @@ lemma parallel_of_similar {a b c g h : point} {AB AC BC HG: line}
   have hbc_abc : angle h b c = angle a b c := by
     refine' angle_extension b_ne_h.symm a_ne_b b_ne_c.symm b_ne_c.symm hbAB hhAB haAB hbBC hcBC hcBC (not_B_of_B (B_symm hB)) _
     by_contra contra
-    have := ne_13_of_B contra
-    exact this rfl
+    apply ne_13_of_B contra
+    rfl
 
   have AB_ne_HG: AB ≠ HG := by
     by_contra AB_HG
@@ -823,9 +732,7 @@ lemma length_eq_of_length_eq {a b c d e f : point}
   obtain ⟨BC, hBC⟩ := line_of_pts b c
   have c_nonline_AB := not_online_of_not_colinear hAB.1 hAB.2 tri_abc
 
-  rw [colinear_symm1] at tri_abc
-  rw [colinear_symm2] at tri_abc
-  have b_nonline_AC := not_online_of_not_colinear hAC.1 hAC.2 tri_abc
+  have b_nonline_AC : ¬online b AC := not_online_of_not_colinear hAC.1 hAC.2 (by perma)
 
   by_contra contra
   rw [(Ne.def (length d e) (length a b)).symm] at contra
@@ -840,8 +747,7 @@ lemma length_eq_of_length_eq {a b c d e f : point}
   have h_online_AB := online_3_of_B hh.1 hAB.1 hAB.2
   have h_ne_c : h ≠ c := by
     by_contra contra
-    rw [contra] at h_online_AB
-    exact c_nonline_AB h_online_AB
+    exact c_nonline_AB (by rwa [contra] at h_online_AB)
 
   have h_nonline_AC : ¬ online h AC := by
     by_contra contra
@@ -851,31 +757,24 @@ lemma length_eq_of_length_eq {a b c d e f : point}
 
   have hac_bac := (angle_extension_of_B a_ne_c hh.1).symm
   rw [hac_bac.symm] at ang_a_eq_d
-  rw [angle_symm] at ang_a_eq_d
-  rw [@angle_symm i e d f] at ang_a_eq_d
-  have ang_b_eq_h := sas leq.symm hh.2 ang_a_eq_d
+  perm at *
+  have ang_b_eq_h := sas leq.symm hh.2 (by perma)
   rw [ang_b_eq_e.symm] at ang_b_eq_h
 
   have := parallel_of_similar hAB.1 h_online_AB hAB.2 hAC.1 hAC.2 hHC.1 hHC.2 hBC.1 hBC.2 (ne_23_of_B hh.1).symm (ne_13_of_B hh.1) h_ne_c b_ne_c a_ne_c h_nonline_AC ang_b_eq_h.2.2.symm hh.1 (sameside_rfl_of_not_online c_nonline_AB)
 
-  have := neq_of_para hHC.2 hBC.2 this
-  exact this rfl
+  exact neq_of_para hHC.2 hBC.2 this rfl
 
-  rw [colinear_symm1] at tri_abc
-  rw [colinear_symm2] at tri_abc
   obtain ⟨DF, hDF⟩ := line_of_pts d f
   obtain ⟨DE, hDE⟩ := line_of_pts d e
   obtain ⟨EF, hEF⟩ := line_of_pts e f
   have f_nonline_DE := not_online_of_not_colinear hDE.1 hDE.2 tri_def
-  rw [colinear_symm1] at tri_def
-  rw [colinear_symm2] at tri_def
-  have e_nonline_DF := not_online_of_not_colinear hDF.1 hDF.2 tri_def
+  have e_nonline_DF: ¬online e DF := not_online_of_not_colinear hDF.1 hDF.2 (by perma)
 
   refine' this tri_def tri_abc ang_a_eq_d.symm ang_b_eq_e.symm leq.symm a_ne_c d_ne_f a_ne_b d_ne_e e_ne_f b_ne_c DF hDF DE hDE EF hEF f_nonline_DE e_nonline_DF _ _
   exact Or.symm contra
   cases contra with
-  | inl contra =>
-    exact contra
+  | inl contra => exact contra
   | inr contra =>
     exfalso
     linarith
@@ -899,10 +798,7 @@ lemma length_lt_of_length_lt {a b c d e f : point}
   obtain ⟨BC, hBC⟩ := line_of_pts b c
   have c_nonline_AB := not_online_of_not_colinear hAB.1 hAB.2 tri_abc
 
-  rw [colinear_symm1] at tri_abc
-  rw [colinear_symm2] at tri_abc
-
-  have b_nonline_AC := not_online_of_not_colinear hAC.1 hAC.2 tri_abc
+  have b_nonline_AC : ¬online b AC := not_online_of_not_colinear hAC.1 hAC.2 (by perma)
 
   obtain ⟨g, hg⟩ := B_length_eq_of_ne_lt d_ne_f lineq
   have g_online_AC := online_2_of_B hg.1 hAC.1 hAC.2
@@ -931,7 +827,7 @@ lemma length_lt_of_length_lt {a b c d e f : point}
       by_contra contra
       rw [contra] at hh
       have := online_2_of_B hh.1 hAC.1 (online_2_of_B hg.1 hAC.1 hAC.2)
-      exact (not_online_of_not_colinear hAC.1 hAC.2 tri_abc) this
+      exact (not_online_of_not_colinear hAC.1 hAC.2 (by perma)) this
 
     have h_nonline_AC : ¬ online h AC := by
       by_contra contra
@@ -942,13 +838,11 @@ lemma length_lt_of_length_lt {a b c d e f : point}
     have hag_bac : angle h a g = angle b a c := by
       rw [angle_extension_of_B a_ne_c hh.1]
       have := angle_extension_of_B (ne_13_of_B hh.1) hg.1
-      rw [angle_symm] at this
+      perm at *
       rw [this]
-      rw [angle_symm]
     rw [hag_bac.symm] at ang_a_eq_d
-    rw [angle_symm] at ang_a_eq_d
-    rw [@angle_symm i e d f] at ang_a_eq_d
-    have ang_b_eq_h := sas hg.2 hh.2 ang_a_eq_d
+    have' ang_b_eq_h := sas hg.2 hh.2 _
+    swap; perma only [angle] at *
     rw [ang_b_eq_e.symm] at ang_b_eq_h
 
     have' := parallel_of_similar hAB.1 h_online_AB hAB.2 hAC.1 hAC.2 hHG.1 hHG.2 hBC.1 hBC.2 (ne_23_of_B hh.1).symm (ne_13_of_B hh.1) h_ne_g b_ne_c a_ne_c h_nonline_AC ang_b_eq_h.2.2.symm hh.1 _
@@ -961,25 +855,9 @@ lemma length_lt_of_length_lt {a b c d e f : point}
     exact sameside_symm (sameside_of_B_not_online_2 hg.1 hAB.1 g_nonline_AB)
 
   | inr contra =>
-    obtain ⟨DF, hDF⟩ := line_of_pts d f
-    obtain ⟨DE, hDE⟩ := line_of_pts d e
-    obtain ⟨EF, hEF⟩ := line_of_pts e f
-    have f_nonline_DE := not_online_of_not_colinear hDE.1 hDE.2 tri_def
-
-    rw [colinear_symm1] at tri_def
-    rw [colinear_symm2] at tri_def
-    rw [angle_symm] at ang_a_eq_d
-    rw [@angle_symm i e d f] at ang_a_eq_d
-    have' := length_eq_of_length_eq tri_abc tri_def ang_a_eq_d _ contra.symm
+    have: length d f = length a c := length_eq_of_length_eq (by perma) (by perma) (by perma) (asa tri_abc contra (by perma) (by perma)).2.2 contra.symm
     linarith
 
-    rw [angle_symm] at ang_a_eq_d
-    rw [@angle_symm i f d e] at ang_a_eq_d
-    rw [angle_symm] at ang_b_eq_e
-    rw [@angle_symm i d e f] at ang_b_eq_e
-
-    perm at tri_abc
-    exact (asa tri_abc contra ang_a_eq_d (by perma [ang_b_eq_e])).2.2
 
 /-- Two triangles are similar if they have two angles equal -/
 theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_def : ¬ colinear d e f) 
@@ -999,38 +877,19 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
     rw [this, df_ne_ac.symm]
     exact proportion_eq (length_nonneg a b) (length_nonneg d f) (length_eq_zero_iff.not.mpr a_ne_b) (length_eq_zero_iff.not.mpr d_ne_f)
 
-    obtain ⟨DE, hDE⟩ := line_of_pts d e
-    have f_nonline_DE := not_online_of_not_colinear hDE.1 hDE.2 tri_def
-
     rw [proportion_symm_iff]
 
     have leq : length d e = length a b := by
       cases dfde_ne_acab with
-      | inl dfde_ne_acab =>
-        exfalso
-        exact df_ne_ac dfde_ne_acab
-      |inr dfde_ne_acab =>
-        exact dfde_ne_acab
+      | inl dfde_ne_acab => exfalso; exact df_ne_ac dfde_ne_acab
+      | inr dfde_ne_acab => exact dfde_ne_acab
 
-    rw [colinear_symm1] at tri_abc
-    rw [colinear_symm2] at tri_abc
-    rw [colinear_symm1] at tri_def
-    rw [colinear_symm2] at tri_def
-    rw [angle_symm] at ang_a_eq_d
-    rw [@angle_symm i e d f] at ang_a_eq_d
-    refine' this tri_abc tri_def ang_a_eq_d _ d_ne_e a_ne_b d_ne_f a_ne_c b_ne_c.symm e_ne_f.symm (Or.symm dfde_ne_acab) leq
+    refine' this (by perma) (by perma) (by perma) _ d_ne_e a_ne_b d_ne_f a_ne_c b_ne_c.symm e_ne_f.symm (Or.symm dfde_ne_acab) leq
+    exact (asa tri_abc leq.symm ang_a_eq_d (by perma [ang_b_eq_e])).2.2
 
-    rw [angle_symm] at ang_a_eq_d
-    rw [@angle_symm i f d e] at ang_a_eq_d
-    rw [angle_symm] at ang_b_eq_e
-    rw [@angle_symm i d e f] at ang_b_eq_e
-
-    perm at tri_abc
-    apply (asa tri_abc leq.symm ang_a_eq_d (by perma [ang_b_eq_e])).2.2
-
-  rw [not_or] at dfde_ne_acab
-  rw [(Ne.def (length d f) (length a c)).symm] at dfde_ne_acab
-  rw [(Ne.def (length d e) (length a b)).symm] at dfde_ne_acab
+  conv at dfde_ne_acab => 
+    rw [not_or]
+    rw [(Ne.def _ _).symm]; rhs; rw [(Ne.def _ _).symm]
 
   wlog lineq : length d f < length a c
   refine' proportion_inv (this tri_def tri_abc ang_a_eq_d.symm ang_b_eq_e.symm a_ne_c d_ne_f a_ne_b d_ne_e e_ne_f b_ne_c ⟨dfde_ne_acab.1.symm,dfde_ne_acab.2.symm⟩ _)
@@ -1043,10 +902,7 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
 
   have lineq2 := length_lt_of_length_lt tri_abc tri_def ang_a_eq_d ang_b_eq_e lineq
 
-  rw [colinear_symm1] at tri_abc
-  rw [colinear_symm2] at tri_abc
-
-  have b_nonline_AC := not_online_of_not_colinear hAC.1 hAC.2 tri_abc
+  have b_nonline_AC : ¬ online b AC:= not_online_of_not_colinear hAC.1 hAC.2 (by perma)
 
   obtain ⟨g, hg⟩ := B_length_eq_of_ne_lt d_ne_f lineq
   obtain ⟨h, hh⟩ := B_length_eq_of_ne_lt d_ne_e lineq2
@@ -1055,7 +911,7 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
   have g_online_AC := online_2_of_B hg.1 hAC.1 hAC.2
   have h_online_AB := online_2_of_B hh.1 hAB.1 hAB.2
 
-  rw [hg.2.symm,hh.2.symm]
+  rw [hg.2.symm, hh.2.symm]
 
   refine' (proportional_iff_para' hHG.1 hHG.2 hBC.1 hBC.2 hAB.1 h_online_AB _ hh.1 hg.1).mpr _
 
@@ -1067,22 +923,18 @@ theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_d
     by_contra contra
     rw [contra] at hh
     have := online_3_of_B hh.1 hAC.1 (online_2_of_B hg.1 hAC.1 hAC.2)
-    exact (not_online_of_not_colinear hAC.1 hAC.2 tri_abc) this
+    exact (not_online_of_not_colinear hAC.1 hAC.2 (by perma)) this
 
   refine' para_symm (parallel_of_similar hAB.1 hAB.2 h_online_AB hAC.1 g_online_AC hBC.1 hBC.2 hHG.1 hHG.2 (ne_23_of_B hh.1).symm a_ne_b b_ne_c h_ne_g (ne_12_of_B hg.1) b_nonline_AC _ hh.1 _)
 
   have hag_bac : angle h a g = angle b a c := by
     rw [(angle_extension_of_B a_ne_c hh.1).symm]
-    have := angle_extension_of_B (ne_12_of_B hh.1) hg.1
-    rw [angle_symm] at this
-    rw [this]
-    rw [angle_symm]
-  rw [hag_bac.symm] at ang_a_eq_d
-  rw [angle_symm] at ang_a_eq_d
-  rw [@angle_symm i e d f] at ang_a_eq_d
-  have ang_b_eq_h := sas hg.2 hh.2 ang_a_eq_d
+    perma [angle_extension_of_B (ne_12_of_B hh.1) hg.1]
+  have' ang_b_eq_h := sas hg.2 hh.2 _
   rw [ang_b_eq_e.symm] at ang_b_eq_h
   exact ang_b_eq_h.2.2
+  perm at *
+  rw [hag_bac, ang_a_eq_d]
 
   refine' sameside_of_B_not_online_2 hg.1 hAB.1 _
   by_contra contra
