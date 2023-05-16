@@ -3,7 +3,7 @@ variable [i: incidence_geometry]
 
 /-- find second point on line -/
 
-lemma pt_of_line_ne_pt (a : point) (L : line) :
+lemma pt_of_line_ne_pt (a : point) (L : line):
     ∃ b : point, (b ≠ a) ∧ (online b L) 
 
 /-- intersection of non_parallel lines -/
@@ -24,37 +24,16 @@ theorem para_trans {L M N : line}
     (pLN: para L N) :
     M=N ∨ (para M N) 
 
-/-- reorder areas -/
-lemma area_invariant_132 {a b c : point} :
-    area a b c = area a c b 
-
-lemma area_invariant_213 {a b c : point} :
-    area a b c = area b a c 
-
-lemma area_invariant_231 {a b c : point} :
-    area a b c = area b c a 
-
-lemma area_invariant_312 {a b c : point} :
-    area a b c = area c a b 
-
-lemma area_invariant_321 {a b c : point} :
-    area a b c = area c b a 
-
 /-- degenerate area: more general statement -/
 lemma area_of_eq (a b c : point)
     (h: a=b ∨ a=c ∨ b=c) :
-    area a b c =0 
+    area a b c = 0 
 
 /-- equivalent areas of paralellogram -/
 lemma area_of_parallelogram {a b c d : point} {L M N O : line}
-    (haL: online a L) (hbL: online b L)
-    (hbM: online b M) (hcM: online c M)
-    (hcN: online c N) (hdN: online d N)
-    (hdO: online d O) (haO: online a O)
-    (parLN: para L N)
-    (parMO: para M O) :
-    area a b c + area a d c = 2*(area a b c)
-    ∧ area b a d + area b c d = 2*(area a b c) 
+    (pg: paragram a b c d L M N O) :
+    area a b c + area a d c = 2 * (area a b c)
+    ∧ area b a d + area b c d = 2 * (area a b c) 
 
 /-- non-degeneracy of triangle -/
 lemma not_online_of_triangle {a b c : point} {L M : line}
@@ -113,15 +92,15 @@ lines which join the ends of equal and parallel lines in the same directions are
 https://mathcs.clarku.edu/~djoyce/java/elements/bookI/propI33.html -/
 theorem para_len_parallelogram {a b c d : point} {L M N O P : line}
     (haL: online a L) (hbL: online b L)
-    (hbM: online b M) (hcM: online c M)
-    (hcN: online c N) (hdN: online d N)
-    (hdO: online d O) (haO: online a O)
-    (hcP: online c P) (haP: online a P)
-    (hdiff: d ≠ c)
-    (hside: diffside b d P)
-    (pLN: para L N)
+    (hcM: online c M) (hdM: online d M)
+    (haN: online a N) (hcN: online c N)
+    (hbO: online b O) (hdO: online d O)
+    (hbP: online b P) (hcP: online c P)
+    (hdiff: c ≠ b)
+    (hside: diffside a d P)
+    (pLM: para L M)
     (hlen: length a b = length c d) :
-    para O M 
+    para N O 
 
 /-- ## Euclid I.36
 parallelograms which are on equal bases and in the same parallels equal one another
@@ -133,7 +112,7 @@ theorem eq_of_parallelogram_of_eq_basis_of_diffside {a b c d e f g h: point} {L 
     (hdN: online d N) (hcN: online c N)
     (heO: online e O) (hfO: online f O)
     (hhP: online h P) (hgP: online g P)
-    (parLM: para L M) (parKN: para K N) (parOP: para O P)
+    (pLM: para L M) (pKN: para K N) (pOP: para O P)
     (hlen: length b c = length f g)
     {S: line}
     (hcS: online c S) (heS: online e S)
@@ -164,7 +143,7 @@ theorem eq_area_of_eq_base {a b c d e f : point} {L M : line}
     (hfL: online f L)
     (pLM: para L M)
     (hlen: length b c = length e f) :
-    area a b c=area d e f 
+    area a b c = area d e f 
 
 /-- ## Euclid I.38
 triangles which are on equal bases and in the same parallels equal one another (version where the vertex is the same for both triangles)
@@ -175,30 +154,26 @@ theorem eq_area_of_eq_base_samevertex (a : point) {b c e f : point} {L : line}
     (heL: online e L)
     (hfL: online f L)
     (hlen: length b c = length e f) :
-    area a b c=area a e f 
+    area a b c = area a e f 
 
 /-- ## Euclid I.37
 triangles which are on the same base and in the same parallels equal one another (a special case of I.38)
 https://mathcs.clarku.edu/~djoyce/java/elements/bookI/propI37.html -/
 theorem para_implies_eq_area_of_same_base {a b c d : point} {L M : line}
-    (haM: online a M)
-    (hbL: online b L)
-    (hcL: online c L)
-    (hdM: online d M)
+    (haM: online a M) (hdM: online d M)
+    (hbL: online b L) (hcL: online c L)
     (pLM: para L M) :
     area a b c = area d b c 
 
 /-- area of a triangle cannot equal the area of its subtriangle -/
 lemma tri_sum_contra {b c d e: point} {O : line}
-    (hbO: online b O)
-    (hdO: online d O)
-    (heO: online e O)
+    (hbO: online b O) (hdO: online d O) (heO: online e O)
     (hncO: ¬ online c O)
     (bd: b ≠ d)
     (de: d ≠ e)
     (eb: e ≠ b)
     (hBbed: B b e d)
-    (harea: area b c d = area e b c) :
-    false 
+    (harea: area b c d = area b c e) :
+    False 
 
 

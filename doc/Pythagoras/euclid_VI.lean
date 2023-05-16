@@ -3,21 +3,14 @@ variable [i: incidence_geometry]
 
 /-- technical lemma that really shouldn't be here, but hey... -/
 
-lemma mul_mul_lt (a b c : ℝ) (hc: 0<c):
+lemma mul_mul_lt (a b c : ℝ) (hc: 0 < c):
     a<b → a*c<b*c 
-
-/-- technical lemma that really shouldn't be here, but hey... -/
-lemma ge2_of_n1_n0 {n : ℕ}
-    (h0: n ≠ 0) (h1: n ≠ 1) :
-    n ≥ 2 
 
 /-- technical lemma that really shouldn't be here, but hey... -/
 lemma gt1_of_n1_n0 {n : ℕ}
     (h0: n ≠ 0) (h1: n ≠ 1) :
     n > 1 
 
-/-- from segment of length l, construct a new segment of length n*l
-    based on I.3 -/
 lemma rescale_length {a b : point} {L : line} (n : ℕ)
     (haL: online a L)
     (hbL: online b L) :
@@ -29,17 +22,17 @@ lemma rescale_triangle_of_base__inductive (a : point) {b c : point} {L : line} {
     (hbL: online b L)
     (hcL: online c L)
     (h_a_nonline_L: ¬ online a L) :
-    ∀ d:point, (online d L) → (length b d = n*(length b c)) → B b c d → area a b d = n*(area a b c) 
+    ∀ d:point, (online d L) → (length b d = n*(length b c)) → B b c d → area a b d = n * (area a b c) 
 
 -- lemma with B b c d as a hypothesis
 lemma rescale_triangle_of_base__B (a : point) {b c d : point} {L : line} {n : ℕ}
     (hbL: online b L)
     (hcL: online c L)
     (hdL: online d L)
-    (hlen: length b d = n*(length b c))
+    (hlen: length b d = n * (length b c))
     (hB: B b c d)
     (h_a_nonline_L: ¬ online a L) :
-    area a b d = n*(area a b c) 
+    area a b d = n * (area a b c) 
 
 -- not B c b d
 lemma rescale_triangle_of_base__notcbd (a : point) {b c d : point} {L : line} {n : ℕ}
@@ -73,7 +66,7 @@ lemma lt_area_of_lt_base__sameedge_Bbfc (a : point) {b c f: point} {L: line}
     (h_b_ne_f: b ≠ f)
     (h_c_ne_f: c ≠ f)
     (h_a_nonline_L: ¬ online a L) :
-    (length b c)>(length b f) → (area a b c)>(area a b f) 
+    (length b c) > (length b f) → (area a b c) > (area a b f) 
 
 -- case where they share a side and not B f b c
 lemma lt_area_of_lt_base__sameedge_nBfbc (a : point) {b c f: point} {L: line}
@@ -84,7 +77,7 @@ lemma lt_area_of_lt_base__sameedge_nBfbc (a : point) {b c f: point} {L: line}
     (h_b_ne_f: b ≠ f)
     (h_a_nonline_L: ¬ online a L)
     (hB: ¬ B f b c) :
-    (length b c)>(length b f) → (area a b c)>(area a b f) 
+    (length b c) > (length b f) → (area a b c) > (area a b f) 
 
 -- case where they share a side
 lemma lt_area_of_lt_base__sameedge (a : point) {b c f: point} {L: line}
@@ -94,7 +87,7 @@ lemma lt_area_of_lt_base__sameedge (a : point) {b c f: point} {L: line}
     (h_b_ne_c: b ≠ c)
     (h_b_ne_f: b ≠ f)
     (h_a_nonline_L: ¬ online a L) :
-    (length b c)>(length b f) → (area a b c)>(area a b f) 
+    (length b c) > (length b f) → (area a b c) > (area a b f) 
 
 -- general case
 lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
@@ -105,7 +98,7 @@ lemma lt_area_of_lt_base {a b c d e f: point} {L M: line}
     (heL: online e L)
     (hfL: online f L)
     (hpar: para L M) :
-    (length b c)>(length e f) → (area a b c)>(area d e f) 
+    (length b c) > (length e f) → (area a b c) > (area d e f) 
 
 /-- ## Euclid VI.1
 two triangles in between parallel lines have their area in proportion with the length of their base
@@ -133,12 +126,9 @@ theorem proportion_area_of_proportion_base_samevertex (a : point) {b c e f: poin
 a line cuts the sides of the triangle proportionally iff it is parallel to one of the sides of a triangle (version BD:AD = CE:AE)
  https://mathcs.clarku.edu/~djoyce/java/elements/bookVI/propVI2.html -/
 theorem proportional_iff_para {a b c d e: point} {L M N: line}
-    (hdL: online d L)
-    (heL: online e L)
-    (hbM: online b M)
-    (hcM: online c M)
-    (haN: online a N)
-    (hdN: online d N)
+    (hdL: online d L) (heL: online e L)
+    (hbM: online b M) (hcM: online c M)
+    (haN: online a N) (hdN: online d N)
     (hneN: ¬ online e N)
     (Badb : B a d b) (Baec : B a e c) :
     proportion (length b d) (length a d) (length c e) (length a e) ↔ para L M 
@@ -147,23 +137,12 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
 a line cuts the sides of the triangle proportionally iff it is parallel to one of the sides of a triangle (version AB:AD = AC:AE)
  https://mathcs.clarku.edu/~djoyce/java/elements/bookVI/propVI2.html -/
 theorem proportional_iff_para' {a b c d e: point} {L M N: line}
-    (hdL: online d L)
-    (heL: online e L)
-    (hbM: online b M)
-    (hcM: online c M)
-    (haN: online a N)
-    (hdN: online d N)
+    (hdL: online d L) (heL: online e L)
+    (hbM: online b M) (hcM: online c M)
+    (haN: online a N) (hdN: online d N)
     (hneN: ¬ online e N)
     (Badb : B a d b) (Baec : B a e c) :
     proportion (length a b) (length a d) (length a c) (length a e) ↔ para L M 
-
-/-- colinear is symmetric under odd permutation -/
-theorem colinear_symm1 :
-    colinear a b c ↔ colinear b a c 
-
-/-- colinear is symmetric under even permutation -/
-theorem colinear_symm2 :
-    colinear a b c ↔ colinear b c a 
 
 /-- equal points are colinear -/
 lemma colinear_of_eq_23 (a b : point) :
@@ -176,10 +155,6 @@ lemma colinear_of_eq_12 (a b : point) :
 /-- equal points are colinear -/
 lemma colinear_of_eq_13 (a b : point) :
     colinear a b a 
-
-/-- not colinear implies different -/
-lemma neq_12_of_not_colinear {a b c : point} (h: ¬ colinear a b c) :
-    a ≠ b 
 
 /-- not colinear implies different -/
 lemma neq_13_of_not_colinear {a b c : point} (h: ¬ colinear a b c) :
@@ -200,19 +175,12 @@ lemma pt_extension_of_ne {b c : point} :
 /-- similar triangles (should follow from Euclid VI.2) -/
 -- show resulting lines are parallel
 lemma parallel_of_similar {a b c g h : point} {AB AC BC HG: line}
-    (haAB: online a AB)
-    (hbAB: online b AB)
-    (hhAB: online h AB)
-    (haAC: online a AC)
-    (hcAC: online c AC)
-    (hgAC: online g AC)
-    (hbBC: online b BC)
-    (hcBC: online c BC)
-    (hhHG: online h HG)
-    (hgHG: online g HG)
+    (haAB: online a AB) (hbAB: online b AB) (hhAB: online h AB)
+    (haAC: online a AC) (hgAC: online g AC)
+    (hbBC: online b BC) (hcBC: online c BC)
+    (hhHG: online h HG) (hgHG: online g HG)
     (b_ne_h: b ≠ h)
     (a_ne_b: a ≠ b)
-    (a_ne_c: a ≠ c)
     (b_ne_c: b ≠ c)
     (h_ne_g: h ≠ g)
     (a_ne_g: a ≠ g)

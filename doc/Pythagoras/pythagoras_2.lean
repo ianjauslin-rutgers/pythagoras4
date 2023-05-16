@@ -1,5 +1,4 @@
 open incidence_geometry
-
 variable [i: incidence_geometry]
 
 /-- colinear API -/
