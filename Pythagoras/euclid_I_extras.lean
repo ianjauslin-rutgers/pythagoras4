@@ -5,6 +5,11 @@ import Mathlib.Tactic.SwapVar
 open incidence_geometry
 variable [i: incidence_geometry]
 
+/-- a wrapper around proportion_iff utilizing length nonnegativity-/
+lemma proportion_len_iff (a b c d e f g h : point) (cd : length c d ≠ 0) (gh: length g h ≠ 0) :
+  (length a b) / (length c d) = (length e f) / (length g h) ↔ proportion (length a b) (length c d) (length e f) (length g h) :=
+   proportion_iff (length_nonneg _ _) (length_nonneg _ _) (length_nonneg _ _) (length_nonneg _ _) cd gh
+
 /-- given two lengths, one is trivial iff the other is -/
 lemma same_len_pts_coincide_iff {a b c d : point} (hlen: length a b = length c d) : a = b ↔ c = d := by
     rw [← @length_eq_zero_iff i a b, ← @length_eq_zero_iff i c d, hlen]

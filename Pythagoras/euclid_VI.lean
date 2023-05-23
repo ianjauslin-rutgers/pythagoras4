@@ -1,7 +1,5 @@
 import SyntheticEuclid4
-import Pythagoras.proportion
 import Pythagoras.euclid_I_extras
-import Std.Tactic.ShowTerm
 import Mathlib.Tactic.WLOG
 
 open incidence_geometry
@@ -404,7 +402,7 @@ theorem proportional_iff_para {a b c d e: point} {L M N: line}
         eq_ratio_of_proportion len_ae_neq_0 area_ade_neq_0 hceae]
 
   have proportion_lhs : proportion (length b d) (length a d) (length c e) (length a e) ↔ area e b d / area e a d = area d c e / area d a e := by
-    rwa [← proportion_iff (length_nonneg b d) (length_nonneg a d) (length_nonneg c e) (length_nonneg a e) (len_ad_neq_0) (len_ae_neq_0)]
+    rwa [← proportion_len_iff b d a d c e a e len_ad_neq_0 len_ae_neq_0]
   have area_bde_eq_cde : proportion (length b d) (length a d) (length c e) (length a e) ↔ area b d e = area c d e := by
     rw [proportion_lhs]; perm; field_simp
   
@@ -435,9 +433,8 @@ theorem proportional_iff_para' {a b c d e: point} {L M N: line}
   have ae : length a e ≠ 0 := length_eq_zero_iff.not.mpr (ne_12_of_B Baec)
 
   have := proportional_iff_para hdL heL hbM hcM haN hdN hneN Badb Baec
-
-  rw [← proportion_iff (length_nonneg a b) (length_nonneg a d) (length_nonneg a c) (length_nonneg a e) ad ae]
-  rw [← proportion_iff (length_nonneg b d) (length_nonneg a d) (length_nonneg c e) (length_nonneg a e) ad ae] at this
+  rw [← proportion_len_iff a b a d a c a e ad ae]
+  rw [← proportion_len_iff b d a d c e a e ad ae] at this
   rw [← length_sum_of_B Badb, ← length_sum_of_B Baec, ← this]
   perm; field_simp; ring_nf; simp
 
@@ -636,10 +633,8 @@ lemma length_lt_of_length_lt {a b c d e f : point}
     perma [sameside_of_B_not_online_2 hg.1 hAB.1 g_nonline_AB]
 
   | inr contra =>
-    have := (asa tri_abc contra (by perma) (by perma)).2.2
-    have : length d f = length a c := length_eq_of_length_eq (by perma) (by perma) (by perma) this contra.symm
+    have: length d f = length a c := length_eq_of_length_eq (by perma) (by perma) (by perma) (asa tri_abc contra (by perma) (by perma)).2.2 contra.symm
     linarith
-
 
 /-- Two triangles are similar if they have two angles equal -/
 theorem similar_of_AA {a b c d e f : point} (tri_abc : ¬ colinear a b c) (tri_def : ¬ colinear d e f) 
