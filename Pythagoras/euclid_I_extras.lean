@@ -6,6 +6,11 @@ open incidence_geometry
 variable [i: incidence_geometry]
 
 
+/-- given two lengths, one is trivial iff the other is -/
+lemma same_len_pts_coincide_iff {a b c d : point} (hlen: length a b = length c d) : a = b ↔ c = d := by
+    rw [← @length_eq_zero_iff i a b, ← @length_eq_zero_iff i c d, hlen]
+
+
 /-- find second point on line -/
 lemma pt_of_line_ne_pt (a : point) (L : line):
     ∃ b : point, (b ≠ a) ∧ (online b L) := by
@@ -409,23 +414,20 @@ theorem eq_of_parallelogram_of_eq_basis {a b c d e f g h: point} {L M K N O P: l
 
   -- trivial case: b = c
   by_cases h_b_ne_c: b = c
-  · have h_f_eq_g := (length_eq_zero_iff.mp (Eq.trans hlen.symm (length_eq_zero_iff.mpr h_b_ne_c)))
-    perm [(len_ang_area_eq_of_parallelogram bcda).1]
-    have h_a_eq_d := (length_eq_zero_iff.mp (Eq.trans this.symm (length_eq_zero_iff.mpr h_b_ne_c)))
-    have h_e_eq_h := (length_eq_zero_iff.mp (Eq.trans h_fg_eq_eh.symm (length_eq_zero_iff.mpr h_f_eq_g)))
-    rw [area_of_eq a b c (by tauto), area_of_eq a c d (by tauto), area_of_eq e f g (by tauto), area_of_eq e g h (by tauto)]
+  . have h_f_eq_g := (same_len_pts_coincide_iff hlen).mp h_b_ne_c
+    have h_h_eq_e := (same_len_pts_coincide_iff h_fg_eq_eh).mp h_f_eq_g
+    have h_d_eq_a := (same_len_pts_coincide_iff (len_ang_area_eq_of_parallelogram bcda).1).mp h_b_ne_c
+    conv in (occs := *) area _ _ _ => all_goals rw [area_of_eq _ _ _ (by tauto)]
 
-  . have h_e_ne_h : e ≠ h := by
-      by_contra contra
-      rw [hlen.symm] at h_fg_eq_eh
-      exact h_b_ne_c (length_eq_zero_iff.mp (Eq.trans h_fg_eq_eh (length_eq_zero_iff.mpr contra.symm)))
-    rw [(Ne.def b c).symm] at h_b_ne_c
+  . rw [(Ne.def b c).symm] at h_b_ne_c
+    have h_h_ne_e : h ≠ e :=
+      fun he => h_b_ne_c ((same_len_pts_coincide_iff hlen).mpr ((same_len_pts_coincide_iff h_fg_eq_eh).mpr he))
 
     obtain ⟨ S, hS ⟩ := line_of_pts c e
     obtain ⟨ Q, hQ ⟩ := line_of_pts b e
     obtain ⟨ R, hR ⟩ := line_of_pts c h
 
-    have hside := diffside_of_trapezoid hhL heL hQ.2 hQ.1 hbM hcM hS.2 hS.1 parLM ⟨ h_e_ne_h.symm, h_b_ne_c ⟩
+    have hside := diffside_of_trapezoid hhL heL hQ.2 hQ.1 hbM hcM hS.2 hS.1 parLM ⟨ h_h_ne_e, h_b_ne_c ⟩
 
     cases hside with
     | inl hside =>
@@ -452,20 +454,13 @@ theorem eq_area_of_eq_base {a b c d e f : point} {L M : line}
     (pLM: para L M)
     (hlen: length b c = length e f) :
     area a b c = area d e f := by
+
   -- trivial case: b = c
   by_cases h_b_ne_c: b = c
-  · rw [area_of_eq a b c _, area_of_eq d e f _]
+  · have h_e_ne_f: e = f := (same_len_pts_coincide_iff hlen).mp h_b_ne_c
+    rw [area_of_eq a b c (by tauto), area_of_eq d e f (by tauto)]
 
-    repeat right
-    exact length_eq_zero_iff.mp (Eq.trans hlen.symm (length_eq_zero_iff.mpr h_b_ne_c))
-
-    repeat right
-    exact h_b_ne_c
-
-  have h_e_ne_f : e ≠ f := by
-    by_contra contra
-    exact h_b_ne_c (length_eq_zero_iff.mp (Eq.trans hlen (length_eq_zero_iff.mpr contra)))
-  rw [(Ne.def b c).symm] at h_b_ne_c
+  have h_e_ne_f : e ≠ f := fun ef => h_b_ne_c ((same_len_pts_coincide_iff hlen).mpr ef)
 
   -- line through a c abd d e
   obtain ⟨ K, haK, hcK ⟩ := line_of_pts a c
@@ -473,7 +468,7 @@ theorem eq_area_of_eq_base {a b c d e f : point} {L M : line}
 
   -- construct parallel projection of b through a c
   have h_a_nonline_L := offline_of_para haM (para_symm pLM)
-  have := not_online_of_triangle haK hcK hcL hbL h_a_nonline_L h_b_ne_c.symm
+  have := not_online_of_triangle haK hcK hcL hbL h_a_nonline_L (fun cb => h_b_ne_c cb.symm)
   obtain ⟨ g, O, hgM, hgO, hbO, pKO ⟩ := parallel_projection hbL pLM (not_para_of_online_online hcK hcL) this
 
   -- construct parallel projection of f through d e
@@ -501,15 +496,11 @@ theorem eq_area_of_eq_base_samevertex (a : point) {b c e f : point} {L : line}
     (hlen: length b c = length e f) :
     area a b c = area a e f := by
   -- trivial case: b = c
-  by_cases h_b_ne_c : b=c
-  · rw [length_eq_zero_iff.mpr h_b_ne_c] at hlen
-    have := length_eq_zero_iff.mp hlen.symm
+  by_cases h_b_ne_c : b = c
+  · have h_e_ne_f: e = f := (same_len_pts_coincide_iff hlen).mp h_b_ne_c
     rw [area_of_eq a b c (by tauto), area_of_eq a e f (by tauto)]
 
-  have h_e_ne_f : e ≠ f := by
-    have := length_eq_zero_iff.not.mpr h_b_ne_c
-    rw [hlen] at this
-    exact length_eq_zero_iff.not.mp this
+  have h_e_ne_f : e ≠ f := fun ef => h_b_ne_c ((same_len_pts_coincide_iff hlen).mpr ef)
 
   -- trivial case online a L
   by_cases h_a_nonline_L : online a L
