@@ -4,26 +4,23 @@ variable [i: incidence_geometry]
 
 /-- colinear API -/
 
-lemma ne_13_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : a ≠ c := by
-  intro ac
+lemma ne_13_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : a ≠ c := fun ac => by
   obtain ⟨L, bL, cL⟩ := line_of_pts b c
   exact tri_abc ⟨L, (by rwa [← ac] at cL), bL, cL⟩
 
-lemma ne_12_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : a ≠ b := by
-  intro ab
+lemma ne_12_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : a ≠ b := fun ab => by
   obtain ⟨L, bL, cL⟩ := line_of_pts b c
   refine' tri_abc ⟨L, (by rwa [← ab] at bL), bL, cL⟩
 
-lemma ne_23_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : b ≠ c := by
-  intro bc
+lemma ne_23_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : b ≠ c := fun bc => by
   obtain ⟨L, aL, bL⟩ := line_of_pts a b
   exact tri_abc ⟨L, aL, bL, (by rwa [bc] at bL)⟩ 
 
-lemma not_colinear_T {a b c : point} (tri_abc : ¬ colinear a b c) : ¬ colinear b c a := by
-  exact fun ⟨L, bL, cL, aL⟩ => tri_abc ⟨L, aL, bL, cL⟩
+lemma not_colinear_T {a b c : point} (tri_abc : ¬ colinear a b c) : ¬ colinear b c a :=
+ fun ⟨L, bL, cL, aL⟩ => tri_abc ⟨L, aL, bL, cL⟩
 
-lemma not_colinear_R {a b c : point} (tri_abc : ¬ colinear a b c) : ¬ colinear b a c := by 
-  exact fun ⟨L, aL, bL, cL⟩ => tri_abc ⟨L, bL, aL, cL⟩
+lemma not_colinear_R {a b c : point} (tri_abc : ¬ colinear a b c) : ¬ colinear b a c :=
+  fun ⟨L, aL, bL, cL⟩ => tri_abc ⟨L, bL, aL, cL⟩
 
 /-- Aux lemmata -/
 
@@ -54,8 +51,8 @@ theorem pythagorean_proof_two {a b c : point} (tri_abc : ¬ colinear a b c)
     (length_nonneg _ _) ba bc).mpr (similar_of_AA (not_colinear_R tri_dba) (not_colinear_R tri_abc)
     ang_b.symm (ang_d.trans ang_a.symm))
   field_simp at xcca
-  have tri_dca : ¬ colinear d c a := 
-    fun ⟨L, dL, cL, aL⟩ => tri_abc ⟨L, aL, (online_3_of_B (B_symm Bbdc) cL dL), cL⟩
+  have tri_dca : ¬ colinear d c a := fun ⟨L, dL, cL, aL⟩ =>
+   tri_abc ⟨L, aL, (online_3_of_B (B_symm Bbdc) cL dL), cL⟩
   have ang_c : angle a c b = angle d c a := by
     linperm [aux_2 (ne_13_of_not_colinear tri_abc) (B_symm Bbdc)]
   have ang_d : angle c d a = rightangle := by
@@ -64,7 +61,6 @@ theorem pythagorean_proof_two {a b c : point} (tri_abc : ¬ colinear a b c)
   have ybba := (proportion_iff (length_nonneg _ _) (length_nonneg _ _) (length_nonneg _ _) 
     (length_nonneg _ _) ca cb).mpr (similar_of_AA (not_colinear_R tri_dca) 
     (not_colinear_T (not_colinear_T tri_abc)) ang_c.symm ((ang_d.trans ang_a.symm).trans (by perm)))
-  field_simp at ybba
-  perm [length_sum_of_B Bbdc]
+  field_simp at ybba; perm [length_sum_of_B Bbdc]
   conv in (occs := *) length _ _ ^ 2 => all_goals rw [sq]
   perm at xcca, ybba; rw [← xcca, ← ybba, ← right_distrib, this]
