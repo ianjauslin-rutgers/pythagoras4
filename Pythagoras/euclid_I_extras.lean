@@ -1,7 +1,6 @@
 import SyntheticEuclid4
 import Pythagoras.proportion
 import Mathlib.Tactic.SwapVar
-import Mathlib.Tactic.LibrarySearch
 
 open incidence_geometry
 variable [i: incidence_geometry]
@@ -161,25 +160,15 @@ lemma area_of_eq (a b c : point)
 
 /-- equivalent areas of paralellogram -/
 lemma area_of_parallelogram {a b c d : point} {L M N O : line}
-    (pg: paragram a b c d L M N O) :
+    (abcd: paragram a b c d L M N O) :
     area a b c + area a d c = 2 * (area a b c)
     ∧ area b a d + area b c d = 2 * (area a b c) := by
-  have ar := (len_ang_area_eq_of_parallelogram pg).2.2
-  obtain ⟨ haL, hbL, hbM, hcM, hcN, hdN, hdO, haO, pLN, pMO⟩ := pg
-  have pg2 : paragram b c d a M N O L := by
-    splitAll
-    repeat assumption
-    exact para_symm pLN
+  obtain ⟨ haL, hbL, hbM, hcM, hcN, hdN, hdO, haO, pLN, pMO⟩ := id abcd
+  have bcda : paragram b c d a M N O L := by splitAll <;> perma only [para]
 
   constructor
-  . linperm [(len_ang_area_eq_of_parallelogram pg2).2.2]
-  . have ar2 := triarea hcN hdN hbL haL (para_symm pLN)
-    perm at *
-    conv at ar2 =>
-      rhs; rw [ar321]
-    rw [ar321] at ar2;
-    rw [ar2, ar, ← ar]
-    simp [two_mul]
+  . linperm [(len_ang_area_eq_of_parallelogram bcda).2.2]
+  . linperm [(len_ang_area_eq_of_parallelogram abcd).2.2, triarea hcN hdN hbL haL (by perma)]
 
 
 /-- non-degeneracy of triangle -/
@@ -387,47 +376,21 @@ theorem eq_of_parallelogram_of_eq_basis_of_diffside {a b c d e f g h: point} {L 
   obtain ⟨ Q, hbQ, heQ ⟩ := line_of_pts b e
   obtain ⟨ R, hcR, hhR ⟩ := line_of_pts c h
   have ec : e ≠ c := by apply neq_of_para heL hcM pLM
-  have ehgf : paragram e h g f L P M O := by
-    splitAll
-    repeat assumption
-    exact para_symm pOP
-  perm [(len_ang_area_eq_of_parallelogram ehgf).1]
-  rw [← hlen] at this
-  have' pQR := para_len_parallelogram hbM hcM heL hhL hbQ heQ hcR hhR hcS heS ec hside (para_symm pLM) this.symm
+  have ehgf : paragram e h g f L P M O := by splitAll <;> perma only [para]
+
+  have : length b c = length e h := by linperm [(len_ang_area_eq_of_parallelogram ehgf).1]
+  have' pQR := para_len_parallelogram hbM hcM heL hhL hbQ heQ hcR hhR hcS heS ec hside (para_symm pLM) this
 
   have eq1 := parallelarea haL hdL hbM hcM heL hhL haK hbK hdN hcN hbQ heQ hcR hhR pLM pKN pQR
   have eq2 := parallelarea hbM hcM heL hhL hfM hgM hbQ heQ hcR hhR heO hfO hhP hgP (para_symm pLM) pQR pOP
-  perm at *
-  rw [add_comm] at eq2
-  rw [eq2] at eq1
 
-  have abcd : paragram a b c d K M N L := by
-    splitAll
-    repeat assumption
-    exact para_symm pLM
+  have abcd : paragram a b c d K M N L := by splitAll <;> perma only [para]
+  have hgfe : paragram h g f e P M O L := by splitAll <;> perma only [para]
 
-  have hgfe : paragram h g f e P M O L := by
-    splitAll
-    repeat assumption
-    exact para_symm pOP
-    exact para_symm pLM
-
-  perm [(area_of_parallelogram abcd).1]
-  simp [add_comm, two_mul] at this
-  rw [this]
-
-  perm [(area_of_parallelogram abcd).2]
-  simp [add_comm, two_mul] at this
-  rw [this] at eq1
-  rw [eq1]
-
-  perm [(area_of_parallelogram hgfe).1]
-  simp [add_comm, two_mul] at this
-  rw [this]
-  ring_nf
-
-  perm [(area_of_parallelogram hgfe).2]
-  rw [add_comm, this, two_mul, mul_two]
+  have: area a b c = area a c d := by linperm [(area_of_parallelogram abcd).1]
+  have: area f g h = area e f h := by linperm [(area_of_parallelogram hgfe).1]
+  have: 2 * area a b c = area f g h + area e f h := by linperm [(area_of_parallelogram abcd).2]
+  linperm [(area_of_parallelogram hgfe).2]
 
 
 theorem eq_of_parallelogram_of_eq_basis {a b c d e f g h: point} {L M K N O P: line}
@@ -440,29 +403,16 @@ theorem eq_of_parallelogram_of_eq_basis {a b c d e f g h: point} {L M K N O P: l
     (parLM: para L M) (parKN: para K N) (parOP: para O P)
     (hlen: length b c = length f g) :
     area a b c + area a d c = area e f g + area e h g := by
-  have bcda: paragram b c d a M N L K:= by
-    splitAll
-    repeat assumption
-    exact para_symm parLM
-    exact para_symm parKN
-
-  have fghe: paragram f g h e M P L O:= by
-    splitAll
-    repeat assumption
-    exact para_symm parLM
-    exact para_symm parOP
-
+  have bcda: paragram b c d a M N L K:= by splitAll <;> perma only [para]
+  have fghe: paragram f g h e M P L O:= by splitAll <;> perma only [para]
   have h_fg_eq_eh := (len_ang_area_eq_of_parallelogram fghe).1
 
   -- trivial case: b = c
   by_cases h_b_ne_c: b = c
   · have h_f_eq_g := (length_eq_zero_iff.mp (Eq.trans hlen.symm (length_eq_zero_iff.mpr h_b_ne_c)))
-
     perm [(len_ang_area_eq_of_parallelogram bcda).1]
     have h_a_eq_d := (length_eq_zero_iff.mp (Eq.trans this.symm (length_eq_zero_iff.mpr h_b_ne_c)))
-
     have h_e_eq_h := (length_eq_zero_iff.mp (Eq.trans h_fg_eq_eh.symm (length_eq_zero_iff.mpr h_f_eq_g)))
-
     rw [area_of_eq a b c (by tauto), area_of_eq a c d (by tauto), area_of_eq e f g (by tauto), area_of_eq e g h (by tauto)]
 
   . have h_e_ne_h : e ≠ h := by
@@ -485,10 +435,8 @@ theorem eq_of_parallelogram_of_eq_basis {a b c d e f g h: point} {L M K N O P: l
       -- invert parallelogram
       rw [length_symm b c] at hlen
       rw [← eq_of_parallelogram_of_eq_basis_of_diffside hdL haL heL hhL hcM hbM hfM hgM hdN hcN haK hbK heO hfO hhP hgP parLM (para_symm parKN) parOP hlen hQ.1 hQ.2 (diffside_symm hside) h_b_ne_c.symm]
-      perm [(area_of_parallelogram bcda).1]
-      rw [this]
-      perm [(area_of_parallelogram bcda).2]
-      rw [this]
+      perm [(area_of_parallelogram bcda).1]; rw [this]
+      perm [(area_of_parallelogram bcda).2]; rw [this]
 
 
 /-- ## Euclid I.38
@@ -533,23 +481,13 @@ theorem eq_area_of_eq_base {a b c d e f : point} {L M : line}
   have := not_online_of_triangle hdN heN heL hfL h_d_nonline_L h_e_ne_f
   obtain ⟨ h, P, hhM, hhP, hfP, pNP ⟩ := parallel_projection hfL pLM (not_para_of_online_online heN heL) this
 
-  have arp := eq_of_parallelogram_of_eq_basis hgM haM hdM hhM hbL hcL heL hfL hgO hbO haK hcK hdN heN hhP hfP (para_symm pLM) (para_symm pKO) pNP hlen
-  perm at *
+  perm [eq_of_parallelogram_of_eq_basis hgM haM hdM hhM hbL hcL heL hfL hgO hbO haK hcK hdN heN hhP hfP (by perma) (by perma) pNP hlen]
 
-  have bcag: paragram b c a g L K M O:= by
-    splitAll
-    repeat assumption
-
-  have fedh: paragram f e d h L N M P:= by
-    splitAll
-    repeat assumption
-
-  perm [(area_of_parallelogram bcag).2]
-  rw [this] at arp
-  perm [(area_of_parallelogram fedh).1]
-  rw [this] at arp
-  simp [mul_eq_mul_left_iff] at arp
-  exact arp
+  have bcag: paragram b c a g L K M O:= by splitAll <;> perma only [para]
+  have fedh: paragram f e d h L N M P:= by splitAll <;> perma only [para]
+  have: area b c g + area a c g = 2 * area a b c := by perma [(area_of_parallelogram bcag).2]
+  have: area d e f = area d f h := by linperm [(area_of_parallelogram fedh).1]
+  linarith
 
 
 /-- ## Euclid I.38
@@ -566,8 +504,7 @@ theorem eq_area_of_eq_base_samevertex (a : point) {b c e f : point} {L : line}
   by_cases h_b_ne_c : b=c
   · rw [length_eq_zero_iff.mpr h_b_ne_c] at hlen
     have := length_eq_zero_iff.mp hlen.symm
-    rw [area_of_eq a b c _, area_of_eq a e f _]
-    repeat tauto
+    rw [area_of_eq a b c (by tauto), area_of_eq a e f (by tauto)]
 
   have h_e_ne_f : e ≠ f := by
     have := length_eq_zero_iff.not.mpr h_b_ne_c
@@ -576,10 +513,8 @@ theorem eq_area_of_eq_base_samevertex (a : point) {b c e f : point} {L : line}
 
   -- trivial case online a L
   by_cases h_a_nonline_L : online a L
-  · perm [(area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L]
-    rw [this]
-    perm [(area_zero_iff_online h_e_ne_f heL hfL).mpr h_a_nonline_L]
-    rw [this]
+  · perm [(area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L]; rw [this]
+    perm [(area_zero_iff_online h_e_ne_f heL hfL).mpr h_a_nonline_L]; rw [this]
 
   obtain ⟨ M, hM ⟩ := parallel_of_line_pt h_a_nonline_L
   exact eq_area_of_eq_base hM.1 hbL hcL hM.1 heL hfL hM.2 hlen
@@ -606,11 +541,9 @@ lemma tri_sum_contra {b c d e: point} {O : line}
     (hBbed: B b e d)
     (harea: area b c d = area b c e) :
     False := by
-  perm [(area_add_iff_B eb.symm de.symm bd.symm hbO heO hdO hncO).mp hBbed]
-  rw [harea] at this
-  simp [add_right_eq_self] at this
   apply hncO
-  exact (area_zero_iff_online de hdO heO).mp (by perma)
+  apply (area_zero_iff_online de hdO heO).mp
+  linperm [(area_add_iff_B eb.symm de.symm bd.symm hbO heO hdO hncO).mp hBbed]
 
 
   /-- ## Euclid I.39

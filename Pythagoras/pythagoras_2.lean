@@ -7,12 +7,12 @@ variable [i: incidence_geometry]
 lemma ne_13_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : a ≠ c := by
   intro ac
   obtain ⟨L, bL, cL⟩ := line_of_pts b c
-  exact tri_abc ⟨L, (by rwa [ac.symm] at cL), bL, cL⟩
+  exact tri_abc ⟨L, (by rwa [← ac] at cL), bL, cL⟩
 
 lemma ne_12_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : a ≠ b := by
   intro ab
   obtain ⟨L, bL, cL⟩ := line_of_pts b c
-  exact tri_abc ⟨L, (by rwa [ab.symm] at bL), bL, cL⟩
+  refine' tri_abc ⟨L, (by rwa [← ab] at bL), bL, cL⟩
 
 lemma ne_23_of_not_colinear {a b c : point} (tri_abc : ¬ colinear a b c) : b ≠ c := by
   intro bc
@@ -32,9 +32,7 @@ lemma aux_1 {a b c : point} (tri_abc : ¬ colinear a b c) (ang_a : rightangle �
   obtain ⟨L, bL, cL⟩ := line_of_pts b c
   have naL : ¬ online a L := by exact fun h => tri_abc ⟨L, h, bL, cL⟩
   obtain ⟨d, -, hd₂, hd₃⟩ := pythlem (ne_23_of_not_colinear tri_abc).symm cL bL naL ang_a
-  use d
-  perm
-  exact ⟨B_symm hd₃, hd₂⟩
+  exact ⟨d, B_symm hd₃, (by perma)⟩
 
 lemma aux_2 {a b c d : point} (a_ne_b : a ≠ b) (Bbdc : B b d c) : angle a b d = angle a b c := by 
   perma [angle_extension_of_B a_ne_b.symm Bbdc]
@@ -51,8 +49,7 @@ theorem pythagorean_proof_two {a b c : point} (tri_abc : ¬ colinear a b c)
   have tri_dba : ¬ colinear d b a := 
     fun ⟨L, dL, bL, aL⟩ => tri_abc ⟨L, aL, bL, online_3_of_B Bbdc bL dL⟩
   have ang_b : angle a b c = angle d b a := by
-    convert (aux_2 (ne_12_of_not_colinear tri_abc) Bbdc).symm using 1
-    perm
+    linperm [aux_2 (ne_12_of_not_colinear tri_abc) Bbdc]
   have xcca := (proportion_iff (length_nonneg _ _) (length_nonneg _ _) (length_nonneg _ _) 
     (length_nonneg _ _) ba bc).mpr (similar_of_AA (not_colinear_R tri_dba) (not_colinear_R tri_abc)
     ang_b.symm (ang_d.trans ang_a.symm))
@@ -60,22 +57,14 @@ theorem pythagorean_proof_two {a b c : point} (tri_abc : ¬ colinear a b c)
   have tri_dca : ¬ colinear d c a := 
     fun ⟨L, dL, cL, aL⟩ => tri_abc ⟨L, aL, (online_3_of_B (B_symm Bbdc) cL dL), cL⟩
   have ang_c : angle a c b = angle d c a := by
-    convert (aux_2 (ne_13_of_not_colinear tri_abc) (B_symm Bbdc)).symm using 1
-    perm
+    linperm [aux_2 (ne_13_of_not_colinear tri_abc) (B_symm Bbdc)]
   have ang_d : angle c d a = rightangle := by
     obtain ⟨L, bL, cL⟩ := line_of_pts b c
-    convert ((angle_eq_iff_rightangle bL cL (fun aL => tri_abc ⟨L, aL, bL, cL⟩) Bbdc).mpr 
-      ang_d).symm.trans ang_d using 1
-    perm
+    linperm [(angle_eq_iff_rightangle bL cL (fun aL => tri_abc ⟨L, aL, bL, cL⟩) Bbdc).mpr ang_d]
   have ybba := (proportion_iff (length_nonneg _ _) (length_nonneg _ _) (length_nonneg _ _) 
     (length_nonneg _ _) ca cb).mpr (similar_of_AA (not_colinear_R tri_dca) 
-    (not_colinear_T (not_colinear_T tri_abc)) ang_c.symm ((ang_d.trans ang_a.symm).trans 
-    (by perm)))
+    (not_colinear_T (not_colinear_T tri_abc)) ang_c.symm ((ang_d.trans ang_a.symm).trans (by perm)))
   field_simp at ybba
-  rw [← sq] at ybba xcca
-  rw [length_symm a c, length_symm a b, ← xcca, ← ybba, length_symm b c, ← right_distrib]
-  have : length b d + length c d = length c b := by
-    convert length_sum_of_B Bbdc using 1
-    congr 1
-    iterate 2 perm
-  rw [this, sq]
+  perm [length_sum_of_B Bbdc]
+  conv in (occs := *) length _ _ ^ 2 => all_goals rw [sq]
+  perm at xcca, ybba; rw [← xcca, ← ybba, ← right_distrib, this]
