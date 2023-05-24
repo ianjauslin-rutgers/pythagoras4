@@ -6,9 +6,6 @@ open incidence_geometry
 variable [i: incidence_geometry]
 
 /-- technical lemma that really shouldn't be here, but hey... -/
-lemma mul_mul_lt (a b c : ℝ) (hc: 0 < c):
-    a < b → a * c < b * c := (mul_lt_mul_right hc).mpr
-/-- technical lemma that really shouldn't be here, but hey... -/
 lemma ge2_of_n1_n0 {n : ℕ}
     (h0: n ≠ 0) (h1: n ≠ 1) :
     n ≥ 2 := ge_iff_le.mpr ((Nat.two_le_iff n).mpr ⟨ h0, h1 ⟩)
@@ -430,25 +427,6 @@ theorem proportional_iff_para' {a b c d e: point} {L M N: line}
   rw [← length_sum_of_B Badb, ← length_sum_of_B Baec, ← this]
   perm; field_simp; ring_nf; simp
 
-/-- equal points are colinear -/
-lemma colinear_of_eq_23 (a b : point) : colinear a b b := by
-  simp [colinear, and_self]; exact line_of_pts a b
-/-- equal points are colinear -/
-lemma colinear_of_eq_12 (a b : point) : colinear a a b := by
-  rw [col321]; exact colinear_of_eq_23 b a
-/-- equal points are colinear -/
-lemma colinear_of_eq_13 (a b : point) : colinear a b a := by
-  perma [colinear_of_eq_12 a b]
-
-/-- not colinear implies one of the points is not aligned -/
-lemma not_online_of_not_colinear {a b c : point} {L : line} (aL: online a L) (bL : online b L) (h: ¬ colinear a b c) :
-    ¬ online c L := by
-  simp [colinear, not_exists, not_and] at h; exact h L aL bL
-
-/-- technical lemma: can always find a point beyond two points -/
-lemma pt_extension_of_ne {b c : point} :
-    b ≠ c → ∃ a : point, B b c a :=
-  fun bc => by obtain ⟨ a, Ha ⟩ := length_eq_B_of_ne bc bc.symm; exact ⟨ a, Ha.1⟩
 
 /-- similar triangles (should follow from Euclid VI.2) -/
 -- show resulting lines are parallel
@@ -513,9 +491,9 @@ lemma length_eq_of_length_eq {a b c d e f : point}
   obtain ⟨AC, aAC, cAC⟩ := line_of_pts a c
   obtain ⟨AB, aAB, bAB⟩ := line_of_pts a b
   obtain ⟨BC, bBC, cBC⟩ := line_of_pts b c
-  have cAB := not_online_of_not_colinear aAB bAB Tabc
+  have cAB := online_3_of_triangle aAB bAB Tabc
 
-  have bAC : ¬online b AC := not_online_of_not_colinear aAC cAC (by perma)
+  have bAC : ¬online b AC := online_3_of_triangle aAC cAC (by perma)
 
   by_contra contra
   simp_rw [← Ne.def, ne_iff_lt_or_gt] at contra
@@ -545,8 +523,8 @@ lemma length_eq_of_length_eq {a b c d e f : point}
   obtain ⟨DF, dDF, fDF⟩ := line_of_pts d f
   obtain ⟨DE, dDE, eDE⟩ := line_of_pts d e
   obtain ⟨EF, eEF, fEF⟩ := line_of_pts e f
-  have fDE := not_online_of_not_colinear dDE eDE Tdef
-  have eDF: ¬online e DF := not_online_of_not_colinear dDF fDF (by perma)
+  have fDE := online_3_of_triangle dDE eDE Tdef
+  have eDF: ¬online e DF := online_3_of_triangle dDF fDF (by perma)
 
   refine' this Tdef Tabc bac_edf.symm abc_def.symm hlen.symm ac df ab de ef bc DF dDF fDF DE dDE eDE EF eEF fEF fDE eDF (Or.symm contra) _
   cases contra with
@@ -569,7 +547,7 @@ lemma length_lt_of_length_lt {a b c d e f : point}
   obtain ⟨AB, aAB, bAB⟩ := line_of_pts a b
   obtain ⟨BC, bBC, cBC⟩ := line_of_pts b c
 
-  have bAC : ¬online b AC := not_online_of_not_colinear aAC cAC (by perma)
+  have bAC : ¬online b AC := online_3_of_triangle aAC cAC (by perma)
 
   obtain ⟨g, Hg⟩ := B_length_eq_of_ne_lt df lineq
   have gAC := online_2_of_B Hg.1 aAC cAC
@@ -591,7 +569,7 @@ lemma length_lt_of_length_lt {a b c d e f : point}
     have hg : h ≠ g := fun hg => by
       rw [hg] at Hh
       have := online_2_of_B Hh.1 aAC (online_2_of_B Hg.1 aAC cAC)
-      exact (not_online_of_not_colinear aAC cAC (by perma)) this
+      exact (online_3_of_triangle aAC cAC (by perma)) this
 
     have hAC : ¬ online h AC := fun hAC => by
       have := line_unique_of_pts (ne_13_of_B Hh.1).symm hAC aAC hAB aAB
@@ -657,7 +635,7 @@ theorem similar_of_AA {a b c d e f : point} (Tabc : ¬ colinear a b c) (Tdef : �
 
   have lineq2 := length_lt_of_length_lt Tabc Tdef bac_edf abc_def lineq
 
-  have bAC : ¬ online b AC:= not_online_of_not_colinear aAC cAC (by perma)
+  have bAC : ¬ online b AC:= online_3_of_triangle aAC cAC (by perma)
 
   obtain ⟨g, Hg⟩ := B_length_eq_of_ne_lt df lineq
   obtain ⟨h, Hh⟩ := B_length_eq_of_ne_lt de lineq2
@@ -675,7 +653,7 @@ theorem similar_of_AA {a b c d e f : point} (Tabc : ¬ colinear a b c) (Tdef : �
 
   have hg : h ≠ g := fun hg => by
     rw [hg] at Hh; have := online_3_of_B Hh.1 aAC (online_2_of_B Hg.1 aAC cAC)
-    exact (not_online_of_not_colinear aAC cAC (by perma)) this
+    exact (online_3_of_triangle aAC cAC (by perma)) this
 
   refine' para_symm (parallel_of_similar aAB bAB hAB aAC gAC bBC cBC hHG gHG (ne_23_of_B Hh.1).symm ab bc hg (ne_12_of_B Hg.1) bAC _ Hh.1 _)
 
