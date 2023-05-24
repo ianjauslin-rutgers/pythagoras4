@@ -440,21 +440,11 @@ lemma colinear_of_eq_12 (a b : point) : colinear a a b := by
 lemma colinear_of_eq_13 (a b : point) : colinear a b a := by
   perma [colinear_of_eq_12 a b]
 
-/-- not colinear implies different -/
-lemma neq_12_of_not_colinear {a b c : point} (h: ¬ colinear a b c) : a ≠ b :=
-  fun ab => by rw [ab] at h; exact h (colinear_of_eq_12 b c)
-/-- not colinear implies different -/
-lemma neq_13_of_not_colinear {a b c : point} (h: ¬ colinear a b c) : a ≠ c :=
-  fun ac => by rw [ac] at h; exact h (colinear_of_eq_13 c b)
-/-- not colinear implies different -/
-lemma neq_23_of_not_colinear {a b c : point} (h: ¬ colinear a b c) : b ≠ c :=
-  fun bc => by rw [bc] at h; exact h (colinear_of_eq_23 a c)
-
 /-- not colinear implies one of the points is not aligned -/
 lemma not_online_of_not_colinear {a b c : point} {L : line} (aL: online a L) (bL : online b L) (h: ¬ colinear a b c) :
     ¬ online c L := by
   simp [colinear, not_exists, not_and] at h; exact h L aL bL
-    
+
 /-- technical lemma: can always find a point beyond two points -/
 lemma pt_extension_of_ne {b c : point} :
     b ≠ c → ∃ a : point, B b c a :=
@@ -513,12 +503,12 @@ lemma length_eq_of_length_eq {a b c d e f : point}
     (bac_edf : angle b a c = angle e d f) (abc_def : angle a b c = angle d e f)
     (hlen: length d f = length a c) :
     length d e = length a b := by
-  have df := neq_13_of_not_colinear Tdef
-  have ac := neq_13_of_not_colinear Tabc
-  have de := neq_12_of_not_colinear Tdef
-  have ab := neq_12_of_not_colinear Tabc
-  have bc := neq_23_of_not_colinear Tabc
-  have ef := neq_23_of_not_colinear Tdef
+  have df := ne_13_of_tri Tdef
+  have ac := ne_13_of_tri Tabc
+  have de := ne_12_of_tri Tdef
+  have ab := ne_12_of_tri Tabc
+  have bc := ne_23_of_tri Tabc
+  have ef := ne_23_of_tri Tdef
 
   obtain ⟨AC, aAC, cAC⟩ := line_of_pts a c
   obtain ⟨AB, aAB, bAB⟩ := line_of_pts a b
@@ -570,10 +560,10 @@ lemma length_lt_of_length_lt {a b c d e f : point}
     (bac_edf : angle b a c = angle e d f) (abc_def : angle a b c = angle d e f)
     (lineq: length d f < length a c) :
     length d e < length a b := by
-  have df := neq_13_of_not_colinear Tdef
-  have ac := neq_13_of_not_colinear Tabc
-  have ab := neq_12_of_not_colinear Tabc
-  have bc := neq_23_of_not_colinear Tabc
+  have df := ne_13_of_tri Tdef
+  have ac := ne_13_of_tri Tabc
+  have ab := ne_12_of_tri Tabc
+  have bc := ne_23_of_tri Tabc
 
   obtain ⟨AC, aAC, cAC⟩ := line_of_pts a c
   obtain ⟨AB, aAB, bAB⟩ := line_of_pts a b
@@ -630,12 +620,12 @@ lemma length_lt_of_length_lt {a b c d e f : point}
 theorem similar_of_AA {a b c d e f : point} (Tabc : ¬ colinear a b c) (Tdef : ¬ colinear d e f) 
     (bac_edf : angle b a c = angle e d f) (abc_def : angle a b c = angle d e f) : 
     proportion (length a b) (length d e) (length a c) (length d f) := by
-  have df := neq_13_of_not_colinear Tdef
-  have ac := neq_13_of_not_colinear Tabc
-  have de := neq_12_of_not_colinear Tdef
-  have ab := neq_12_of_not_colinear Tabc
-  have bc := neq_23_of_not_colinear Tabc
-  have ef := neq_23_of_not_colinear Tdef
+  have df := ne_13_of_tri Tdef
+  have ac := ne_13_of_tri Tabc
+  have de := ne_12_of_tri Tdef
+  have ab := ne_12_of_tri Tabc
+  have bc := ne_23_of_tri Tabc
+  have ef := ne_23_of_tri Tdef
 
   by_cases hlen : length d f = length a c ∨ length d e = length a b
   . wlog df_ac : length d f = length a c
