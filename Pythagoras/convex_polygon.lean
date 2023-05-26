@@ -1,5 +1,5 @@
 import SyntheticEuclid4
-import Mathlib.Data.ZMod.Basic
+import Mathlib.Data.FinEnum
 import Mathlib.Tactic.LibrarySearch
 
 open incidence_geometry
@@ -10,15 +10,13 @@ variables [i: incidence_geometry]
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L 
 
 
------ Trying out `Finset` or `Finenum`
-
 structure ConvexPolygon := 
   (n : ℕ)
   (hn : n ≠ 0)
-  (vertex : Finset point)  --- `FinEnum`??
-  (distinct : ∀ i j : ZMod n, i ≠ j → vertex i ≠ vertex j)
-  (convex : ∀ i j k : ZMod n, ∀ L : line, (online (vertex i) L) → (online (vertex (i+1)) L)
-    → WeakSameside (vertex j) (vertex k) L)
+  (vertices : Set point)
+  (fv : FinEnum vertices)
+  (convex : ∀ a b c : vertices, ∀ L : line, (online a L) → (online a.succ L)
+    → WeakSameside b c L)
 
 
 
