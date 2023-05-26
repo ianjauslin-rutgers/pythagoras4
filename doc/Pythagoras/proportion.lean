@@ -32,7 +32,6 @@ lemma proportion_symm {r s t u : ℝ} (s_ne : s ≠ 0) (u_ne : u ≠ 0) (h : pro
 lemma proportion_symm' {r s t u : ℝ} (h : proportion r s t u) :
     proportion t u r s 
 
-lemma proportion_symm_iff {r s t u : ℝ} : 
-    proportion r s t u ↔ proportion t u r s 
+lemma proportion_symm_iff {r s t u : ℝ} : proportion r s t u ↔ proportion t u r s 
 
 
