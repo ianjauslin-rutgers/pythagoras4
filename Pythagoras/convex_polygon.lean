@@ -10,18 +10,21 @@ variables [i: incidence_geometry]
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L 
 
 
+def Fin.neZero_of (i : Fin n) : NeZero n := ⟨Nat.pos_iff_ne_zero.mp (Fin.pos i)⟩
+
+
+def finenum_shift {S : Set α} [FinEnum S] (a : S) (n:ℕ) : α :=
+  haveI := Fin.neZero_of (FinEnum.Equiv a)
+  (FinEnum.Equiv.symm ((FinEnum.Equiv a : ℕ) + n) : S)
+
 structure ConvexPolygon := 
   (n : ℕ)
   (hn : n ≠ 0)
   (vertices : Set point)
-  (fv : FinEnum vertices)
-  (convex : ∀ a b c : vertices, ∀ L : line, (online a L) → (online a.succ L)
+  (h_finenum : FinEnum vertices)
+  (convex : ∀ a b c : vertices, ∀ L : line, (online a L) → (online (finenum_shift a 1) L)
     → WeakSameside b c L)
 
-
-
-def FinSub (n : ℕ) (s : Finset (Fin n)) : Fin s.card := by
-  
 
 #exit
 
