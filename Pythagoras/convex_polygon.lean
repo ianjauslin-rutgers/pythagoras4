@@ -13,13 +13,19 @@ def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a 
 def Fin.neZero_of (i : Fin n) : NeZero n := ⟨Nat.pos_iff_ne_zero.mp (Fin.pos i)⟩
 
 
-def finenum_shift {S : Set α} [FinEnum S] (a : S) (n:ℕ) : α :=
+def finenum_shift_nat {S : Set α} [FinEnum S] (a : S) (n:ℕ) : α :=
   haveI := Fin.neZero_of (FinEnum.Equiv a)
   (FinEnum.Equiv.symm ((FinEnum.Equiv a : ℕ) + n) : S)
 
+def finenum_shift {S : Set α} [h_fin: FinEnum S] (a : S) (n:ℤ) : α := by
+  haveI := Fin.neZero_of (FinEnum.Equiv a)
+  cases n with
+  | ofNat k =>
+    exact finenum_shift_nat a k
+  | negSucc k =>
+    exact finenum_shift a (h_fin.card-k-1)
+
 structure ConvexPolygon := 
-  (n : ℕ)
-  (hn : n ≠ 0)
   (vertices : Set point)
   (h_finenum : FinEnum vertices)
   (convex : ∀ a b c : vertices, ∀ L : line, (online a L) → (online (finenum_shift a 1) L)
