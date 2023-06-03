@@ -38,6 +38,32 @@ structure ConvexPolygon where
   nodup : Nodup vertices
   convex: convex vertices nonempty
 
+lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
+  refine ConvexPolygon.mk [a,b,c] (by simp) ?_ ?_
+  perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
+  dsimp [convex, WeakSameside]
+  intro x y z L xP yP zP xL x1L
+  have xa : x = a := by sorry --WLOG
+  let w := list_shift [a, b, c] (by simp) a 1
+  have wP : w ∈ [a, b, c] := by sorry
+  have wL : online w L := by sorry
+  have wb : w = b := by sorry
+  have aL : online a L := by rwa [← xa]
+  have bL : online b L := by rwa [← wb]
+  by_cases yx : y = x
+  · simp [xL, yx]
+  · by_cases zx : z = x
+    · simp [xL, zx]
+    · by_cases yz : y = z
+      · by_cases wy : w = y
+        · right; left; rwa [← wy]
+        · have zc : z = c := by sorry
+          simp [*]; left; apply sameside_rfl_of_not_online
+          exact online_3_of_triangle aL bL T
+      · have yc : y = c := by sorry-- WLOG
+        have zb : z = b := by sorry-- WLOG
+        simp [*]
+
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
 
