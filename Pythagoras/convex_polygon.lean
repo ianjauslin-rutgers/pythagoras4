@@ -9,26 +9,36 @@ variable [i: incidence_geometry]
 
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
 
-def list_shift_nat [DecidableEq α] (lst : List α) (H: lst ≠ []) (a : α) (k : ℕ) : α := by
+-- TODO a in lst
+def list_shift_nat [DecidableEq α] (lst : List α) (_: lst ≠ []) (a : α) (i : ℕ) : α := by
   let n := lst.length
-  let i := lst.indexOf a + k
-  have : i % n < n := by
+  let j := lst.indexOf a + i
+  have : j % n < n := by
     cases lst
     · contradiction
     · apply Nat.mod_lt _ _; simp
-  exact lst[i % n]
+  exact lst[j % n]
 
 /-- ##
   #reduce list_shift ["a", "b", "c", "d"] (by simp) "a" (-1)
  -/
-def list_shift [DecidableEq α]  (lst : List α) (H: lst ≠ []) (a : α) (k : ℤ) : α := by
-  cases k with
-  | ofNat l => exact list_shift_nat lst H a l
-  | negSucc l => exact list_shift_nat lst H a (lst.length - l - 1)
+def list_shift [DecidableEq α] (lst : List α) (ne: lst ≠ []) (a : α) (i : ℤ) : α := by
+  cases i with
+  | ofNat j => exact list_shift_nat lst ne a j
+  | negSucc j => exact list_shift_nat lst ne a (lst.length - j - 1)
+
+lemma mem_of_idx (lst : List α) (i : ℕ) {hi: i < List.length lst} : lst[i] ∈ lst := by simp [mem_iff_get]
+
+lemma mem_of_shift [DecidableEq α] (lst : List α) (ne: lst ≠ []) (a : α) (i : ℤ) : list_shift lst ne a i ∈ lst := by sorry
+
+lemma same_of_shift_iff [DecidableEq α] (lst : List α) (ne: lst ≠ []) (nodup: lst.Nodup) (a : α) (i : ℤ) : list_shift lst ne a i = a ↔ lst.length % i = 0 := by
+ sorry
+
+lemma list_shift_2 (a b c : point): list_shift [a, b, c] (by simp) a 1 = b := by sorry
 
 def convex (V: List point) (ne: V ≠ []) : Prop :=
   ∀ a b c : point, ∀ L : line,
-  (a ∈ V) -> (b ∈ V) -> (c ∈ V) -> (online a L) → (online (list_shift V ne a 1) L) → WeakSameside b c L
+  (a ∈ V) -> (b ∈ V) → (c ∈ V) → (online a L) → (online (list_shift V ne a 1) L) → WeakSameside b c L
 
 lemma convex_of_sublist (C: convex V nV) (sub: W <+ V) (nW: W ≠ []) : convex W nW := by sorry
 
@@ -43,11 +53,18 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
   perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
   dsimp [convex, WeakSameside]
   intro x y z L xP yP zP xL x1L
-  have xa : x = a := by sorry --WLOG
-  let w := list_shift [a, b, c] (by simp) a 1
-  have wP : w ∈ [a, b, c] := by sorry
-  have wL : online w L := by sorry
-  have wb : w = b := by sorry
+  -- let X := [a,b,c].diff [a]; simp at X
+  have xa : x = a := by 
+    obtain ⟨ n, hn ⟩ := get_of_mem xP
+    have : n = (0 : Fin 3) := by sorry -- WLOG
+    have : OfNat (Fin 3) 1 := by sorry
+    simp [*] at hn
+    exact hn.symm
+  let w := list_shift [a, b, c] (by simp) x 1
+  rw [xa] at x1L
+  have wP : w ∈ [a, b, c] := mem_of_shift [a,b,c] (by simp) x 1
+  have wL : online w L := by simp [x1L, xa]
+  have wb : w = b := by simp [wP, xa]; exact list_shift_2 a b c
   have aL : online a L := by rwa [← xa]
   have bL : online b L := by rwa [← wb]
   by_cases yx : y = x
@@ -57,21 +74,23 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
     · by_cases yz : y = z
       · by_cases wy : w = y
         · right; left; rwa [← wy]
-        · have zc : z = c := by sorry
+        · have yc : y = c := by
+            convert yP
+            rw [xa] at zx
+            rw [wb, yz] at wy
+            have : ¬ z = b := fun zb => wy zb.symm
+            simp [*]
           simp [*]; left; apply sameside_rfl_of_not_online
+          rw [yz.symm, yc]
           exact online_3_of_triangle aL bL T
-      · have yc : y = c := by sorry-- WLOG
-        have zb : z = b := by sorry-- WLOG
+      · have yb : y = b := by
+          convert yP
+          rw [xa] at zx
+          sorry -- WLOG
         simp [*]
 
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
-
-lemma mem_diff_single_of_ne'
-{l₁: List α} (bl₁d: b ∈ l₁.diff [a]) (ab: a ≠ b) : b ∈ l₁ := by sorry
-
-lemma mem_diff_single_of_ne2
-{l₁: List α} (bl₁d: b ∈ l₁.diff [a]) : a ≠ b := by sorry
 
 def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : point)
  (ab: a ≠ b) (bP: b ∈ P.vertices) : ConvexPolygon:= by
