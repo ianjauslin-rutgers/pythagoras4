@@ -1,16 +1,15 @@
 import SyntheticEuclid4
-import Mathlib.Data.FinEnum
+-- import Mathlib.Data.FinEnum
 
 open incidence_geometry
 open Classical
+open List
 
 variable [i: incidence_geometry]
 
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
 
-def list_shift_nat
- [DecidableEq α] [BEq α]
- (lst : List α) (H: lst ≠ []) (a : α) (k : ℕ) : α := by
+def list_shift_nat [DecidableEq α] (lst : List α) (H: lst ≠ []) (a : α) (k : ℕ) : α := by
   let n := lst.length
   let i := lst.indexOf a + k
   have : i % n < n := by
@@ -22,25 +21,22 @@ def list_shift_nat
 /-- ##
   #reduce list_shift ["a", "b", "c", "d"] (by simp) "a" (-1)
  -/
-def list_shift
- [DecidableEq α] [BEq α]
- (lst : List α) (H: lst ≠ []) (a : α) (k : ℤ) : α := by
+def list_shift [DecidableEq α]  (lst : List α) (H: lst ≠ []) (a : α) (k : ℤ) : α := by
   cases k with
   | ofNat l => exact list_shift_nat lst H a l
   | negSucc l => exact list_shift_nat lst H a (lst.length - l - 1)
 
+def convex (V: List point) (ne: V ≠ []) : Prop :=
+  ∀ a b c : point, ∀ L : line,
+  (a ∈ V) -> (b ∈ V) -> (c ∈ V) -> (online a L) → (online (list_shift V ne a 1) L) → WeakSameside b c L
 
-namespace List
+lemma convex_of_sublist (C: convex V nV) (sub: W <+ V) (nW: W ≠ []) : convex W nW := by sorry
 
 structure ConvexPolygon where
   vertices : List point
   nonempty: vertices ≠ [] := by simpa
   nodup : Nodup vertices
-  convex:
-  ∀ a b c : point, ∀ L : line,
-  (a ∈ vertices) -> (b ∈ vertices) -> (c ∈ vertices) ->
-  (online a L) → (online (list_shift vertices nonempty a 1) L) → WeakSameside b c L
-
+  convex: convex vertices nonempty
 
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
@@ -51,31 +47,15 @@ lemma mem_diff_single_of_ne'
 lemma mem_diff_single_of_ne2
 {l₁: List α} (bl₁d: b ∈ l₁.diff [a]) : a ≠ b := by sorry
 
-noncomputable def ConvexPolygon_remove_vertex (P : ConvexPolygon) (a b : point)
- (ab: a ≠ b) (aP: a ∈ P.vertices) (bP: b ∈ P.vertices) : ConvexPolygon:= by
-  -- let V := vertices.removeAll [a]
+def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : point)
+ (ab: a ≠ b) (bP: b ∈ P.vertices) : ConvexPolygon:= by
   let V := P.vertices.diff [a]
-  refine' ConvexPolygon.mk V ?_ (Nodup.diff P.nodup) ?_
-
-  have bV := mem_diff_single_of_ne bP ab
-  have := (@eq_nil_iff_forall_not_mem point V).not
-  rw [Ne.def, this]
-  simp; simp at bV
-  use b; exact bV
-
-  intro x y z L xV yV zV xL x1L
-  apply P.convex x y z L
-  have : a ≠ x := by exact mem_diff_single_of_ne2 xV
-  exact mem_diff_single_of_ne' xV this
-  have : a ≠ y := by exact mem_diff_single_of_ne2 yV
-  exact mem_diff_single_of_ne' yV this
-  have : a ≠ z := by exact mem_diff_single_of_ne2 zV
-  exact mem_diff_single_of_ne' zV this
-  exact xL
-  let x1 := list_shift V (by sorry) x 1
-  have : a ≠ x1 := by sorry
-  sorry
-
+  have ne : V ≠ [] := by
+    intro empty
+    apply (@eq_nil_iff_forall_not_mem point (P.vertices.diff [a])).mp empty b
+    convert mem_diff_single_of_ne bP ab
+  have convex := convex_of_sublist P.convex (diff_sublist P.vertices [a]) ne
+  exact ConvexPolygon.mk V ne (Nodup.diff P.nodup) convex
 
 #exit
 def Fin.neZero_of (i : Fin n) : NeZero n := ⟨Nat.pos_iff_ne_zero.mp (Fin.pos i)⟩
