@@ -1,14 +1,83 @@
 import SyntheticEuclid4
 import Mathlib.Data.FinEnum
-import Mathlib.Tactic.LibrarySearch
 
 open incidence_geometry
 open Classical
 
-variables [i: incidence_geometry]
+variable [i: incidence_geometry]
 
-def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L 
+def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
 
+def list_shift_nat
+ [DecidableEq α] [BEq α]
+ (lst : List α) (H: lst ≠ []) (a : α) (k : ℕ) : α := by
+  let n := lst.length
+  let i := lst.indexOf a + k
+  have : i % n < n := by
+    cases lst
+    · contradiction
+    · apply Nat.mod_lt _ _; simp
+  exact lst[i % n]
+
+/-- ##
+  #reduce list_shift ["a", "b", "c", "d"] (by simp) "a" (-1)
+ -/
+def list_shift
+ [DecidableEq α] [BEq α]
+ (lst : List α) (H: lst ≠ []) (a : α) (k : ℤ) : α := by
+  cases k with
+  | ofNat l => exact list_shift_nat lst H a l
+  | negSucc l => exact list_shift_nat lst H a (lst.length - l - 1)
+
+
+namespace List
+
+structure ConvexPolygon where
+  vertices : List point
+  nonempty: vertices ≠ [] := by simpa
+  nodup : Nodup vertices
+  convex:
+  ∀ a b c : point, ∀ L : line,
+  (a ∈ vertices) -> (b ∈ vertices) -> (c ∈ vertices) ->
+  (online a L) → (online (list_shift vertices nonempty a 1) L) → WeakSameside b c L
+
+
+lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
+  mem_diff_of_mem bL (by simp [ab.symm])
+
+lemma mem_diff_single_of_ne'
+{l₁: List α} (bl₁d: b ∈ l₁.diff [a]) (ab: a ≠ b) : b ∈ l₁ := by sorry
+
+lemma mem_diff_single_of_ne2
+{l₁: List α} (bl₁d: b ∈ l₁.diff [a]) : a ≠ b := by sorry
+
+noncomputable def ConvexPolygon_remove_vertex (P : ConvexPolygon) (a b : point)
+ (ab: a ≠ b) (aP: a ∈ P.vertices) (bP: b ∈ P.vertices) : ConvexPolygon:= by
+  -- let V := vertices.removeAll [a]
+  let V := P.vertices.diff [a]
+  refine' ConvexPolygon.mk V ?_ (Nodup.diff P.nodup) ?_
+
+  have bV := mem_diff_single_of_ne bP ab
+  have := (@eq_nil_iff_forall_not_mem point V).not
+  rw [Ne.def, this]
+  simp; simp at bV
+  use b; exact bV
+
+  intro x y z L xV yV zV xL x1L
+  apply P.convex x y z L
+  have : a ≠ x := by exact mem_diff_single_of_ne2 xV
+  exact mem_diff_single_of_ne' xV this
+  have : a ≠ y := by exact mem_diff_single_of_ne2 yV
+  exact mem_diff_single_of_ne' yV this
+  have : a ≠ z := by exact mem_diff_single_of_ne2 zV
+  exact mem_diff_single_of_ne' zV this
+  exact xL
+  let x1 := list_shift V (by sorry) x 1
+  have : a ≠ x1 := by sorry
+  sorry
+
+
+#exit
 def Fin.neZero_of (i : Fin n) : NeZero n := ⟨Nat.pos_iff_ne_zero.mp (Fin.pos i)⟩
 
 def finenum_shift_nat {S : Set α} [FinEnum S] (a : S) (k : ℕ) : α :=
@@ -41,7 +110,7 @@ open incidence_geometry
 open Classical
 
 
-variables [i: incidence_geometry]
+variable [i: incidence_geometry]
 
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L 
 
