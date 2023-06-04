@@ -9,8 +9,7 @@ variable [i: incidence_geometry]
 
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
 
--- TODO a in lst
-def list_shift_nat [DecidableEq α] (lst : List α) (_: lst ≠ []) (a : α) (i : ℕ) : α := by
+def list_shift_nat [DecidableEq α] (lst : List α) (_: lst ≠ []) (aL : a ∈ lst) (i : ℕ) : α := by
   let n := lst.length
   let j := lst.indexOf a + i
   have : j % n < n := by
@@ -22,23 +21,24 @@ def list_shift_nat [DecidableEq α] (lst : List α) (_: lst ≠ []) (a : α) (i 
 /-- ##
   #reduce list_shift ["a", "b", "c", "d"] (by simp) "a" (-1)
  -/
-def list_shift [DecidableEq α] (lst : List α) (ne: lst ≠ []) (a : α) (i : ℤ) : α := by
+def list_shift [DecidableEq α] (lst : List α) (ne: lst ≠ []) (aL : a ∈ lst) (i : ℤ) : α := by
   cases i with
-  | ofNat j => exact list_shift_nat lst ne a j
-  | negSucc j => exact list_shift_nat lst ne a (lst.length - j - 1)
+  | ofNat j => exact list_shift_nat lst ne aL j
+  | negSucc j => exact list_shift_nat lst ne aL (lst.length - j - 1)
 
 lemma mem_of_idx (lst : List α) (i : ℕ) {hi: i < List.length lst} : lst[i] ∈ lst := by simp [mem_iff_get]
 
-lemma mem_of_shift [DecidableEq α] (lst : List α) (ne: lst ≠ []) (a : α) (i : ℤ) : list_shift lst ne a i ∈ lst := by sorry
+lemma mem_of_shift [DecidableEq α] (lst : List α) (ne: lst ≠ []) (aL : a ∈ lst) (i : ℤ) : list_shift lst ne aL i ∈ lst := by cases i with | ofNat | negSucc => apply mem_of_idx
 
-lemma same_of_shift_iff [DecidableEq α] (lst : List α) (ne: lst ≠ []) (nodup: lst.Nodup) (a : α) (i : ℤ) : list_shift lst ne a i = a ↔ lst.length % i = 0 := by
- sorry
+lemma same_of_shift_iff [DecidableEq α] (lst : List α) (ne: lst ≠ []) (nodup: lst.Nodup) (aL : a ∈ lst ) (i : ℤ) : list_shift lst ne aL i = a ↔ lst.length % i = 0 := by sorry
 
-lemma list_shift_2 (a b c : point): list_shift [a, b, c] (by simp) a 1 = b := by sorry
+lemma list_shift_1_nat (a b c : point): @list_shift_nat _ a _ [a, b, c] (by simp) (by simp) 1 = b := by dsimp [list_shift_nat]; simp [*]
+
+lemma list_shift_1 (a b c : point): @list_shift _ a _ [a, b, c] (by simp) (by simp) 1 = b := by conv => rhs; rw [← list_shift_1_nat a b c]
 
 def convex (V: List point) (ne: V ≠ []) : Prop :=
   ∀ a b c : point, ∀ L : line,
-  (a ∈ V) -> (b ∈ V) → (c ∈ V) → (online a L) → (online (list_shift V ne a 1) L) → WeakSameside b c L
+  (aV: a ∈ V) -> (b ∈ V) → (c ∈ V) → (online a L) → (online (list_shift V ne aV 1) L) → WeakSameside b c L
 
 lemma convex_of_sublist (C: convex V nV) (sub: W <+ V) (nW: W ≠ []) : convex W nW := by sorry
 
@@ -52,19 +52,16 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
   refine ConvexPolygon.mk [a,b,c] (by simp) ?_ ?_
   perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
   dsimp [convex, WeakSameside]
-  intro x y z L xP yP zP xL x1L
-  -- let X := [a,b,c].diff [a]; simp at X
+  intro x y z L xP yP zP xL wL
   have xa : x = a := by 
     obtain ⟨ n, hn ⟩ := get_of_mem xP
     have : n = (0 : Fin 3) := by sorry -- WLOG
-    have : OfNat (Fin 3) 1 := by sorry
     simp [*] at hn
     exact hn.symm
-  let w := list_shift [a, b, c] (by simp) x 1
-  rw [xa] at x1L
-  have wP : w ∈ [a, b, c] := mem_of_shift [a,b,c] (by simp) x 1
-  have wL : online w L := by simp [x1L, xa]
-  have wb : w = b := by simp [wP, xa]; exact list_shift_2 a b c
+  let w := list_shift [a, b, c] (by simp) xP 1
+  have wP : w ∈ [a, b, c] := mem_of_shift [a,b,c] (by simp) xP 1
+  have wb : w = b := by simp [xa]; exact list_shift_1 a b c
+  simp [*, list_shift_1] at wL; rw [← wb] at wL
   have aL : online a L := by rwa [← xa]
   have bL : online b L := by rwa [← wb]
   by_cases yx : y = x
