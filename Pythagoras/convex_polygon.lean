@@ -53,11 +53,10 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
   perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
   dsimp [convex, WeakSameside]
   intro x y z L xP yP zP xL wL
-  have xa : x = a := by 
+  have xa : x = a := by
     obtain ⟨ n, hn ⟩ := get_of_mem xP
     have : n = (0 : Fin 3) := by sorry -- WLOG
-    simp [*] at hn
-    exact hn.symm
+    simp [*, hn.symm]
   let w := list_shift [a, b, c] xP 1
   have wP : w ∈ [a, b, c] := mem_of_shift [a,b,c] xP 1
   have wb : w = b := by simp [xa]; exact list_shift_1 a b c
@@ -72,19 +71,17 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
       · by_cases wy : w = y
         · right; left; rwa [← wy]
         · have yc : y = c := by
-            convert yP
-            rw [xa] at zx
-            rw [wb, yz] at wy
+            convert yP; rw [xa] at zx; rw [wb, yz] at wy
             have : ¬ z = b := fun zb => wy zb.symm
             simp [*]
           simp [*]; left; apply sameside_rfl_of_not_online
           rw [yz.symm, yc]
           exact online_3_of_triangle aL bL T
-      · have yb : y = b := by
-          convert yP
-          rw [xa] at zx
-          sorry -- WLOG
-        simp [*]
+      · by_cases yb : y = b
+        · simp [*]
+        · have yc : y = c := by rw [xa] at yx; convert yP; simp [*]
+          have zb : z = b := by convert zP; aesop
+          simp [*]
 
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
