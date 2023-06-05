@@ -1,29 +1,112 @@
 import SyntheticEuclid4
-import Mathlib.Data.FinEnum
-import Mathlib.Tactic.LibrarySearch
+-- import Mathlib.Data.FinEnum
 
 open incidence_geometry
 open Classical
+open List
 
-variables [i: incidence_geometry]
+variable [i: incidence_geometry]
 
-def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L 
+def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
 
+def list_shift_nat [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℕ) : α := by
+  let n := lst.length
+  let j := lst.indexOf a + i
+  have : j % n < n := by
+    cases lst
+    · contradiction
+    · apply Nat.mod_lt _ _; simp
+  exact lst[j % n]
 
+/-- ##
+  #reduce list_shift ["a", "b", "c", "d"] (by simp) "a" (-1)
+ -/
+def list_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) : α := by
+  cases i with
+  | ofNat j => exact list_shift_nat lst aL j
+  | negSucc j => exact list_shift_nat lst aL (lst.length - j - 1)
+
+lemma mem_of_idx (lst : List α) (i : ℕ) {hi: i < List.length lst} : lst[i] ∈ lst := by simp [mem_iff_get]
+
+lemma mem_of_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) : list_shift lst aL i ∈ lst := by cases i with | ofNat | negSucc => apply mem_of_idx
+
+lemma same_of_shift_iff [DecidableEq α] (lst : List α) (nodup: lst.Nodup) (aL : a ∈ lst) (i : ℤ) : list_shift lst aL i = a ↔ lst.length % i = 0 := by sorry
+
+lemma list_shift_1_nat (a b c : point): @list_shift_nat _ a _ [a, b, c] (by simp) 1 = b := by dsimp [list_shift_nat]; simp [*]
+
+lemma list_shift_1 (a b c : point): @list_shift _ a _ [a, b, c] (by simp) 1 = b := by conv => rhs; rw [← list_shift_1_nat a b c]
+
+def convex (V: List point) : Prop :=
+  ∀ a b c : point, ∀ L : line,
+  (aV: a ∈ V) -> (b ∈ V) → (c ∈ V) → (online a L) → (online (list_shift V aV 1) L) → WeakSameside b c L
+
+lemma convex_of_sublist (C: convex V) (sub: W <+ V) (nW: W ≠ []) : convex W := by sorry
+
+structure ConvexPolygon where
+  vertices : List point
+  nodup : Nodup vertices
+  convex: convex vertices
+  nondeg: vertices ≠ [] := by simp
+
+lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
+  refine ConvexPolygon.mk [a,b,c] ?_ ?_
+  perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
+  dsimp [convex, WeakSameside]
+  intro x y z L xP yP zP xL wL
+  have xa : x = a := by
+    obtain ⟨ n, hn ⟩ := get_of_mem xP
+    have : n = (0 : Fin 3) := by sorry -- WLOG
+    simp [*, hn.symm]
+  let w := list_shift [a, b, c] xP 1
+  have wP : w ∈ [a, b, c] := mem_of_shift [a,b,c] xP 1
+  have wb : w = b := by simp [xa]; exact list_shift_1 a b c
+  simp [*, list_shift_1] at wL; rw [← wb] at wL
+  have aL : online a L := by rwa [← xa]
+  have bL : online b L := by rwa [← wb]
+  by_cases yx : y = x
+  · simp [xL, yx]
+  · by_cases zx : z = x
+    · simp [xL, zx]
+    · by_cases yz : y = z
+      · by_cases wy : w = y
+        · right; left; rwa [← wy]
+        · have yc : y = c := by
+            convert yP; rw [xa] at zx; rw [wb, yz] at wy
+            have : ¬ z = b := fun zb => wy zb.symm
+            simp [*]
+          simp [*]; left; apply sameside_rfl_of_not_online
+          rw [yz.symm, yc]
+          exact online_3_of_triangle aL bL T
+      · by_cases yb : y = b
+        · simp [*]
+        · have yc : y = c := by rw [xa] at yx; convert yP; simp [*]
+          have zb : z = b := by convert zP; aesop
+          simp [*]
+
+lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
+  mem_diff_of_mem bL (by simp [ab.symm])
+
+def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : point)
+ (ab: a ≠ b) (bP: b ∈ P.vertices) : ConvexPolygon:= by
+  let V := P.vertices.diff [a]
+  have ne : V ≠ [] := by
+    intro empty
+    apply (@eq_nil_iff_forall_not_mem point (P.vertices.diff [a])).mp empty b
+    convert mem_diff_single_of_ne bP ab
+  have convex := convex_of_sublist P.convex (diff_sublist P.vertices [a]) ne
+  exact ConvexPolygon.mk V (Nodup.diff P.nodup) convex ne
+
+#exit
 def Fin.neZero_of (i : Fin n) : NeZero n := ⟨Nat.pos_iff_ne_zero.mp (Fin.pos i)⟩
 
-
-def finenum_shift_nat {S : Set α} [FinEnum S] (a : S) (n:ℕ) : α :=
+def finenum_shift_nat {S : Set α} [FinEnum S] (a : S) (k : ℕ) : α :=
   haveI := Fin.neZero_of (FinEnum.Equiv a)
-  (FinEnum.Equiv.symm ((FinEnum.Equiv a : ℕ) + n) : S)
+  (FinEnum.Equiv.symm ((FinEnum.Equiv a : ℕ) + k) : S)
 
-def finenum_shift {S : Set α} [h_fin: FinEnum S] (a : S) (n:ℤ) : α := by
-  haveI := Fin.neZero_of (FinEnum.Equiv a)
-  cases n with
-  | ofNat k =>
-    exact finenum_shift_nat a k
-  | negSucc k =>
-    exact finenum_shift_nat a (h_fin.card-k-1)
+def finenum_shift {S : Set α} [h_fin: FinEnum S] (a : S) (k : ℤ) : α := by
+  cases k with
+  | ofNat l => exact finenum_shift_nat a l
+  | negSucc l => exact finenum_shift_nat a (h_fin.card - l - 1)
 
 structure ConvexPolygon := 
   (vertices : Set point)
@@ -46,7 +129,7 @@ open incidence_geometry
 open Classical
 
 
-variables [i: incidence_geometry]
+variable [i: incidence_geometry]
 
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L 
 
