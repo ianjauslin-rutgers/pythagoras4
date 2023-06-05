@@ -23,7 +23,7 @@ def finenum_shift {S : Set α} [h_fin: FinEnum S] (a : S) (n:ℤ) : α := by
   | ofNat k =>
     exact finenum_shift_nat a k
   | negSucc k =>
-    exact finenum_shift a (h_fin.card-k-1)
+    exact finenum_shift_nat a (h_fin.card-k-1)
 
 structure ConvexPolygon := 
   (vertices : Set point)
