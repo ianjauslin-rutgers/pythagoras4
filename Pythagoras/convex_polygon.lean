@@ -26,6 +26,8 @@ def list_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) : α 
   | ofNat j => exact list_shift_nat lst aL j
   | negSucc j => exact list_shift_nat lst aL (lst.length - j - 1)
 
+lemma same_of_shift_same {l₁ l₂ : List α} (hl: l₁ = l₂) (aL₁ : a ∈ l₁) (aL₂ : a ∈ l₂) (i : ℤ): list_shift l₁ aL₁ i = list_shift l₂ aL₂ i := by simp [*]
+
 lemma mem_of_idx (lst : List α) (i : ℕ) {hi: i < List.length lst} : lst[i] ∈ lst := by simp [mem_iff_get]
 
 lemma mem_of_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) : list_shift lst aL i ∈ lst := by cases i with | ofNat | negSucc => apply mem_of_idx
@@ -37,6 +39,9 @@ lemma list_shift_1_nat (a b c : point): @list_shift_nat _ a _ [a, b, c] (by simp
 lemma list_shift_1 (a b c : point): @list_shift _ a _ [a, b, c] (by simp) 1 = b := by conv => rhs; rw [← list_shift_1_nat a b c]
 
 def convex (V: List point) : Prop :=
+  ∀ a b c d: point, ∀ L : line,
+  (aV: a ∈ V) → (b ∈ V) → (c ∈ V) → (d = list_shift V aV 1) → (online a L) → (online d L) → WeakSameside b c L
+
   ∀ a b c : point, ∀ L : line,
   (aV: a ∈ V) -> (b ∈ V) → (c ∈ V) → (online a L) → (online (list_shift V aV 1) L) → WeakSameside b c L
 
@@ -52,36 +57,34 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
   refine ConvexPolygon.mk [a,b,c] ?_ ?_
   perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
   dsimp [convex, WeakSameside]
-  intro x y z L xP yP zP xL wL
+  intro x y z w L xP yP zP hw xL wL
   have xa : x = a := by
     obtain ⟨ n, hn ⟩ := get_of_mem xP
     have : n = (0 : Fin 3) := by sorry -- WLOG
     simp [*, hn.symm]
-  let w := list_shift [a, b, c] xP 1
-  have wP : w ∈ [a, b, c] := mem_of_shift [a,b,c] xP 1
-  have wb : w = b := by simp [xa]; exact list_shift_1 a b c
-  simp [*, list_shift_1] at wL; rw [← wb] at wL
-  have aL : online a L := by rwa [← xa]
-  have bL : online b L := by rwa [← wb]
-  by_cases yx : y = x
-  · simp [xL, yx]
-  · by_cases zx : z = x
-    · simp [xL, zx]
+  have wP : w ∈ [a, b, c] := by convert mem_of_shift [a,b,c] xP 1
+  have : [a,b,c] = [x,b,c] := by simp [xa]
+  rw [same_of_shift_same this xP (by simp) 1] at hw
+  have wb : w = b := by simp [hw, list_shift_1]
+  rw [wb] at wL; rw [xa] at xL
+  by_cases ya : y = a
+  · simp [xL, ya]
+  · by_cases za : z = a
+    · simp [xL, za]
     · by_cases yz : y = z
-      · by_cases wy : w = y
-        · right; left; rwa [← wy]
+      · by_cases yb : y = b
+        · right; left; rwa [yb]
         · have yc : y = c := by
-            convert yP; rw [xa] at zx; rw [wb, yz] at wy
-            have : ¬ z = b := fun zb => wy zb.symm
-            simp [*]
+            have : z ≠ b := fun zb => yb $ yz.trans zb
+            convert yP; simp [*]
           simp [*]; left; apply sameside_rfl_of_not_online
-          rw [yz.symm, yc]
-          exact online_3_of_triangle aL bL T
+          simp [yz.symm, yc]; exact online_3_of_triangle xL wL T
       · by_cases yb : y = b
         · simp [*]
-        · have yc : y = c := by rw [xa] at yx; convert yP; simp [*]
-          have zb : z = b := by convert zP; aesop
-          simp [*]
+        · have yc : y = c := by convert yP; simp [*]
+          have zc : z ≠ c := fun zc => yz $ yc.trans zc.symm
+          have zb : z = b := by convert zP; simp [*]
+          right; right; rwa [←zb] at wL
 
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
