@@ -8,7 +8,7 @@ variable [i: incidence_geometry]
 
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
 
-def list_shift_nat [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℕ) : α := by
+def list_shift_nat [DecidableEq α] (lst : List α) (a:α) (aL : a ∈ lst) (i : ℕ) : α := by
   let n := lst.length
   let j := lst.indexOf a + i
   have : j % n < n := by
@@ -17,7 +17,7 @@ def list_shift_nat [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℕ) :
     · apply Nat.mod_lt _ _; simp
   exact lst[j % n]
 
-def list_shift_nat' [DecidableEq α] (l : List α) (aL : a ∈ l) (i : ℕ) : α
+def list_shift_nat' [DecidableEq α] (l : List α) (a:α) (aL : a ∈ l) (i : ℕ) : α
  := by
   have : l ≠ [] := by aesop
   let j := l.indexOf a + i
@@ -26,43 +26,58 @@ def list_shift_nat' [DecidableEq α] (l : List α) (aL : a ∈ l) (i : ℕ) : α
 /-- ##
   #reduce list_shift ["a", "b", "c", "d"] (by simp) "a" (-1)
  -/
-def list_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) : α := by
+def list_shift [DecidableEq α] (l : List α) (a:α) (aL : a ∈ l) (i : ℤ) : α := by
   cases i with
-  | ofNat j => exact list_shift_nat' lst aL j
-  | negSucc j => exact list_shift_nat' lst aL (lst.length - j - 1)
+  | ofNat j => exact list_shift_nat' l a aL j
+  | negSucc j => exact list_shift_nat' l a aL (l.length - j - 1)
 
-lemma same_of_shift_same {l₁ l₂ : List α} (hl: l₁ = l₂) (aL₁ : a ∈ l₁) (aL₂ : a ∈ l₂) (i : ℤ): list_shift l₁ aL₁ i = list_shift l₂ aL₂ i := by simp [*]
+@[simp]
+lemma same_of_shift_same {l₁ l₂ : List α} (hl: l₁ = l₂) (aL₁ : a ∈ l₁) (aL₂ : a ∈ l₂) (i : ℤ): list_shift l₁ a aL₁ i = list_shift l₂ a aL₂ i := by simp [*]
+
+@[simp]
+lemma same_of_shift_same' {l : List α} (h : a = b) (aL : a ∈ l) (bL : b ∈ l) (i : ℤ): list_shift l a aL i = list_shift l b bL i := by simp [*]
 
 lemma mem_of_idx (lst : List α) (i : ℕ) {hi: i < List.length lst} : lst[i] ∈ lst := by simp [mem_iff_get]
 
--- lemma mem_of_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) : list_shift lst aL i ∈ lst := by cases i with | ofNat | negSucc => apply mem_of_idx
+lemma same_of_shift_iff [DecidableEq α] (lst : List α) (nodup: lst.Nodup) (aL : a ∈ lst) (i : ℤ) : list_shift lst a aL i = a ↔ lst.length % i = 0 := by sorry
 
-lemma same_of_shift_iff [DecidableEq α] (lst : List α) (nodup: lst.Nodup) (aL : a ∈ lst) (i : ℤ) : list_shift lst aL i = a ↔ lst.length % i = 0 := by sorry
-
-lemma list_shift_1_nat : ∀ a b c : point, @list_shift_nat' _ a _ [a, b, c] (by simp) 1 = b := by
+lemma list_shift_1_nat : ∀ a b c : point, list_shift_nat' [a, b, c] a (by simp) 1 = b := by
   intro a b c; simp [*, list_shift_nat']; rfl
 
-lemma list_shift_1 : ∀ a b c : point, @list_shift _ a _ [a, b, c] (by simp) 1 = b := by
+lemma list_shift_1 : ∀ a b c : point, list_shift [a, b, c] a (by simp) 1 = b := by
   intro a b c; conv => rhs; rw [← list_shift_1_nat a b c]
 
-lemma list_shift_1_nat' [DecidableEq point] : ∀ a b c : point, @list_shift_nat' _ b _ [a, b, c] (by simp) 1 = c := by
-  intro a b c; simp [*, list_shift_nat']; sorry
+lemma shift_nat_of_rot {l₁ l₂ : List α} (R: l₁ ~r l₂) (a: α) (aL₁ : a ∈ l₁) (aL₂ : a ∈ l₂) (i : ℕ) : list_shift_nat' l₁ a aL₁ i = list_shift_nat' l₂ a aL₂ i := by
+  obtain ⟨m, hm⟩ := id R
+  simp [← hm, list_shift_nat', rotate_rotate]
+  have : m + (indexOf a (rotate l₁ m)) = indexOf a l₁ := by sorry
+  have : rotate l₁ (indexOf a l₁ + i) = rotate l₁ (m + (indexOf a (rotate l₁ m) + i)) := by conv => rhs; rhs; ring_nf; rw [this]
+  conv => rhs; congr; rw [← this ]
 
-lemma list_shift_1' : ∀ a b c : point, @list_shift _ b _ [a, b, c] (by simp) 1 = c := by
+lemma list_shift_1_nat' [DecidableEq point] : ∀ a b c : point, list_shift_nat' [a, b, c] b (by simp) 1 = c := by
+  intro a b c
+  have R : [a,b,c] ~r [b,c,a] := by use 1; rfl
+  convert shift_nat_of_rot R b (by simp) (by simp) 1; simp
+  exact Eq.symm $ list_shift_1_nat b c a
+
+lemma list_shift_1' : ∀ a b c : point, list_shift [a, b, c] b (by simp) 1 = c := by
   intro a b c; conv => rhs; rw [← list_shift_1_nat' a b c]
 
-lemma list_shift_1_nat'' : ∀ a b c : point, @list_shift_nat' _ c _ [a, b, c] (by simp) 1 = a := by
-  intro a b c; simp [*, list_shift_nat']; sorry
+lemma list_shift_1_nat'' : ∀ a b c : point, list_shift_nat' [a, b, c] c (by simp) 1 = a := by
+  intro a b c
+  have R : [a,b,c] ~r [c,a, b] := by use 2; rfl
+  convert shift_nat_of_rot R c (by simp) (by simp) 1; simp
+  exact Eq.symm $ list_shift_1_nat c a b
 
-lemma list_shift_1'' : ∀ a b c : point, @list_shift _ c _ [a, b, c] (by simp) 1 = a := by intro a b c; conv => rhs; rw [← list_shift_1_nat'' a b c]
+lemma list_shift_1'' : ∀ a b c : point, list_shift [a, b, c] c (by simp) 1 = a := by intro a b c; conv => rhs; rw [← list_shift_1_nat'' a b c]
 
 def convex (V: List point) : Prop :=
   ∀ a b c d : point, ∀ L : line,
-  (aV: a ∈ V) → (b ∈ V) → (c ∈ V) → (d = list_shift V aV 1) → (online a L) → (online d L) → WeakSameside b c L
+  (aV: a ∈ V) → (b ∈ V) → (c ∈ V) → (d = list_shift V a aV 1) → (online a L) → (online d L) → WeakSameside b c L
 
 def convex' (V: List point) : Prop :=
   ∀ a b c d : point, ∀ L : line,
-  (aV: a ∈ V) → (b ∈ V) → (c ∈ V) → (d = list_shift V aV 1) → (a ≠ b) → (a ≠ c) → (b ≠ c) → (b ≠ d) → (c ≠ d) → (online a L) → (online d L) → WeakSameside b c L
+  (aV: a ∈ V) → (b ∈ V) → (c ∈ V) → (d = list_shift V a aV 1) → (a ≠ b) → (a ≠ c) → (b ≠ c) → (b ≠ d) → (c ≠ d) → (online a L) → (online d L) → WeakSameside b c L
 
 lemma convex_iff_convex' [DecidableEq point] (V: List point): convex V ↔ convex' V := by
   constructor
@@ -90,9 +105,8 @@ structure ConvexPolygon where
   convex: convex vertices
   nondeg: vertices ≠ [] := by simp
 
-lemma triangle_is_convex_aux (a b c x : point) (xP: x ∈ [a, b, c]) (yP: y ∈ [a, b, c]) (zP: z ∈ [a, b, c]) (hw : w = list_shift [a, b, c] xP 1) (xa : x = a) (xy : x ≠ y) (xz : x ≠ z) (yz : y ≠ z) (yw : y ≠ w) (zw : z ≠ w) : WeakSameside y z L := by
-  have : [a, b, c] = [x, b, c] := by simp [xa]
-  have wb : w = b := by simp [same_of_shift_same this, hw, list_shift_1]
+lemma triangle_is_convex_aux (a b c x : point) (xP: x ∈ [a, b, c]) (yP: y ∈ [a, b, c]) (zP: z ∈ [a, b, c]) (hw : w = list_shift [a, b, c] x xP 1) (xa : x = a) (xy : x ≠ y) (xz : x ≠ z) (yz : y ≠ z) (yw : y ≠ w) (zw : z ≠ w) : WeakSameside y z L := by
+  have wb : w = b := by simp [same_of_shift_same, same_of_shift_same' xa, hw, list_shift_1]
   have yc : y = c := by convert yP; rw [← xa, ← wb]; simp [xy.symm, yw]
   have zc : z = c := by convert zP; rw [← xa, ← wb]; simp [xz.symm, zw]
   exfalso; exact yz $ yc.trans zc.symm
@@ -105,18 +119,12 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
   · exact triangle_is_convex_aux a b c x xP yP zP hw xa xy xz yz yw zw
   · by_cases xb: x = b
     · refine' triangle_is_convex_aux b c a x (by simp [*]) _ _ _ xb xy xz yz yw zw
-      rwa [← @List.IsRotated.mem_iff point [a,b,c] [b,c,a]]; use 1; simp [rotate]
-      rwa [← @List.IsRotated.mem_iff point [a,b,c] [b,c,a]]; use 1; simp [rotate]
-      convert list_shift_1 b c a; rw [list_shift_1 b c a]
-      have : [a, b, c] = [a, x, c] := by simp [xb]
-      simp [same_of_shift_same this, hw, list_shift_1']; simp [list_shift_1, *]
+      repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [b,c,a]]; use 1; rfl
+      simp [same_of_shift_same, same_of_shift_same' xb, list_shift_1', hw, list_shift_1]
     · have xc : x = c := by convert xP; simp [*]
       refine' triangle_is_convex_aux c a b x (by simp [*]) _ _ _ xc xy xz yz yw zw
-      rwa [← @List.IsRotated.mem_iff point [a,b,c] [c,a,b]]; use 2; simp [rotate]
-      rwa [← @List.IsRotated.mem_iff point [a,b,c] [c,a,b]]; use 2; simp [rotate]
-      convert list_shift_1 c a b; rw [list_shift_1 c a b]
-      have : [a, b, c] = [a, b, x] := by simp [xc]
-      simp [same_of_shift_same this, hw, list_shift_1'']; simp [list_shift_1, *]
+      repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [c,a,b]]; use 2; rfl
+      simp [same_of_shift_same, same_of_shift_same' xc, list_shift_1'', hw, list_shift_1]
 
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
@@ -130,33 +138,6 @@ def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : p
     convert mem_diff_single_of_ne bP ab
   have convex := convex_of_sublist P.convex (diff_sublist P.vertices [a]) ne
   exact ConvexPolygon.mk V (Nodup.diff P.nodup) convex ne
-
-#exit
-def Fin.neZero_of (i : Fin n) : NeZero n := ⟨Nat.pos_iff_ne_zero.mp (Fin.pos i)⟩
-
-def finenum_shift_nat {S : Set α} [FinEnum S] (a : S) (k : ℕ) : α :=
-  haveI := Fin.neZero_of (FinEnum.Equiv a)
-  (FinEnum.Equiv.symm ((FinEnum.Equiv a : ℕ) + k) : S)
-
-def finenum_shift {S : Set α} [h_fin: FinEnum S] (a : S) (k : ℤ) : α := by
-  cases k with
-  | ofNat l => exact finenum_shift_nat a l
-  | negSucc l => exact finenum_shift_nat a (h_fin.card - l - 1)
-
-structure ConvexPolygon := 
-  (vertices : Set point)
-  (h_finenum : FinEnum vertices)
-  (convex : ∀ a b c : vertices, ∀ L : line, (online a L) → (online (finenum_shift a 1) L)
-    → WeakSameside b c L)
-
-
-#exit
-
-example (n i j : ℕ) (hji: j < i) (hin: i < n) (l k : ZMod (i - j + 1)) (hlk: l ≠ k) (hjlk: (j : ZMod n) + l = j + k) : 
-    False := by
-  
-  sorry
-
 
 #exit
 
