@@ -17,36 +17,44 @@ def list_shift_nat [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℕ) :
     · apply Nat.mod_lt _ _; simp
   exact lst[j % n]
 
+def list_shift_nat' [DecidableEq α] (l : List α) (aL : a ∈ l) (i : ℕ) : α
+ := by
+  have : l ≠ [] := by aesop
+  let j := l.indexOf a + i
+  apply (l.rotate j).head; simp[*, isRotated_nil_iff.not.mpr]
+
 /-- ##
   #reduce list_shift ["a", "b", "c", "d"] (by simp) "a" (-1)
  -/
 def list_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) : α := by
   cases i with
-  | ofNat j => exact list_shift_nat lst aL j
-  | negSucc j => exact list_shift_nat lst aL (lst.length - j - 1)
+  | ofNat j => exact list_shift_nat' lst aL j
+  | negSucc j => exact list_shift_nat' lst aL (lst.length - j - 1)
 
 lemma same_of_shift_same {l₁ l₂ : List α} (hl: l₁ = l₂) (aL₁ : a ∈ l₁) (aL₂ : a ∈ l₂) (i : ℤ): list_shift l₁ aL₁ i = list_shift l₂ aL₂ i := by simp [*]
 
 lemma mem_of_idx (lst : List α) (i : ℕ) {hi: i < List.length lst} : lst[i] ∈ lst := by simp [mem_iff_get]
 
-lemma mem_of_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) : list_shift lst aL i ∈ lst := by cases i with | ofNat | negSucc => apply mem_of_idx
+-- lemma mem_of_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) : list_shift lst aL i ∈ lst := by cases i with | ofNat | negSucc => apply mem_of_idx
 
 lemma same_of_shift_iff [DecidableEq α] (lst : List α) (nodup: lst.Nodup) (aL : a ∈ lst) (i : ℤ) : list_shift lst aL i = a ↔ lst.length % i = 0 := by sorry
 
-lemma list_shift_1_nat : ∀ a b c : point, @list_shift_nat _ a _ [a, b, c] (by simp) 1 = b := by dsimp [list_shift_nat]; simp [*]
+lemma list_shift_1_nat : ∀ a b c : point, @list_shift_nat' _ a _ [a, b, c] (by simp) 1 = b := by
+  intro a b c; simp [*, list_shift_nat']; rfl
 
 lemma list_shift_1 : ∀ a b c : point, @list_shift _ a _ [a, b, c] (by simp) 1 = b := by
   intro a b c; conv => rhs; rw [← list_shift_1_nat a b c]
 
-lemma list_shift_1_nat' [DecidableEq point] : ∀ a b c : point, @list_shift_nat _ b _ [a, b, c] (by simp) 1 = c := by sorry
+lemma list_shift_1_nat' [DecidableEq point] : ∀ a b c : point, @list_shift_nat' _ b _ [a, b, c] (by simp) 1 = c := by
+  intro a b c; simp [*, list_shift_nat']; sorry
 
 lemma list_shift_1' : ∀ a b c : point, @list_shift _ b _ [a, b, c] (by simp) 1 = c := by
   intro a b c; conv => rhs; rw [← list_shift_1_nat' a b c]
 
-lemma list_shift_1_nat'' : ∀ a b c : point, @list_shift_nat _ c _ [a, b, c] (by simp) 1 = a := by dsimp [list_shift_nat]; simp [*]; sorry
+lemma list_shift_1_nat'' : ∀ a b c : point, @list_shift_nat' _ c _ [a, b, c] (by simp) 1 = a := by
+  intro a b c; simp [*, list_shift_nat']; sorry
 
-lemma list_shift_1'' : ∀ a b c : point, @list_shift _ c _ [a, b, c] (by simp) 1 = a := by
-  intro a b c; conv => rhs; rw [← list_shift_1_nat'' a b c]
+lemma list_shift_1'' : ∀ a b c : point, @list_shift _ c _ [a, b, c] (by simp) 1 = a := by intro a b c; conv => rhs; rw [← list_shift_1_nat'' a b c]
 
 def convex (V: List point) : Prop :=
   ∀ a b c d : point, ∀ L : line,
