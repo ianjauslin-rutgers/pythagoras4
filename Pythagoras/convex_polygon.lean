@@ -1,6 +1,5 @@
 import SyntheticEuclid4
--- import Mathlib.Data.FinEnum
-
+import Mathlib.Data.List.Rotate
 open incidence_geometry
 open Classical
 open List
@@ -34,9 +33,20 @@ lemma mem_of_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) :
 
 lemma same_of_shift_iff [DecidableEq α] (lst : List α) (nodup: lst.Nodup) (aL : a ∈ lst) (i : ℤ) : list_shift lst aL i = a ↔ lst.length % i = 0 := by sorry
 
-lemma list_shift_1_nat (a b c : point): @list_shift_nat _ a _ [a, b, c] (by simp) 1 = b := by dsimp [list_shift_nat]; simp [*]
+lemma list_shift_1_nat : ∀ a b c : point, @list_shift_nat _ a _ [a, b, c] (by simp) 1 = b := by dsimp [list_shift_nat]; simp [*]
 
-lemma list_shift_1 (a b c : point): @list_shift _ a _ [a, b, c] (by simp) 1 = b := by conv => rhs; rw [← list_shift_1_nat a b c]
+lemma list_shift_1 : ∀ a b c : point, @list_shift _ a _ [a, b, c] (by simp) 1 = b := by
+  intro a b c; conv => rhs; rw [← list_shift_1_nat a b c]
+
+lemma list_shift_1_nat' [DecidableEq point] : ∀ a b c : point, @list_shift_nat _ b _ [a, b, c] (by simp) 1 = c := by sorry
+
+lemma list_shift_1' : ∀ a b c : point, @list_shift _ b _ [a, b, c] (by simp) 1 = c := by
+  intro a b c; conv => rhs; rw [← list_shift_1_nat' a b c]
+
+lemma list_shift_1_nat'' : ∀ a b c : point, @list_shift_nat _ c _ [a, b, c] (by simp) 1 = a := by dsimp [list_shift_nat]; simp [*]; sorry
+
+lemma list_shift_1'' : ∀ a b c : point, @list_shift _ c _ [a, b, c] (by simp) 1 = a := by
+  intro a b c; conv => rhs; rw [← list_shift_1_nat'' a b c]
 
 def convex (V: List point) : Prop :=
   ∀ a b c d : point, ∀ L : line,
@@ -72,21 +82,33 @@ structure ConvexPolygon where
   convex: convex vertices
   nondeg: vertices ≠ [] := by simp
 
-lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
-  refine ConvexPolygon.mk [a, b, c] ?_ ?_
-  perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
-  rw [convex_iff_convex']; intro x y z w L xP yP zP hw xy xz yz yw zw xL wL
-  have xa : x = a := by
-    obtain ⟨ n, hn ⟩ := get_of_mem xP
-    have : n = (0 : Fin 3) := by sorry -- WLOG
-    simp [*, hn.symm]
-  have wP : w ∈ [a, b, c] := by convert mem_of_shift [a,b,c] xP 1
+lemma triangle_is_convex_aux (a b c x : point) (xP: x ∈ [a, b, c]) (yP: y ∈ [a, b, c]) (zP: z ∈ [a, b, c]) (hw : w = list_shift [a, b, c] xP 1) (xa : x = a) (xy : x ≠ y) (xz : x ≠ z) (yz : y ≠ z) (yw : y ≠ w) (zw : z ≠ w) : WeakSameside y z L := by
   have : [a, b, c] = [x, b, c] := by simp [xa]
-  rw [same_of_shift_same this xP (by simp) 1] at hw
-  have wb : w = b := by simp [hw, list_shift_1]
+  have wb : w = b := by simp [same_of_shift_same this, hw, list_shift_1]
   have yc : y = c := by convert yP; rw [← xa, ← wb]; simp [xy.symm, yw]
   have zc : z = c := by convert zP; rw [← xa, ← wb]; simp [xz.symm, zw]
   exfalso; exact yz $ yc.trans zc.symm
+
+lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
+  refine ConvexPolygon.mk [a, b, c] ?_ ?_
+  perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
+  rw [convex_iff_convex']; intro x y z w L xP yP zP hw xy xz yz yw zw _ _
+  by_cases xa: x = a
+  · exact triangle_is_convex_aux a b c x xP yP zP hw xa xy xz yz yw zw
+  · by_cases xb: x = b
+    · refine' triangle_is_convex_aux b c a x (by simp [*]) _ _ _ xb xy xz yz yw zw
+      rwa [← @List.IsRotated.mem_iff point [a,b,c] [b,c,a]]; use 1; simp [rotate]
+      rwa [← @List.IsRotated.mem_iff point [a,b,c] [b,c,a]]; use 1; simp [rotate]
+      convert list_shift_1 b c a; rw [list_shift_1 b c a]
+      have : [a, b, c] = [a, x, c] := by simp [xb]
+      simp [same_of_shift_same this, hw, list_shift_1']; simp [list_shift_1, *]
+    · have xc : x = c := by convert xP; simp [*]
+      refine' triangle_is_convex_aux c a b x (by simp [*]) _ _ _ xc xy xz yz yw zw
+      rwa [← @List.IsRotated.mem_iff point [a,b,c] [c,a,b]]; use 2; simp [rotate]
+      rwa [← @List.IsRotated.mem_iff point [a,b,c] [c,a,b]]; use 2; simp [rotate]
+      convert list_shift_1 c a b; rw [list_shift_1 c a b]
+      have : [a, b, c] = [a, b, x] := by simp [xc]
+      simp [same_of_shift_same this, hw, list_shift_1'']; simp [list_shift_1, *]
 
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
