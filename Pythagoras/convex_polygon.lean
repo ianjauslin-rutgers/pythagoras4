@@ -47,9 +47,10 @@ lemma list_shift_1_nat : ∀ a b c : α, list_shift_nat' [a, b, c] a (by simp) 1
 lemma list_shift_1 : ∀ a b c : α, list_shift [a, b, c] a (by simp) 1 = b := by
   intro a b c; conv => rhs; rw [← list_shift_1_nat a b c]
 
-lemma shift_nat_of_rot {l₁ l₂ : List α} (R: l₁ ~r l₂) (a: α) (al₁ : a ∈ l₁) (al₂ : a ∈ l₂) (i : ℕ) : list_shift_nat' l₁ a al₁ i = list_shift_nat' l₂ a al₂ i := by
+lemma shift_nat_of_rot {l₁ l₂ : List α} (R: l₁ ~r l₂) (nodup₁: Nodup l₁) (a: α) (al₁ : a ∈ l₁) (al₂ : a ∈ l₂) (i : ℕ) : list_shift_nat' l₁ a al₁ i = list_shift_nat' l₂ a al₂ i := by
   let n := l₁.length
   obtain ⟨m, hm⟩ := id R
+  have nodup₂ : Nodup l₂ := by rw [← hm]; apply nodup_rotate.mpr nodup₁
   simp [← hm, list_shift_nat', rotate_rotate]
   have : m + (indexOf a (rotate l₁ m)) % n = indexOf a l₁ := by
     induction' m with M iM
@@ -71,22 +72,23 @@ lemma shift_nat_of_rot {l₁ l₂ : List α} (R: l₁ ~r l₂) (a: α) (al₁ : 
     sorry
   conv => rhs; congr; rw [← this]
 
-lemma list_shift_1_nat' [DecidableEq α] : ∀ a b c : α, list_shift_nat' [a, b, c] b (by simp) 1 = c := by
-  intro a b c
+lemma list_shift_1_nat' [DecidableEq α] : ∀ a b c : α, Nodup [a,b,c] → list_shift_nat' [a, b, c] b (by simp) 1 = c := by
+  intro a b c nodup
   have R : [a,b,c] ~r [b,c,a] := by use 1; rfl
-  convert shift_nat_of_rot R b (by simp) (by simp) 1; simp
+  convert shift_nat_of_rot R nodup b (by simp) (by simp) 1; simp
   exact Eq.symm $ list_shift_1_nat b c a
 
-lemma list_shift_1' : ∀ a b c : α, list_shift [a, b, c] b (by simp) 1 = c := by
-  intro a b c; conv => rhs; rw [← list_shift_1_nat' a b c]
+lemma list_shift_1' : ∀ a b c : α, Nodup [a,b,c] → list_shift [a, b, c] b (by simp) 1 = c := by
+  intro a b c nodup; conv => rhs; rw [← list_shift_1_nat' a b c nodup]
 
-lemma list_shift_1_nat'' : ∀ a b c : α, list_shift_nat' [a, b, c] c (by simp) 1 = a := by
-  intro a b c
+lemma list_shift_1_nat'' : ∀ a b c : α, Nodup [a,b,c] → list_shift_nat' [a, b, c] c (by simp) 1 = a := by
+  intro a b c nodup
   have R : [a,b,c] ~r [c,a, b] := by use 2; rfl
-  convert shift_nat_of_rot R c (by simp) (by simp) 1; simp
+  convert shift_nat_of_rot R nodup c (by simp) (by simp) 1; simp
   exact Eq.symm $ list_shift_1_nat c a b
 
-lemma list_shift_1'' : ∀ a b c : α, list_shift [a, b, c] c (by simp) 1 = a := by intro a b c; conv => rhs; rw [← list_shift_1_nat'' a b c]
+lemma list_shift_1'' : ∀ a b c : α, Nodup [a,b,c] → list_shift [a, b, c] c (by simp) 1 = a := by
+  intro a b c nodup; conv => rhs; rw [← list_shift_1_nat'' a b c nodup]
 
 def convex (V: List point) : Prop :=
   ∀ a b c d : point, ∀ L : line,
@@ -129,19 +131,19 @@ lemma triangle_is_convex_aux (a b c x : point) (xP: x ∈ [a, b, c]) (yP: y ∈ 
   exfalso; exact yz $ yc.trans zc.symm
 
 lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
-  refine ConvexPolygon.mk [a, b, c] ?_ ?_
-  perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
+  have nodup: Nodup [a,b,c] := by perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
+  refine ConvexPolygon.mk [a, b, c] nodup ?_
   rw [convex_iff_convex']; intro x y z w L xP yP zP hw xy xz yz yw zw _ _
   by_cases xa: x = a
   · exact triangle_is_convex_aux a b c x xP yP zP hw xa xy xz yz yw zw
   · by_cases xb: x = b
     · refine' triangle_is_convex_aux b c a x (by simp [*]) _ _ _ xb xy xz yz yw zw
       repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [b,c,a]]; use 1; rfl
-      simp [same_of_shift_same, same_of_shift_same' xb, list_shift_1', hw, list_shift_1]
+      simp [same_of_shift_same, same_of_shift_same' xb, list_shift_1' a b c nodup, hw, list_shift_1]
     · have xc : x = c := by convert xP; simp [*]
       refine' triangle_is_convex_aux c a b x (by simp [*]) _ _ _ xc xy xz yz yw zw
       repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [c,a,b]]; use 2; rfl
-      simp [same_of_shift_same, same_of_shift_same' xc, list_shift_1'', hw, list_shift_1]
+      simp [same_of_shift_same, same_of_shift_same' xc, list_shift_1'' a b c nodup, hw, list_shift_1]
 
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
