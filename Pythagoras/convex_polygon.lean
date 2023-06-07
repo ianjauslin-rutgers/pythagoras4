@@ -43,6 +43,7 @@ lemma mem_of_idx (l : List α) (i : ℕ) {hi: i < List.length l} : l[i] ∈ l :=
 lemma list_shift_1_nat : ∀ a b c : α, list_shift_nat [a,b,c] a (by simp) 1 = b := by
   intro a b c; simp [list_shift_nat]
 
+@[simp]
 lemma list_shift_1 : ∀ a b c : α, list_shift [a,b,c] a (by simp) 1 = b := by
   intro a b c; simp [list_shift]; conv => rhs; rw [← list_shift_1_nat a b c]
 
@@ -52,6 +53,7 @@ lemma list_shift_1_nat' [DecidableEq α] : ∀ a b c : α, Nodup [a,b,c] → lis
   rw [← this]; congr; simp [Nat.mod_eq_of_lt]
   simp [@indexOf_cons_ne _ _ b a [b,c] (by tauto)]
 
+@[simp]
 lemma list_shift_1' : ∀ a b c : α, Nodup [a,b,c] → list_shift [a,b,c] b (by simp) 1 = c := by
   intro a b c nodup; conv => rhs; rw [← list_shift_1_nat' a b c nodup]
 
@@ -61,6 +63,7 @@ lemma list_shift_1_nat'' : ∀ a b c : α, Nodup [a,b,c] → list_shift_nat [a,b
   rw [← this]; congr; simp [Nat.mod_eq_of_lt]
   simp [@indexOf_cons_ne _ _ c a [b,c] (by tauto), @indexOf_cons_ne _ _ c b [c] (by tauto)]
 
+@[simp]
 lemma list_shift_1'' : ∀ a b c : α, Nodup [a,b,c] → list_shift [a,b,c] c (by simp) 1 = a := by
   intro a b c nodup; conv => rhs; rw [← list_shift_1_nat'' a b c nodup]
 
@@ -99,9 +102,9 @@ structure ConvexPolygon where
   nondeg: vertices ≠ [] := by simp
 
 lemma triangle_is_convex_aux (a b c x : point) (xP: x ∈ [a,b,c]) (yP: y ∈ [a,b,c]) (zP: z ∈ [a,b,c]) (hw : w = list_shift [a,b,c] x xP 1) (xa : x = a) (xy : x ≠ y) (xz : x ≠ z) (yz : y ≠ z) (yw : y ≠ w) (zw : z ≠ w) : WeakSameside y z L := by
-  have wb : w = b := by simp [eq_of_shift_eq xa, hw, list_shift_1]
-  have yc : y = c := by convert yP; rw [← xa, ← wb]; simp [xy.symm, yw]
-  have zc : z = c := by convert zP; rw [← xa, ← wb]; simp [xz.symm, zw]
+  have wb : w = b := by simp [xa, hw]
+  have yc : y = c := by convert yP; simp [← xa, ← wb, xy.symm, yw]
+  have zc : z = c := by convert zP; simp [← xa, ← wb, xz.symm, zw]
   exfalso; exact yz $ yc.trans zc.symm
 
 lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
@@ -113,11 +116,11 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
   · by_cases xb: x = b
     · refine' triangle_is_convex_aux b c a x (by simp [*]) _ _ _ xb xy xz yz yw zw
       repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [b,c,a]]; use 1; rfl
-      simp [xb, list_shift_1' a b c nodup, hw, list_shift_1]
+      simp [xb, hw, list_shift_1' a b c nodup]
     · have xc : x = c := by convert xP; simp [*]
       refine' triangle_is_convex_aux c a b x (by simp [*]) _ _ _ xc xy xz yz yw zw
       repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [c,a,b]]; use 2; rfl
-      simp [eq_of_shift_eq xc, list_shift_1'' a b c nodup, hw, list_shift_1]
+      simp [xc, hw, list_shift_1'' a b c nodup]
 
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
