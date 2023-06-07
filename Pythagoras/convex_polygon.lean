@@ -111,16 +111,15 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
   have nodup: Nodup [a,b,c] := by perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
   refine ConvexPolygon.mk [a,b,c] nodup ?_
   rw [convex_iff_convex']; intro x y z w L xP yP zP hw xy xz yz yw zw _ _
-  by_cases xa: x = a
+  have xabc : (x = a) ∨ (x = b) ∨ (x = c) := by simp at xP; exact xP
+  rcases xabc with (xa|xb|xc)
   · exact triangle_is_convex_aux a b c x xP yP zP hw xa xy xz yz yw zw
-  · by_cases xb: x = b
-    · refine' triangle_is_convex_aux b c a x (by simp [*]) _ _ _ xb xy xz yz yw zw
-      repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [b,c,a]]; use 1; rfl
-      simp [xb, hw, list_shift_1' a b c nodup]
-    · have xc : x = c := by convert xP; simp [*]
-      refine' triangle_is_convex_aux c a b x (by simp [*]) _ _ _ xc xy xz yz yw zw
-      repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [c,a,b]]; use 2; rfl
-      simp [xc, hw, list_shift_1'' a b c nodup]
+  · refine' triangle_is_convex_aux b c a x (by simp [*]) _ _ _ xb xy xz yz yw zw
+    repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [b,c,a]]; use 1; rfl
+    simp [xb, hw, list_shift_1' a b c nodup]
+  · refine' triangle_is_convex_aux c a b x (by simp [*]) _ _ _ xc xy xz yz yw zw
+    repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [c,a,b]]; use 2; rfl
+    simp [xc, hw, list_shift_1'' a b c nodup]
 
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
