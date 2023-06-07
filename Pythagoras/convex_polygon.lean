@@ -8,9 +8,9 @@ variable [i: incidence_geometry]
 
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
 
-example (a b c : α) [DecidableEq α] : List.Nodup [a, b, c] → List.indexOf a [a, b, c] = 0 := by simp [indexOf_cons_ne]
+example (a b c : α) [DecidableEq α] : Nodup [a,b,c] → List.indexOf a [a,b,c] = 0 := by simp [indexOf_cons_ne]
 
-example (a b c : α) [DecidableEq α] : List.Nodup [a, b, c] → List.indexOf b [a, b, c] = 1 := by
+example (a b c : α) [DecidableEq α] : Nodup [a,b,c] → List.indexOf b [a,b,c] = 1 := by
   intro nodup; simp at nodup; simp [@indexOf_cons_ne _ _ b a [b,c] (by tauto)]
 
 def list_shift_nat [DecidableEq α] (l : List α) (a : α) (al : a ∈ l) (i : ℕ) : α := by
@@ -22,53 +22,46 @@ def list_shift_nat [DecidableEq α] (l : List α) (a : α) (al : a ∈ l) (i : �
     · apply Nat.mod_lt _ _; simp
   exact l[j % n]
 
+/-- ### An alternative definition, currently not used -/
 def list_shift_nat' [DecidableEq α] (l : List α) (a : α) (aL : a ∈ l) (i : ℕ) : α
  := by
   have : l ≠ [] := by aesop
   let j := l.indexOf a + i
   apply (l.rotate j).head; simp[*, isRotated_nil_iff.not.mpr]
 
-/-- ##
-  #reduce list_shift ["a", "b", "c", "d"] (by simp) "a" (-1)
- -/
+/-- #reduce list_shift ["a", "b", "c", "d"] (by simp) "a" (-1) -/
 def list_shift [DecidableEq α] (l : List α) (a : α) (al : a ∈ l) (i : ℤ) : α := by
   cases i with
   | ofNat j => exact list_shift_nat l a al j
   | negSucc j => exact list_shift_nat l a al (l.length - j - 1)
 
 @[simp]
-lemma same_of_shift_same {l₁ l₂ : List α} (hl: l₁ = l₂) (al₁ : a ∈ l₁) (al₂ : a ∈ l₂) (i : ℤ): list_shift l₁ a al₁ i = list_shift l₂ a al₂ i := by simp [*]
-
-@[simp]
-lemma same_of_shift_same' {l : List α} (h : a = b) (al : a ∈ l) (bL : b ∈ l) (i : ℤ): list_shift l a al i = list_shift l b bL i := by simp [*]
+lemma eq_of_shift_eq {l : List α} (h : a = b) (al : a ∈ l) (bL : b ∈ l) (i : ℤ): list_shift l a al i = list_shift l b bL i := by simp [*]
 
 lemma mem_of_idx (l : List α) (i : ℕ) {hi: i < List.length l} : l[i] ∈ l := by simp [mem_iff_get]
 
-lemma list_shift_1_nat : ∀ a b c : α, list_shift_nat [a, b, c] a (by simp) 1 = b := by
+lemma list_shift_1_nat : ∀ a b c : α, list_shift_nat [a,b,c] a (by simp) 1 = b := by
   intro a b c; simp [list_shift_nat]
 
-lemma list_shift_1 : ∀ a b c : α, list_shift [a, b, c] a (by simp) 1 = b := by
+lemma list_shift_1 : ∀ a b c : α, list_shift [a,b,c] a (by simp) 1 = b := by
   intro a b c; simp [list_shift]; conv => rhs; rw [← list_shift_1_nat a b c]
 
-lemma list_shift_1_nat' [DecidableEq α] : ∀ a b c : α, Nodup [a,b,c] → list_shift_nat [a, b, c] b (by simp) 1 = c := by
-  intro a b c nodup; simp [list_shift_nat]; ring_nf
+lemma list_shift_1_nat' [DecidableEq α] : ∀ a b c : α, Nodup [a,b,c] → list_shift_nat [a,b,c] b (by simp) 1 = c := by
+  intro a b c nodup; simp at nodup; simp [list_shift_nat]; ring_nf
   have : [a,b,c].get {val := 2, isLt:= (by simp)} = c := by rfl
-  rw [← this]; congr; ring_nf;
-  have : 2 < 3 := by simp
-  simp [Nat.mod_eq_of_lt this]
-  simp at nodup; have : a ≠ b := by tauto
-  simp [indexOf_cons_ne [b,c] this.symm]
+  rw [← this]; congr; simp [Nat.mod_eq_of_lt]
+  simp [@indexOf_cons_ne _ _ b a [b,c] (by tauto)]
 
-lemma list_shift_1' : ∀ a b c : α, Nodup [a,b,c] → list_shift [a, b, c] b (by simp) 1 = c := by
+lemma list_shift_1' : ∀ a b c : α, Nodup [a,b,c] → list_shift [a,b,c] b (by simp) 1 = c := by
   intro a b c nodup; conv => rhs; rw [← list_shift_1_nat' a b c nodup]
 
-lemma list_shift_1_nat'' : ∀ a b c : α, Nodup [a,b,c] → list_shift_nat [a, b, c] c (by simp) 1 = a := by
+lemma list_shift_1_nat'' : ∀ a b c : α, Nodup [a,b,c] → list_shift_nat [a,b,c] c (by simp) 1 = a := by
   intro a b c nodup; simp at nodup; simp [list_shift_nat]; ring_nf
   have : [a,b,c].get {val := 0, isLt:= (by simp)} = a := by rfl
-  rw [← this]; congr; simp [@Nat.mod_eq_of_lt 1 3 (by simp)]
+  rw [← this]; congr; simp [Nat.mod_eq_of_lt]
   simp [@indexOf_cons_ne _ _ c a [b,c] (by tauto), @indexOf_cons_ne _ _ c b [c] (by tauto)]
 
-lemma list_shift_1'' : ∀ a b c : α, Nodup [a,b,c] → list_shift [a, b, c] c (by simp) 1 = a := by
+lemma list_shift_1'' : ∀ a b c : α, Nodup [a,b,c] → list_shift [a,b,c] c (by simp) 1 = a := by
   intro a b c nodup; conv => rhs; rw [← list_shift_1_nat'' a b c nodup]
 
 def convex (V: List point) : Prop :=
@@ -105,26 +98,26 @@ structure ConvexPolygon where
   convex: convex vertices
   nondeg: vertices ≠ [] := by simp
 
-lemma triangle_is_convex_aux (a b c x : point) (xP: x ∈ [a, b, c]) (yP: y ∈ [a, b, c]) (zP: z ∈ [a, b, c]) (hw : w = list_shift [a, b, c] x xP 1) (xa : x = a) (xy : x ≠ y) (xz : x ≠ z) (yz : y ≠ z) (yw : y ≠ w) (zw : z ≠ w) : WeakSameside y z L := by
-  have wb : w = b := by simp [same_of_shift_same, same_of_shift_same' xa, hw, list_shift_1]
+lemma triangle_is_convex_aux (a b c x : point) (xP: x ∈ [a,b,c]) (yP: y ∈ [a,b,c]) (zP: z ∈ [a,b,c]) (hw : w = list_shift [a,b,c] x xP 1) (xa : x = a) (xy : x ≠ y) (xz : x ≠ z) (yz : y ≠ z) (yw : y ≠ w) (zw : z ≠ w) : WeakSameside y z L := by
+  have wb : w = b := by simp [eq_of_shift_eq xa, hw, list_shift_1]
   have yc : y = c := by convert yP; rw [← xa, ← wb]; simp [xy.symm, yw]
   have zc : z = c := by convert zP; rw [← xa, ← wb]; simp [xz.symm, zw]
   exfalso; exact yz $ yc.trans zc.symm
 
 lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
   have nodup: Nodup [a,b,c] := by perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
-  refine ConvexPolygon.mk [a, b, c] nodup ?_
+  refine ConvexPolygon.mk [a,b,c] nodup ?_
   rw [convex_iff_convex']; intro x y z w L xP yP zP hw xy xz yz yw zw _ _
   by_cases xa: x = a
   · exact triangle_is_convex_aux a b c x xP yP zP hw xa xy xz yz yw zw
   · by_cases xb: x = b
     · refine' triangle_is_convex_aux b c a x (by simp [*]) _ _ _ xb xy xz yz yw zw
       repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [b,c,a]]; use 1; rfl
-      simp [same_of_shift_same, same_of_shift_same' xb, list_shift_1' a b c nodup, hw, list_shift_1]
+      simp [xb, list_shift_1' a b c nodup, hw, list_shift_1]
     · have xc : x = c := by convert xP; simp [*]
       refine' triangle_is_convex_aux c a b x (by simp [*]) _ _ _ xc xy xz yz yw zw
       repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [c,a,b]]; use 2; rfl
-      simp [same_of_shift_same, same_of_shift_same' xc, list_shift_1'' a b c nodup, hw, list_shift_1]
+      simp [eq_of_shift_eq xc, list_shift_1'' a b c nodup, hw, list_shift_1]
 
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
