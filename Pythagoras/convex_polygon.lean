@@ -145,44 +145,72 @@ def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : p
   have convex := convex_of_sublist P.convex (diff_sublist P.vertices [a]) ne
   exact ConvexPolygon.mk V (Nodup.diff P.nodup) convex ne
 
-def split_LR [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V)
-  (lP: l ∈ V) (rP: r ∈ V) : List α × List α := by
-  let W := (splitAt (indexOf l V) V).1
-  let X := (splitAt (indexOf l V) V).2
-  have rXW: (r ∈ X) ∨ (r ∈ W) := by convert rP; sorry
+/-- ###
+#eval @split_LR String _ "c" "f" ["a", "b", "c", "d", "e", "f", "g", "h"] (by simp) (by simp)
+
+#eval @split_LR String _ "f" "c" ["a", "b", "c", "d", "e", "f", "g", "h"] (by simp) (by simp)
+
+#eval @split_LR String _ "c" "c" ["a", "b", "c", "d", "e", "f", "g", "h"] (by simp) (by simp)
+ -/
+def split_LR [DecidableEq α] {l r : α} (V : List α)
+    (lP: l ∈ V) (rP: r ∈ V) : List α × List α := by
+  let i := indexOf l V
+  haveI : i < V.length := indexOf_lt_length.mpr lP
+  let W := (splitAt i V).1
+  let X := (splitAt i V).2
+  have WX: V = W ++ X := by simp
+  have rWX: (r ∈ W) ∨ (r ∈ X) := mem_append.mp (by rwa [WX] at rP)
   by_cases rX : r ∈ X
-  · let (Y, Z) := splitAt (indexOf r X) X
+  · let j := indexOf r X
+    haveI : j < X.length := indexOf_lt_length.mpr rX
+    let (Y, Z) := splitAt j X
     exact ⟨ Z ++ W ++ [l], Y ++ [r] ⟩
   · have rW : r ∈ W := by tauto
-    let (Y, Z) := splitAt (indexOf r W) W
+    let j := indexOf r W
+    haveI : j < W.length := indexOf_lt_length.mpr rW
+    let (Y, Z) := splitAt j W
     exact ⟨ Z ++ [l], X ++ Y ++ [r] ⟩
 
-lemma split_LR_symm [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V)
-     (lP: l ∈ V) (rP: r ∈ V) :
-     (split_LR V nodup lP rP).1 = (split_LR V nodup rP lP).2 := by sorry
+
+lemma split_LR_symm [DecidableEq α] {l r : α} (V : List α)
+    (lP: l ∈ V) (rP: r ∈ V) :
+  (split_LR V lP rP).1 = (split_LR V rP lP).2 := by 
+    dsimp [split_LR]
+    let i := indexOf l V
+    haveI : i < V.length := indexOf_lt_length.mpr lP
+    split_ifs <;> simp [PProd.snd]
+    sorry
+    sorry
+    sorry
+    sorry
 
 lemma nodup_split_LR_2 [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V)
-     {lP: l ∈ V} {rP: r ∈ V} :
-     Nodup (split_LR V nodup lP rP).2 := by sorry
+    {lP: l ∈ V} {rP: r ∈ V} :
+  Nodup (split_LR V lP rP).2 := by
+  dsimp [split_LR]
+  split_ifs <;> apply nodup_append.mpr <;> simp [PProd.snd]
+  sorry
+  sorry
 
 lemma nodup_split_LR_1 [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V)
      {lP: l ∈ V} {rP: r ∈ V} :
-     Nodup (split_LR V nodup lP rP).1 := by
-  rw [split_LR_symm]; exact @nodup_split_LR_2 α _ r l V nodup rP lP
+     Nodup (split_LR V lP rP).1 := by
+  rw [split_LR_symm V]
+  exact @nodup_split_LR_2 α _ r l V nodup rP lP
 
 lemma mem_split_LR_2 [DecidableEq α] {l r a : α} (V : List α) (nodup: Nodup V)
      {lP: l ∈ V} {rP: r ∈ V} :
-     (a ∈ (split_LR V nodup lP rP).2) → (a ∈ V) := by sorry
+     (a ∈ (split_LR V lP rP).2) → (a ∈ V) := by sorry
 
 lemma mem_split_LR_1 [DecidableEq α] {l r a : α} (V : List α) (nodup: Nodup V)
      {lP: l ∈ V} {rP: r ∈ V} :
-     (a ∈ (split_LR V nodup lP rP).1) → (a ∈ V) := by
-  rw [split_LR_symm]; exact mem_split_LR_2 V nodup
+     (a ∈ (split_LR V lP rP).1) → (a ∈ V) := by
+  rw [split_LR_symm V]; exact mem_split_LR_2 V nodup
 
 def ConvexPolygon_split_R [DecidableEq point] (P : ConvexPolygon) (l r : point)
     (lP: l ∈ P.vertices) (rP: r ∈ P.vertices) : ConvexPolygon := by
   let V := P.vertices
-  let R := (split_LR V P.nodup lP rP).2
+  let R := (split_LR V lP rP).2
   refine ConvexPolygon.mk R (nodup_split_LR_2 V P.nodup) ?convex ?nonempty
   have := P.convex; dsimp [convex] at this; dsimp [convex]
   intro a b c d M aR bR cR dR
