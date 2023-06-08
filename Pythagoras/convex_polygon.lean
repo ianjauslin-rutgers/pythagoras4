@@ -67,13 +67,15 @@ lemma list_shift_1_nat'' : ∀ a b c : α, Nodup [a,b,c] → list_shift_nat [a,b
 lemma list_shift_1'' : ∀ a b c : α, Nodup [a,b,c] → list_shift [a,b,c] c (by simp) 1 = a := by
   intro a b c nodup; conv => rhs; rw [← list_shift_1_nat'' a b c nodup]
 
+def next [DecidableEq α] {V : List α } (aV : a ∈ V) := list_shift V a aV 1
+
 def convex (V: List point) : Prop :=
   ∀ a b c d : point, ∀ L : line,
-  (aV: a ∈ V) → (b ∈ V) → (c ∈ V) → (d = list_shift V a aV 1) → (online a L) → (online d L) → WeakSameside b c L
+  (aV: a ∈ V) → (b ∈ V) → (c ∈ V) → (d = next aV) → (online a L) → (online d L) → WeakSameside b c L
 
 def convex' (V: List point) : Prop :=
   ∀ a b c d : point, ∀ L : line,
-  (aV: a ∈ V) → (b ∈ V) → (c ∈ V) → (d = list_shift V a aV 1) → (a ≠ b) → (a ≠ c) → (b ≠ c) → (b ≠ d) → (c ≠ d) → (online a L) → (online d L) → WeakSameside b c L
+  (aV: a ∈ V) → (b ∈ V) → (c ∈ V) → (d = next aV) → (a ≠ b) → (a ≠ c) → (b ≠ c) → (b ≠ d) → (c ≠ d) → (online a L) → (online d L) → WeakSameside b c L
 
 lemma convex_iff_convex' [DecidableEq point] (V: List point): convex V ↔ convex' V := by
   constructor
@@ -101,8 +103,10 @@ structure ConvexPolygon where
   convex: convex vertices
   nondeg: vertices ≠ [] := by simp
 
-lemma triangle_is_convex_aux (a b c x : point) (xP: x ∈ [a,b,c]) (yP: y ∈ [a,b,c]) (zP: z ∈ [a,b,c]) (hw : w = list_shift [a,b,c] x xP 1) (xa : x = a) (xy : x ≠ y) (xz : x ≠ z) (yz : y ≠ z) (yw : y ≠ w) (zw : z ≠ w) : WeakSameside y z L := by
-  have wb : w = b := by simp [xa, hw]
+def sides (P: ConvexPolygon) := P.vertices.length
+
+lemma triangle_is_convex_aux (a b c x : point) (xP: x ∈ [a,b,c]) (yP: y ∈ [a,b,c]) (zP: z ∈ [a,b,c]) (hw : w = next xP) (xa : x = a) (xy : x ≠ y) (xz : x ≠ z) (yz : y ≠ z) (yw : y ≠ w) (zw : z ≠ w) : WeakSameside y z L := by
+  have wb : w = b := by simp [xa, hw, next]
   have yc : y = c := by convert yP; simp [← xa, ← wb, xy.symm, yw]
   have zc : z = c := by convert zP; simp [← xa, ← wb, xz.symm, zw]
   exfalso; exact yz $ yc.trans zc.symm
@@ -116,10 +120,10 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
   · exact triangle_is_convex_aux a b c x xP yP zP hw xa xy xz yz yw zw
   · refine' triangle_is_convex_aux b c a x (by simp [*]) _ _ _ xb xy xz yz yw zw
     repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [b,c,a]]; use 1; rfl
-    simp [xb, hw, list_shift_1' a b c nodup]
+    simp [xb, hw, next, list_shift_1' a b c nodup]
   · refine' triangle_is_convex_aux c a b x (by simp [*]) _ _ _ xc xy xz yz yw zw
     repeat rwa [← @IsRotated.mem_iff _ [a,b,c] [c,a,b]]; use 2; rfl
-    simp [xc, hw, list_shift_1'' a b c nodup]
+    simp [xc, hw, next, list_shift_1'' a b c nodup]
 
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
