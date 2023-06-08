@@ -134,6 +134,22 @@ def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : p
   have convex := convex_of_sublist P.convex (diff_sublist P.vertices [a]) ne
   exact ConvexPolygon.mk V (Nodup.diff P.nodup) convex ne
 
+def split_LR [DecidableEq α] (V : List α) (a b : α)
+ : List α × List α := by
+  let (W, X) := splitAt (indexOf a V) V
+  by_cases b ∈ X
+  · let (Y, Z) := splitAt (indexOf b X) X
+    exact ⟨ Z ++ W ++ [a], Y ++ [b] ⟩
+  · let (Y, Z) := splitAt (indexOf b W) W
+    exact ⟨ Z ++ [a], X ++ Y ++ [b] ⟩
+
+def ConvexPolygon_split_R [DecidableEq point] (P : ConvexPolygon) (a b : point) (aP: a ∈ P.vertices) (bP: b ∈ P.vertices) : ConvexPolygon := by
+  obtain ⟨ _ , R ⟩ := split_LR P.vertices a b
+  refine' ConvexPolygon.mk R ?_ ?_ ?_
+  repeat sorry
+
+def ConvexPolygon_split_L [DecidableEq point] (P : ConvexPolygon) (a b : point) (aP: a ∈ P.vertices) (bP: b ∈ P.vertices) : ConvexPolygon := ConvexPolygon_split_R P b a bP aP
+
 #exit
 
 open incidence_geometry
