@@ -133,6 +133,22 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
 
+lemma convex_reduction (a b c d e : point) (L M : line) (nodup: Nodup [a, b, c, d, e])
+    (aL : online a L) (cL : online c L)
+    (dM : online d M) (eM : online e M)
+    (acM : sameside a c M) : (sameside d e L) := by
+  simp at nodup
+  by_contra deL
+  obtain ⟨ f, N, dN, eN, fN, fL⟩ := pt_inter_of_not_sameside deL
+  have MN := line_unique_of_pts (by tauto) dM eM dN eN; rw [MN] at acM
+  have' := @B_of_three_col_ne i a f c _ (by tauto) _ (by use L; exact ⟨ aL, fL, cL ⟩)
+  rcases this with (Bacf|Bfac|Bcaf)
+  · exact not_sameside13_of_B123_online2 Bacf fN acM
+  · sorry
+  · sorry
+  sorry
+  sorry
+
 lemma convex_of_sublist (C: convex V) (sub: W <+ V) (nW: W ≠ []) : convex W := by sorry
 
 def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : point)
@@ -170,7 +186,6 @@ def split_LR [DecidableEq α] {l r : α} (V : List α)
     haveI : j < W.length := indexOf_lt_length.mpr rW
     let (Y, Z) := splitAt j W
     exact ⟨ Z ++ [l], X ++ Y ++ [r] ⟩
-
 
 lemma split_LR_symm [DecidableEq α] {l r : α} (V : List α)
     (lP: l ∈ V) (rP: r ∈ V) :
