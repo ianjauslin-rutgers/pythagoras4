@@ -36,7 +36,8 @@ def list_shift [DecidableEq α] (l : List α) (a : α) (al : a ∈ l) (i : ℤ) 
   | negSucc j => exact list_shift_nat l a al (l.length - j - 1)
 
 @[simp]
-lemma eq_of_shift_eq {l : List α} (h : a = b) (al : a ∈ l) (bL : b ∈ l) (i : ℤ): list_shift l a al i = list_shift l b bL i := by simp [*]
+lemma eq_of_shift_eq {l : List α} (h : a = b) (al : a ∈ l) (bL : b ∈ l) (i : ℤ) :
+    list_shift l a al i = list_shift l b bL i := by simp [*]
 
 lemma mem_of_idx (l : List α) (i : ℕ) {hi: i < List.length l} : l[i] ∈ l := by simp [mem_iff_get]
 
@@ -44,20 +45,24 @@ lemma list_shift_1_nat : ∀ a b c : α, list_shift_nat [a,b,c] a (by simp) 1 = 
   intro a b c; simp [list_shift_nat]
 
 @[simp]
-lemma list_shift_1 : ∀ a b c : α, list_shift [a,b,c] a (by simp) 1 = b := by
+lemma list_shift_1 : ∀ a b c : α,
+    list_shift [a,b,c] a (by simp) 1 = b := by
   intro a b c; simp [list_shift]; conv => rhs; rw [← list_shift_1_nat a b c]
 
-lemma list_shift_1_nat' [DecidableEq α] : ∀ a b c : α, Nodup [a,b,c] → list_shift_nat [a,b,c] b (by simp) 1 = c := by
+lemma list_shift_1_nat' [DecidableEq α] : ∀ a b c : α,
+    Nodup [a,b,c] → list_shift_nat [a,b,c] b (by simp) 1 = c := by
   intro a b c nodup; simp at nodup; simp [list_shift_nat]; ring_nf
   have : [a,b,c].get {val := 2, isLt:= (by simp)} = c := by rfl
   rw [← this]; congr; simp [Nat.mod_eq_of_lt]
   simp [@indexOf_cons_ne _ _ b a [b,c] (by tauto)]
 
 @[simp]
-lemma list_shift_1' : ∀ a b c : α, Nodup [a,b,c] → list_shift [a,b,c] b (by simp) 1 = c := by
+lemma list_shift_1' : ∀ a b c : α,
+    Nodup [a,b,c] → list_shift [a,b,c] b (by simp) 1 = c := by
   intro a b c nodup; conv => rhs; rw [← list_shift_1_nat' a b c nodup]
 
-lemma list_shift_1_nat'' : ∀ a b c : α, Nodup [a,b,c] → list_shift_nat [a,b,c] c (by simp) 1 = a := by
+lemma list_shift_1_nat'' : ∀ a b c : α,
+    Nodup [a,b,c] → list_shift_nat [a,b,c] c (by simp) 1 = a := by
   intro a b c nodup; simp at nodup; simp [list_shift_nat]; ring_nf
   have : [a,b,c].get {val := 0, isLt:= (by simp)} = a := by rfl
   rw [← this]; congr; simp [Nat.mod_eq_of_lt]
@@ -103,7 +108,9 @@ structure ConvexPolygon where
 
 def sides (P: ConvexPolygon) := P.vertices.length
 
-lemma triangle_is_convex_aux (a b c x : point) (xP: x ∈ [a,b,c]) (yP: y ∈ [a,b,c]) (zP: z ∈ [a,b,c]) (hw : w = next xP) (xa : x = a) (xy : x ≠ y) (xz : x ≠ z) (yz : y ≠ z) (yw : y ≠ w) (zw : z ≠ w) : WeakSameside y z L := by
+lemma triangle_is_convex_aux (a b c x : point)
+    (xP: x ∈ [a,b,c]) (yP: y ∈ [a,b,c]) (zP: z ∈ [a,b,c]) (hw : w = next xP)
+    (xa : x = a) (xy : x ≠ y) (xz : x ≠ z) (yz : y ≠ z) (yw : y ≠ w) (zw : z ≠ w) : WeakSameside y z L := by
   have wb : w = b := by simp [xa, hw, next]
   have yc : y = c := by convert yP; simp [← xa, ← wb, xy.symm, yw]
   have zc : z = c := by convert zP; simp [← xa, ← wb, xz.symm, zw]
@@ -111,7 +118,7 @@ lemma triangle_is_convex_aux (a b c x : point) (xP: x ∈ [a,b,c]) (yP: y ∈ [a
 
 lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
   have nodup: Nodup [a,b,c] := by perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
-  refine ConvexPolygon.mk [a,b,c] nodup ?_
+  refine ConvexPolygon.mk [a,b,c] nodup ?convex
   rw [convex_iff_convex']; intro x y z w L xP yP zP hw xy xz yz yw zw _ _
   have xabc : (x = a) ∨ (x = b) ∨ (x = c) := by simp at xP; exact xP
   rcases xabc with (xa|xb|xc)
@@ -129,7 +136,7 @@ lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b �
 lemma convex_of_sublist (C: convex V) (sub: W <+ V) (nW: W ≠ []) : convex W := by sorry
 
 def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : point)
- (ab: a ≠ b) (bP: b ∈ P.vertices) : ConvexPolygon:= by
+    (ab: a ≠ b) (bP: b ∈ P.vertices) : ConvexPolygon:= by
   let V := P.vertices.diff [a]
   have ne : V ≠ [] := by
     intro empty
@@ -138,8 +145,8 @@ def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : p
   have convex := convex_of_sublist P.convex (diff_sublist P.vertices [a]) ne
   exact ConvexPolygon.mk V (Nodup.diff P.nodup) convex ne
 
-def split_LR [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V) (lP: l ∈ V) (rP: r ∈ V)
- : List α × List α := by
+def split_LR [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V)
+  (lP: l ∈ V) (rP: r ∈ V) : List α × List α := by
   let W := (splitAt (indexOf l V) V).1
   let X := (splitAt (indexOf l V) V).2
   have rXW: (r ∈ X) ∨ (r ∈ W) := by convert rP; sorry
@@ -150,39 +157,58 @@ def split_LR [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V) (lP: l �
     let (Y, Z) := splitAt (indexOf r W) W
     exact ⟨ Z ++ [l], X ++ Y ++ [r] ⟩
 
-lemma split_LR_symm [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V) (lP: l ∈ V) (rP: r ∈ V) : (split_LR V nodup lP rP).1 = (split_LR V nodup rP lP).2 := by sorry
+lemma split_LR_symm [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V)
+     (lP: l ∈ V) (rP: r ∈ V) :
+     (split_LR V nodup lP rP).1 = (split_LR V nodup rP lP).2 := by sorry
 
-lemma nodup_split_LR_2 [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V) {lP: l ∈ V} {rP: r ∈ V} : Nodup (split_LR V nodup lP rP).2 := by sorry
+lemma nodup_split_LR_2 [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V)
+     {lP: l ∈ V} {rP: r ∈ V} :
+     Nodup (split_LR V nodup lP rP).2 := by sorry
 
-lemma nodup_split_LR_1 [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V) {lP: l ∈ V} {rP: r ∈ V} : Nodup (split_LR V nodup lP rP).1 := by
+lemma nodup_split_LR_1 [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V)
+     {lP: l ∈ V} {rP: r ∈ V} :
+     Nodup (split_LR V nodup lP rP).1 := by
   rw [split_LR_symm]; exact @nodup_split_LR_2 α _ r l V nodup rP lP
 
-lemma mem_split_LR_2 [DecidableEq α] {l r a : α} (V : List α) (nodup: Nodup V) {lP: l ∈ V} {rP: r ∈ V}: (a ∈ (split_LR V nodup lP rP).2) → (a ∈ V) := by sorry
+lemma mem_split_LR_2 [DecidableEq α] {l r a : α} (V : List α) (nodup: Nodup V)
+     {lP: l ∈ V} {rP: r ∈ V} :
+     (a ∈ (split_LR V nodup lP rP).2) → (a ∈ V) := by sorry
 
-lemma mem_split_LR_1 [DecidableEq α] {l r a : α} (V : List α) (nodup: Nodup V) {lP: l ∈ V} {rP: r ∈ V} : (a ∈ (split_LR V nodup lP rP).1) → (a ∈ V) := by
+lemma mem_split_LR_1 [DecidableEq α] {l r a : α} (V : List α) (nodup: Nodup V)
+     {lP: l ∈ V} {rP: r ∈ V} :
+     (a ∈ (split_LR V nodup lP rP).1) → (a ∈ V) := by
   rw [split_LR_symm]; exact mem_split_LR_2 V nodup
 
-def ConvexPolygon_split_R [DecidableEq point] (P : ConvexPolygon) (l r : point) (lP: l ∈ P.vertices) (rP: r ∈ P.vertices) : ConvexPolygon := by
+def ConvexPolygon_split_R [DecidableEq point] (P : ConvexPolygon) (l r : point)
+    (lP: l ∈ P.vertices) (rP: r ∈ P.vertices) : ConvexPolygon := by
   let V := P.vertices
   let R := (split_LR V P.nodup lP rP).2
-  refine' ConvexPolygon.mk R (nodup_split_LR_2 V P.nodup) ?_ ?_
+  refine ConvexPolygon.mk R (nodup_split_LR_2 V P.nodup) ?convex ?nonempty
   have := P.convex; dsimp [convex] at this; dsimp [convex]
   intro a b c d M aR bR cR dR
   have aV := mem_split_LR_2 V P.nodup aR
   have bV := mem_split_LR_2 V P.nodup bR
   have cV := mem_split_LR_2 V P.nodup cR
-  refine' this a b c d M aV bV cV ?_
+  refine this a b c d M aV bV cV ?next
   sorry
   have : r ∈ R := by dsimp [split_LR]; split_ifs; repeat simp [PProd.snd]
   aesop
 
-def ConvexPolygon_split_L [DecidableEq point] (P : ConvexPolygon) (l r : point) (lP: l ∈ P.vertices) (rP: r ∈ P.vertices) : ConvexPolygon := ConvexPolygon_split_R P r l rP lP
+def ConvexPolygon_split_L [DecidableEq point] (P : ConvexPolygon) (l r : point)
+    (lP: l ∈ P.vertices) (rP: r ∈ P.vertices) :
+    ConvexPolygon := ConvexPolygon_split_R P r l rP lP
 
-lemma decreasing_ConvexPolygon_split_R [DecidableEq point] (P : ConvexPolygon) (l r : point) (lP: l ∈ P.vertices) (rP: r ∈ P.vertices) (lr : l ≠ r) (lr1 : l ≠ next rP) (rl1 : r ≠ next lP) : sides (ConvexPolygon_split_R P l r lP rP) < sides P := by
+lemma decreasing_ConvexPolygon_split_R [DecidableEq point] (P : ConvexPolygon) (l r : point)
+    (lP: l ∈ P.vertices) (rP: r ∈ P.vertices)
+    (lr : l ≠ r) (lr1 : l ≠ next rP) (rl1 : r ≠ next lP) :
+    sides (ConvexPolygon_split_R P l r lP rP) < sides P := by
   dsimp [ConvexPolygon_split_R, sides]
   sorry
 
-lemma decreasing_ConvexPolygon_split_L [DecidableEq point] (P : ConvexPolygon) (l r : point) (lP: l ∈ P.vertices) (rP: r ∈ P.vertices) (lr : l ≠ r) (lr1 : l ≠ next rP) (rl1 : r ≠ next lP) : sides (ConvexPolygon_split_L P l r lP rP) < sides P := by
+lemma decreasing_ConvexPolygon_split_L [DecidableEq point] (P : ConvexPolygon) (l r : point)
+    (lP: l ∈ P.vertices) (rP: r ∈ P.vertices)
+    (lr : l ≠ r) (lr1 : l ≠ next rP) (rl1 : r ≠ next lP) :
+    sides (ConvexPolygon_split_L P l r lP rP) < sides P := by
   exact decreasing_ConvexPolygon_split_R P r l rP lP lr.symm rl1 lr1
 
 #exit
