@@ -95,8 +95,6 @@ lemma convex_iff_convex' [DecidableEq point] (V: List point): convex V ↔ conve
         · right; right; rwa [← cd] at dL
         · exact C a b c d L aV bV cB hD ab ac bc bd cd aL dL
 
-lemma convex_of_sublist (C: convex V) (sub: W <+ V) (nW: W ≠ []) : convex W := by sorry
-
 structure ConvexPolygon where
   vertices : List point
   nodup : Nodup vertices
@@ -128,6 +126,8 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
 lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
   mem_diff_of_mem bL (by simp [ab.symm])
 
+lemma convex_of_sublist (C: convex V) (sub: W <+ V) (nW: W ≠ []) : convex W := by sorry
+
 def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : point)
  (ab: a ≠ b) (bP: b ∈ P.vertices) : ConvexPolygon:= by
   let V := P.vertices.diff [a]
@@ -138,84 +138,54 @@ def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : p
   have convex := convex_of_sublist P.convex (diff_sublist P.vertices [a]) ne
   exact ConvexPolygon.mk V (Nodup.diff P.nodup) convex ne
 
-def split_LR [DecidableEq α] (V : List α) (a b : α)
+def split_LR [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V) (lP: l ∈ V) (rP: r ∈ V)
  : List α × List α := by
-  let (W, X) := splitAt (indexOf a V) V
-  by_cases b ∈ X
-  · let (Y, Z) := splitAt (indexOf b X) X
-    exact ⟨ Z ++ W ++ [a], Y ++ [b] ⟩
-  · let (Y, Z) := splitAt (indexOf b W) W
-    exact ⟨ Z ++ [a], X ++ Y ++ [b] ⟩
+  let W := (splitAt (indexOf l V) V).1
+  let X := (splitAt (indexOf l V) V).2
+  have rXW: (r ∈ X) ∨ (r ∈ W) := by convert rP; sorry
+  by_cases rX : r ∈ X
+  · let (Y, Z) := splitAt (indexOf r X) X
+    exact ⟨ Z ++ W ++ [l], Y ++ [r] ⟩
+  · have rW : r ∈ W := by tauto
+    let (Y, Z) := splitAt (indexOf r W) W
+    exact ⟨ Z ++ [l], X ++ Y ++ [r] ⟩
 
-def ConvexPolygon_split_R [DecidableEq point] (P : ConvexPolygon) (a b : point) (aP: a ∈ P.vertices) (bP: b ∈ P.vertices) : ConvexPolygon := by
-  obtain ⟨ _ , R ⟩ := split_LR P.vertices a b
-  refine' ConvexPolygon.mk R ?_ ?_ ?_
-  repeat sorry
+lemma split_LR_symm [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V) (lP: l ∈ V) (rP: r ∈ V) : (split_LR V nodup lP rP).1 = (split_LR V nodup rP lP).2 := by sorry
 
-def ConvexPolygon_split_L [DecidableEq point] (P : ConvexPolygon) (a b : point) (aP: a ∈ P.vertices) (bP: b ∈ P.vertices) : ConvexPolygon := ConvexPolygon_split_R P b a bP aP
+lemma nodup_split_LR_2 [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V) {lP: l ∈ V} {rP: r ∈ V} : Nodup (split_LR V nodup lP rP).2 := by sorry
 
-#exit
+lemma nodup_split_LR_1 [DecidableEq α] {l r : α} (V : List α) (nodup: Nodup V) {lP: l ∈ V} {rP: r ∈ V} : Nodup (split_LR V nodup lP rP).1 := by
+  rw [split_LR_symm]; exact @nodup_split_LR_2 α _ r l V nodup rP lP
 
-open incidence_geometry
-open Classical
+lemma mem_split_LR_2 [DecidableEq α] {l r a : α} (V : List α) (nodup: Nodup V) {lP: l ∈ V} {rP: r ∈ V}: (a ∈ (split_LR V nodup lP rP).2) → (a ∈ V) := by sorry
 
+lemma mem_split_LR_1 [DecidableEq α] {l r a : α} (V : List α) (nodup: Nodup V) {lP: l ∈ V} {rP: r ∈ V} : (a ∈ (split_LR V nodup lP rP).1) → (a ∈ V) := by
+  rw [split_LR_symm]; exact mem_split_LR_2 V nodup
 
-variable [i: incidence_geometry]
+def ConvexPolygon_split_R [DecidableEq point] (P : ConvexPolygon) (l r : point) (lP: l ∈ P.vertices) (rP: r ∈ P.vertices) : ConvexPolygon := by
+  let V := P.vertices
+  let R := (split_LR V P.nodup lP rP).2
+  refine' ConvexPolygon.mk R (nodup_split_LR_2 V P.nodup) ?_ ?_
+  have := P.convex; dsimp [convex] at this; dsimp [convex]
+  intro a b c d M aR bR cR dR
+  have aV := mem_split_LR_2 V P.nodup aR
+  have bV := mem_split_LR_2 V P.nodup bR
+  have cV := mem_split_LR_2 V P.nodup cR
+  refine' this a b c d M aV bV cV ?_
+  sorry
+  have : r ∈ R := by dsimp [split_LR]; split_ifs; repeat simp [PProd.snd]
+  aesop
 
-def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L 
+def ConvexPolygon_split_L [DecidableEq point] (P : ConvexPolygon) (l r : point) (lP: l ∈ P.vertices) (rP: r ∈ P.vertices) : ConvexPolygon := ConvexPolygon_split_R P r l rP lP
 
-structure ConvexPolygon := 
-  (n : ℕ)
-  (hn : n ≠ 0)
-  (vertex : ZMod n → point)
-  (distinct : ∀ i j : ZMod n, i ≠ j → vertex i ≠ vertex j)
-  (convex : ∀ i j k : ZMod n, ∀ L : line, (online (vertex i) L) → (online (vertex (i+1)) L)
-    → WeakSameside (vertex j) (vertex k) L)
-
-def ConvexPolygon_split_L (P : ConvexPolygon)
-    (i j : ℕ) (hji : j < i) (hin : i < P.n) : ConvexPolygon := by    
-  refine ConvexPolygon.mk (i - j + 1) (by linarith) (fun (k : ZMod (i - j + 1)) => P.vertex (j + k)) ?_ ?_
-  · intro l k hlk hPlk
-    refine P.distinct (j+l) (j+k) ?_ hPlk
-    intro hjlk
-    
-    let ii  := l.val
-    have : (l : ZMod P.n) = k := by
-      have := congr_fun_congr_arg
-
-
-#exit
-
-      have := congr_fun_congr_arg (fun (m : ZMod P.n) => (j : ZMod P.n) + m) ?_ 
-        ?_
-    sorry --- ALEX HOMEWORK
-
-  · intro l m k L lL lpoL 
-    have := P.convex (j+l) (j+m) (j+k) L ?_ ?_
-    repeat {sorry} ---- ALEX HOMEWORK
-    
-def ConvexPolygon_split_R (P : ConvexPolygon) (i j : ZMod P.n) := ConvexPolygon_split_L P j i
-
-lemma decreasing_ConvexPolygon_split_L (P : ConvexPolygon) (i j : ZMod P.n)
-    (hij: i ≠ j) (hijp : i ≠ j+1) (hijm : i ≠ j-1) :
-    (ConvexPolygon_split_L P i j).n < P.n := by
-  dsimp [ConvexPolygon_split_L]
-  have := @ZMod.val_lt P.n (neZero_iff.mpr P.hn) (i-j)
+lemma decreasing_ConvexPolygon_split_R [DecidableEq point] (P : ConvexPolygon) (l r : point) (lP: l ∈ P.vertices) (rP: r ∈ P.vertices) (lr : l ≠ r) (lr1 : l ≠ next rP) (rl1 : r ≠ next lP) : sides (ConvexPolygon_split_R P l r lP rP) < sides P := by
+  dsimp [ConvexPolygon_split_R, sides]
   sorry
 
-lemma decreasing_ConvexPolygon_split_R (P : ConvexPolygon) (i j : ZMod P.n)
-    (hij: i ≠ j) (hijp : i ≠ j+1) (hijm : i ≠ j-1) :
-    (ConvexPolygon_split_R P i j).n < P.n := by
-  refine decreasing_ConvexPolygon_split_L P j i hij.symm ?_ ?_
-  by_contra contra
-  · rw [contra] at hijm
-    ring_nf at hijm
-    tauto
-  by_contra contra
-  · rw [contra] at hijp
-    ring_nf at hijp
-    tauto
+lemma decreasing_ConvexPolygon_split_L [DecidableEq point] (P : ConvexPolygon) (l r : point) (lP: l ∈ P.vertices) (rP: r ∈ P.vertices) (lr : l ≠ r) (lr1 : l ≠ next rP) (rl1 : r ≠ next lP) : sides (ConvexPolygon_split_L P l r lP rP) < sides P := by
+  exact decreasing_ConvexPolygon_split_R P r l rP lP lr.symm rl1 lr1
 
+#exit
 
 --class Triangle := (a b c : point)
 structure Triangle where
