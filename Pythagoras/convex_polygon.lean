@@ -31,6 +31,10 @@ structure ConvexPolygon where
   vertices : List point
   convex: is_convex vertices
 
+lemma triangle_is_convex (T: triangle a b c) : is_convex [a,b,c] := by
+  have nodup: Nodup [a,b,c] := by perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp [nodup_cons]; tauto
+  exact nodup
+
 #exit
 example (a b c : α) [DecidableEq α] : Nodup [a,b,c] → List.indexOf a [a,b,c] = 0 := by simp [indexOf_cons_ne]
 
