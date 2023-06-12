@@ -8,23 +8,28 @@ variable [i: incidence_geometry]
 
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
 
-def convex (V : Finset point) : Prop :=
-  match V.card with
-  | 0 => false
-  | 1 => true
-  | 2 => true
-  | _ + 3 => ∃ x a b : point, ∃ L M N : line,
-    (online a L) ∧ (online b L) ∧
-    (online a M) ∧ (online x M) ∧
-    (online b N) ∧ (online x N) ∧
-    (x ∈ V → (convex $ V.erase x)) ∧
-    ( (B a x b) ∨ ∀ c ∈ V, B a c b ∨ (diffside x c L ∧ WeakSameside b c M ∧  WeakSameside a c N))
-  termination_by convex V => V.card
-  decreasing_by simp_wf; apply Finset.card_erase_lt_of_mem; assumption
+def exterior_triangle (a b x : point) (L M N : line) (V : List point) : Prop :=
+  (a ∈ V) ∧ (b ∈ V) ∧ (a ≠ b) ∧ (x ∉ V) ∧
+  (online a L) ∧ (online b L) ∧
+  (online a M) ∧ (online x M) ∧
+  (online b N) ∧ (online x N) ∧
+  (B a x b) ∨ ∀ c ∈ V, B a c b ∨ (diffside x c L ∧ WeakSameside b c M ∧  WeakSameside a c N)
+
+def is_convex (V : List point) : Prop :=
+  -- match V.reverse with
+  match V with
+  | [] => false
+  | _ :: [] => false
+  | _ :: _ :: [] => false
+  | _ :: _ :: _ :: [] => List.Nodup V
+  | x :: V' => ∃ a b : point, ∃ L M N : line,
+    is_convex V' ∧ exterior_triangle a b x L M N V'
+  -- termination_by is_convex V => V.reverse.length
+  -- decreasing_by simp_wf
 
 structure ConvexPolygon where
-  vertices : Finset point
-  convex: convex vertices
+  vertices : List point
+  convex: is_convex vertices
 
 #exit
 example (a b c : α) [DecidableEq α] : Nodup [a,b,c] → List.indexOf a [a,b,c] = 0 := by simp [indexOf_cons_ne]
