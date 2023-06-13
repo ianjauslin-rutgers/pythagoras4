@@ -8,14 +8,15 @@ variable [i: incidence_geometry]
 
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
 
---class Triangle := (a b c : point)
+-- allows colinearity, unlike triangle --
 structure Triangle where
   a : point
   b : point
   c : point
+  ab : a ≠ b
+  ac : a ≠ c
+  bc : b ≠ c
 
-example (a b c : point): Triangle :=
-  Triangle.mk a b c
 /-- is abc = t? -/
 def triangle_eq_of_pts (a b c : point) (t : Triangle) :=
   (t.a=a ∧ t.b=b ∧ t.c=c) ∨
@@ -25,8 +26,8 @@ def triangle_eq_of_pts (a b c : point) (t : Triangle) :=
   (t.a=c ∧ t.b=a ∧ t.c=b) ∨
   (t.a=c ∧ t.b=b ∧ t.c=a)
 
-def triangle_eq (t u : Triangle) :=
-  triangle_eq_of_pts t.a t.b t.c u
+def triangle_eq (T U : Triangle) :=
+  triangle_eq_of_pts T.a T.b T.c U
 
 def exterior_triangle (a b x : point) (L M N : line) (V : List point) : Prop :=
   (a ∈ V) ∧ (b ∈ V) ∧ (a ≠ b) ∧ (x ∉ V) ∧
