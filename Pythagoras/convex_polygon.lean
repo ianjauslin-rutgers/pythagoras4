@@ -55,38 +55,29 @@ def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
   | [a, b, c], [T] => triangle_eq_of_pts a b c T
   | x :: V', T :: S' => convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V ∧ x = T.c
   termination_by convex_triangulation V S => V.length
-  -- TODO: decreasing_by simp_wf
-
-structure ConvexPolygon where
-  vertices : List point
-  triangulation : List Triangle
-  convex : convex_triangulation vertices triangulation
-
-namespace ConvexPolygon
+  -- TODO: decreasing_by simp_wf; exact list_reverse_induction
 
 def triangulation_area (S : List Triangle) : ℝ :=
   match S with
   | [] => 0
   | T :: S' => area T.a T.b T.c + triangulation_area S'
 
-def area (P : ConvexPolygon) : ℝ := triangulation_area P.triangulation
+structure ConvexPolygon (V : List point) (S : List Triangle) where
+  convex : convex_triangulation V S
 
-end ConvexPolygon
+def ConvexPolygon.area (_ : ConvexPolygon V S) : ℝ := triangulation_area S
 
-lemma triangle_is_convex (T: Triangle) : ConvexPolygon :=
-  ConvexPolygon.mk [T.c, T.a, T.b] [T] (by tauto)
+lemma triangle_is_convex (T: Triangle) : ConvexPolygon [T.a, T.b, T.c] [T] := ConvexPolygon.mk (by tauto)
 
-lemma triangle_area_eq (P : ConvexPolygon) (abc : P.vertices = [a, b, c]): P.area = area a b c := by
-  dsimp [ConvexPolygon.area]
+lemma triangle_area_eq (P : ConvexPolygon V S) (abc : V = [a, b, c]) : P.area = area a b c := by
   have := P.convex
-  match P.triangulation with
-  | [] => sorry -- cannot occur
+  rw [abc] at this
+  match S with
+  | [] => exfalso; exact this
   | [T] =>
-    have hT : P.triangulation = [T] := by sorry -- we have that already!
-    rw [hT, abc] at this
-    dsimp [ConvexPolygon.triangulation_area]
-    ring_nf
-    have : triangle_eq_of_pts a b c T := this
-    rcases this with (h|h|h|h|h|h)
-    all_goals rw [h.1, h.2.1, h.2.2]; perm
-  | _ :: _ => sorry -- cannot occur
+      dsimp [ConvexPolygon.area, triangulation_area]
+      ring_nf
+      have : triangle_eq_of_pts a b c T := this
+      rcases this with (h|h|h|h|h|h)
+      all_goals rw [h.1, h.2.1, h.2.2]; perm
+  | _ :: _ => exfalso; sorry -- cannot occur
