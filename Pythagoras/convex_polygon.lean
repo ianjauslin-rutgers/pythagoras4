@@ -48,11 +48,11 @@ def exterior_triangle (a b x : point) (V : List point) : Prop :=
 def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
   -- TODO: match V.reverse, S.reverse with
   match V, S with
-  | _, [] => false
-  | [], _ => false
-  | _ :: [], _ => false
-  | _ :: _ :: [], _ => false
-  | x :: a :: [b], [T] => triangle_eq_of_pts a b x T
+  | _, [] => False
+  | [], _ => False
+  | [_], _ => False
+  | [_, _], _ => False
+  | [a, b, c], [T] => triangle_eq_of_pts a b c T
   | x :: V', T :: S' => convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V ∧ x = T.c
   termination_by convex_triangulation V S => V.length
   -- TODO: decreasing_by simp_wf
@@ -86,8 +86,7 @@ lemma triangle_area_eq (P : ConvexPolygon) (abc : P.vertices = [a, b, c]): P.are
     rw [hT, abc] at this
     dsimp [ConvexPolygon.triangulation_area]
     ring_nf
-    have : triangle_eq_of_pts b c a T := this
-    dsimp [triangle_eq_of_pts] at this
+    have : triangle_eq_of_pts a b c T := this
     rcases this with (h|h|h|h|h|h)
     all_goals rw [h.1, h.2.1, h.2.2]; perm
   | _ :: _ => sorry -- cannot occur
