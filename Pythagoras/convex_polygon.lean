@@ -53,6 +53,7 @@ def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
   | [_], _ => False
   | [_, _], _ => False
   | [a, b, c], [T] => triangle_eq_of_pts a b c T
+  | [_, _, _], _ :: _ :: _ => False -- for easier proofs
   | x :: V', T :: S' => convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V ∧ x = T.c
   termination_by convex_triangulation V S => V.length
   -- TODO: decreasing_by simp_wf; exact list_reverse_induction
@@ -67,6 +68,32 @@ structure ConvexPolygon (V : List point) (S : List Triangle) where
 
 def ConvexPolygon.area (_ : ConvexPolygon V S) : ℝ := triangulation_area S
 
+lemma convex_triangulation_any_nil (V : List point): convex_triangulation V [] = False := by
+  induction V with
+  | nil => rfl
+  | cons h t => sorry -- HEq issue?
+
+lemma number_of_triangles_eq (P : ConvexPolygon V S) : S.length + 2 = V.length := by
+  have C := P.convex
+  induction S generalizing V with
+  | nil => exfalso; rwa [convex_triangulation_any_nil V] at C
+  | cons T S' IHS =>
+      match V with
+      | [] => exfalso; exact C
+      | [_] => exfalso; exact C
+      | [_, _] => exfalso; exact C
+      | [a, b, c] =>
+          match S' with
+          | [] => rfl
+          | cons T' S'' => exfalso; exact C
+      | x :: V' =>
+          induction V' generalizing S' with
+          | nil => exfalso; exact C
+          | cons y W IHV =>
+              have : convex_triangulation W S' ∧ exterior_triangle T.a T.b x V ∧ x = T.c := by sorry -- extract this from C somehow
+              have : convex_triangulation W S' := this.1
+              sorry
+
 lemma triangle_is_convex (T: Triangle) : ConvexPolygon [T.a, T.b, T.c] [T] := ConvexPolygon.mk (by tauto)
 
 lemma triangle_area_eq (P : ConvexPolygon V S) (abc : V = [a, b, c]) : P.area = area a b c := by
@@ -80,4 +107,7 @@ lemma triangle_area_eq (P : ConvexPolygon V S) (abc : V = [a, b, c]) : P.area = 
       have : triangle_eq_of_pts a b c T := this
       rcases this with (h|h|h|h|h|h)
       all_goals rw [h.1, h.2.1, h.2.2]; perm
-  | _ :: _ => exfalso; sorry -- cannot occur
+  | _ :: _ :: _ =>
+      have := number_of_triangles_eq P
+      rw [abc] at this
+      simp at this
