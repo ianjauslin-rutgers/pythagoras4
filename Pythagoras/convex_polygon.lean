@@ -51,9 +51,17 @@ def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
   termination_by convex_triangulation V S => V.length
   -- TODO: decreasing_by simp_wf
 
+def triangulation_area (S : List Triangle) : ℝ :=
+  match S with
+  | [] => 0
+  | T :: S' => area T.a T.b T.c + triangulation_area S'
+
 structure ConvexPolygon where
   vertices : List point
-  convex: is_convex vertices
+  triangulation : List Triangle
+  convex : convex_triangulation vertices triangulation
+  area : ℝ := triangulation_area triangulation
+#exit
 
 lemma triangle_is_convex (T: triangle a b c) : is_convex [a,b,c] := by
   have nodup: Nodup [a,b,c] := by perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp [nodup_cons]; tauto
