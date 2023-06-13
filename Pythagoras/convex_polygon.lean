@@ -38,18 +38,17 @@ def exterior_triangle (a b x : point) (V : List point) : Prop :=
   (online b N) ∧ (online x N)) →
   ∀ c ∈ V, B a c b ∨ (diffside x c L ∧ WeakSameside b c M ∧  WeakSameside a c N))
 
-def is_convex (V : List point) : Prop × List Triangle :=
-  -- match V.reverse with
-  match V with
-  | [] => (false, [])
-  | _ :: [] => (false, [])
-  | _ :: _ :: [] => (false, [])
-  | a :: b :: c :: [] => if List.Nodup V then (true, [Triangle.mk a b c]) else (false, []) 
-  | x :: V' => if ((is_convex V').1 ∧ ∃ a b : point, ∃ L M N : line, exterior_triangle a b x L M N V')
-    then (true, (is_convex V').2 ++ [Triangle.mk a b x])
-    else (false, [])
-  -- termination_by is_convex V => V.reverse.length
-  -- decreasing_by simp_wf
+-- is V adjoint T::_ convex? (the first two vertices of T must lie in V) --
+-- if the first output coordinate is false, the second one has no meaning
+noncomputable def convex_triangulation (V : List point) (S : List Triangle) : Prop × List Triangle :=
+  match V, S with
+  | _, [] => (false, [])
+  | [], _ => (false, [])
+  | _ :: [], _ => (false, [])
+  | _ :: _ :: [], _ => (false, [])
+  | a :: b :: [c], [T] => if triangle_eq_of_pts a b c T then (true, [T]) else (false, [])
+  | x :: V', T :: S' => if (convex_triangulation V' S').1 ∧ exterior_triangle T.a T.b x V' then (true, T :: S') else (false, S')
+  termination_by convex_triangulation V S => V.length
 
 structure ConvexPolygon where
   vertices : List point
