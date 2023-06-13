@@ -73,9 +73,8 @@ def area (P : ConvexPolygon) : ℝ := triangulation_area P.triangulation
 
 end ConvexPolygon
 
-lemma triangle_is_convex (T: triangle a b c) : is_convex [a,b,c] := by
-  have nodup: Nodup [a,b,c] := by perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp [nodup_cons]; tauto
-  exact nodup
+lemma triangle_is_convex (T: Triangle) : ConvexPolygon :=
+  ConvexPolygon.mk [T.c, T.a, T.b] [T] (by tauto)
 
 #exit
 example (a b c : α) [DecidableEq α] : Nodup [a,b,c] → List.indexOf a [a,b,c] = 0 := by simp [indexOf_cons_ne]
