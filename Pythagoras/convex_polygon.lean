@@ -44,7 +44,7 @@ def exterior_triangle (a b x : point) (V : List point) : Prop :=
   (online b N) ∧ (online x N)) →
   ∀ c ∈ V, B a c b ∨ (diffside x c L ∧ WeakSameside b c M ∧  WeakSameside a c N))
 
--- is V adjoint T::_ convex? (the vertices of T must lie in V) --
+-- the a b c is the first triangle in S, then it must be an exterior triangle w.r.t. V = c :: V'
 def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
   -- TODO: match V.reverse, S.reverse with
   match V, S with
@@ -53,21 +53,25 @@ def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
   | _ :: [], _ => false
   | _ :: _ :: [], _ => false
   | x :: a :: [b], [T] => triangle_eq_of_pts a b x T
-  | x :: V', T :: S' => convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V
+  | x :: V', T :: S' => convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V ∧ x = T.c
   termination_by convex_triangulation V S => V.length
   -- TODO: decreasing_by simp_wf
+
+structure ConvexPolygon where
+  vertices : List point
+  triangulation : List Triangle
+  convex : convex_triangulation vertices triangulation
+
+namespace ConvexPolygon
 
 def triangulation_area (S : List Triangle) : ℝ :=
   match S with
   | [] => 0
   | T :: S' => area T.a T.b T.c + triangulation_area S'
 
-structure ConvexPolygon where
-  vertices : List point
-  triangulation : List Triangle
-  convex : convex_triangulation vertices triangulation
-  area : ℝ := triangulation_area triangulation
-#exit
+def area (P : ConvexPolygon) : ℝ := triangulation_area P.triangulation
+
+end ConvexPolygon
 
 lemma triangle_is_convex (T: triangle a b c) : is_convex [a,b,c] := by
   have nodup: Nodup [a,b,c] := by perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp [nodup_cons]; tauto
