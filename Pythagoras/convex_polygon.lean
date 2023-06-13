@@ -117,3 +117,7 @@ lemma triangle_area_eq (P : ConvexPolygon V S) (abc : V = [a, b, c]) : P.area = 
       have := number_of_triangles_eq P
       rw [ConvexPolygon.n, abc] at this
       simp at this
+
+lemma unique_triangulation (P : ConvexPolygon V S) (P' : ConvexPolygon V S') : S = S' := by sorry
+
+theorem area_invariance (P : ConvexPolygon V S) (P' : ConvexPolygon V' S') (perm: List.Perm V V') : P.area = P'.area := by sorry
