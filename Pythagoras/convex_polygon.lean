@@ -8,6 +8,26 @@ variable [i: incidence_geometry]
 
 def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
 
+--class Triangle := (a b c : point)
+structure Triangle where
+  a : point
+  b : point
+  c : point
+
+example (a b c : point): Triangle :=
+  Triangle.mk a b c
+/-- is abc = t? -/
+def triangle_eq_of_pts (a b c : point) (t : Triangle) :=
+  (t.a=a ∧ t.b=b ∧ t.c=c) ∨
+  (t.a=a ∧ t.b=c ∧ t.c=b) ∨
+  (t.a=b ∧ t.b=a ∧ t.c=c) ∨
+  (t.a=b ∧ t.b=c ∧ t.c=a) ∨
+  (t.a=c ∧ t.b=a ∧ t.c=b) ∨
+  (t.a=c ∧ t.b=b ∧ t.c=a)
+
+def triangle_eq (t u : Triangle) :=
+  triangle_eq_of_pts t.a t.b t.c u
+
 def exterior_triangle (a b x : point) (L M N : line) (V : List point) : Prop :=
   (a ∈ V) ∧ (b ∈ V) ∧ (a ≠ b) ∧ (x ∉ V) ∧
   (online a L) ∧ (online b L) ∧
@@ -15,15 +35,16 @@ def exterior_triangle (a b x : point) (L M N : line) (V : List point) : Prop :=
   (online b N) ∧ (online x N) ∧
   (B a x b) ∨ ∀ c ∈ V, B a c b ∨ (diffside x c L ∧ WeakSameside b c M ∧  WeakSameside a c N)
 
-def is_convex (V : List point) : Prop :=
+def is_convex (V : List point) : Prop × List Triangle :=
   -- match V.reverse with
   match V with
-  | [] => false
-  | _ :: [] => false
-  | _ :: _ :: [] => false
-  | _ :: _ :: _ :: [] => List.Nodup V
-  | x :: V' => ∃ a b : point, ∃ L M N : line,
-    is_convex V' ∧ exterior_triangle a b x L M N V'
+  | [] => (false, [])
+  | _ :: [] => (false, [])
+  | _ :: _ :: [] => (false, [])
+  | a :: b :: c :: [] => if List.Nodup V then (true, [Triangle.mk a b c]) else (false, []) 
+  | x :: V' => if ((is_convex V').1 ∧ ∃ a b : point, ∃ L M N : line, exterior_triangle a b x L M N V')
+    then (true, (is_convex V').2 ++ [Triangle.mk a b x])
+    else (false, [])
   -- termination_by is_convex V => V.reverse.length
   -- decreasing_by simp_wf
 
@@ -283,26 +304,6 @@ lemma decreasing_ConvexPolygon_split_L [DecidableEq point] (P : ConvexPolygon) (
   exact decreasing_ConvexPolygon_split_R P r l rP lP lr.symm rl1 lr1
 
 #exit
-
---class Triangle := (a b c : point)
-structure Triangle where
-  a : point
-  b : point
-  c : point
-
-/-- is abc = t? -/
-def triangle_eq_of_pts (a b c : point) (t : Triangle) :=
-  (t.a=a ∧ t.b=b ∧ t.c=c) ∨
-  (t.a=a ∧ t.b=c ∧ t.c=b) ∨
-  (t.a=b ∧ t.b=a ∧ t.c=c) ∨
-  (t.a=b ∧ t.b=c ∧ t.c=a) ∨
-  (t.a=c ∧ t.b=a ∧ t.c=b) ∨
-  (t.a=c ∧ t.b=b ∧ t.c=a)
-
-def triangle_eq (t u : Triangle) :=
-  triangle_eq_of_pts t.a t.b t.c u
-
-
 
 /-- is abc in a set of triangles? -/
 def triangle_in_set (a b c : point) (T : Set Triangle) :=
