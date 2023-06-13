@@ -29,12 +29,14 @@ def triangle_eq_of_pts (a b c : point) (t : Triangle) :=
 def triangle_eq (T U : Triangle) :=
   triangle_eq_of_pts T.a T.b T.c U
 
-def exterior_triangle (a b x : point) (L M N : line) (V : List point) : Prop :=
+-- symmetric in a,b --
+def exterior_triangle (a b x : point) (V : List point) : Prop :=
   (a ∈ V) ∧ (b ∈ V) ∧ (a ≠ b) ∧ (x ∉ V) ∧
-  (online a L) ∧ (online b L) ∧
+  (B a x b) ∨ (∀ L M N : line,
+  ((online a L) ∧ (online b L) ∧
   (online a M) ∧ (online x M) ∧
-  (online b N) ∧ (online x N) ∧
-  (B a x b) ∨ ∀ c ∈ V, B a c b ∨ (diffside x c L ∧ WeakSameside b c M ∧  WeakSameside a c N)
+  (online b N) ∧ (online x N)) →
+  ∀ c ∈ V, B a c b ∨ (diffside x c L ∧ WeakSameside b c M ∧  WeakSameside a c N))
 
 def is_convex (V : List point) : Prop × List Triangle :=
   -- match V.reverse with
