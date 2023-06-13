@@ -66,14 +66,20 @@ def triangulation_area (S : List Triangle) : ℝ :=
 structure ConvexPolygon (V : List point) (S : List Triangle) where
   convex : convex_triangulation V S
 
-def ConvexPolygon.area (_ : ConvexPolygon V S) : ℝ := triangulation_area S
+namespace ConvexPolygon
+
+def area (_ : ConvexPolygon V S) : ℝ := triangulation_area S
+
+def n (_ : ConvexPolygon V S) : ℕ := V.length
+
+end ConvexPolygon
 
 lemma convex_triangulation_any_nil (V : List point): convex_triangulation V [] = False := by
   induction V with
   | nil => rfl
   | cons h t => sorry -- HEq issue?
 
-lemma number_of_triangles_eq (P : ConvexPolygon V S) : S.length + 2 = V.length := by
+lemma number_of_triangles_eq (P : ConvexPolygon V S) : S.length + 2 = P.n := by
   have C := P.convex
   induction S generalizing V with
   | nil => exfalso; rwa [convex_triangulation_any_nil V] at C
@@ -109,5 +115,5 @@ lemma triangle_area_eq (P : ConvexPolygon V S) (abc : V = [a, b, c]) : P.area = 
       all_goals rw [h.1, h.2.1, h.2.2]; perm
   | _ :: _ :: _ =>
       have := number_of_triangles_eq P
-      rw [abc] at this
+      rw [ConvexPolygon.n, abc] at this
       simp at this
