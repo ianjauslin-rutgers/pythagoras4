@@ -17,6 +17,12 @@ structure Triangle where
   ac : a ≠ c
   bc : b ≠ c
 
+lemma triangle_is_Triangle (T: triangle a b c) : Triangle := by
+  have ab := ne_12_of_tri T
+  have ac := ne_13_of_tri T
+  have bc := ne_23_of_tri T
+  exact Triangle.mk a b c ab ac bc
+
 /-- is abc = t? -/
 def triangle_eq_of_pts (a b c : point) (t : Triangle) :=
   (t.a=a ∧ t.b=b ∧ t.c=c) ∨
