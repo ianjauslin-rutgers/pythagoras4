@@ -75,3 +75,19 @@ end ConvexPolygon
 
 lemma triangle_is_convex (T: Triangle) : ConvexPolygon :=
   ConvexPolygon.mk [T.c, T.a, T.b] [T] (by tauto)
+
+lemma triangle_area_eq (P : ConvexPolygon) (abc : P.vertices = [a, b, c]): P.area = area a b c := by
+  dsimp [ConvexPolygon.area]
+  have := P.convex
+  match P.triangulation with
+  | [] => sorry -- cannot occur
+  | [T] =>
+    have hT : P.triangulation = [T] := by sorry -- we have that already!
+    rw [hT, abc] at this
+    dsimp [ConvexPolygon.triangulation_area]
+    ring_nf
+    have : triangle_eq_of_pts b c a T := this
+    dsimp [triangle_eq_of_pts] at this
+    rcases this with (h|h|h|h|h|h)
+    all_goals rw [h.1, h.2.1, h.2.2]; perm
+  | _ :: _ => sorry -- cannot occur
