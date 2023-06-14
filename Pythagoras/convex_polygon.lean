@@ -98,10 +98,8 @@ lemma nodup (P : ConvexPolygon V S) : Nodup V := by
       | [T], [_, _] => exact nodup_of_triangle_eq C
       | [T], _ :: _ :: _ :: _ => simp [convex_triangulation] at C
       | T :: T' :: S', V' =>
-        simp [convex_triangulation] at C
-        have P' : ConvexPolygon V' (T' :: S') := ConvexPolygon.mk C.1
-        simp [nodup_cons]
-        exact ⟨ C.2.1.2.2.2.1 , IH P' P'.convex⟩
+        simp [convex_triangulation] at C; simp [nodup_cons]
+        exact ⟨ C.2.1.2.2.2.1 , IH (ConvexPolygon.mk C.1) C.1⟩
 
 lemma number_of_triangles_eq (P : ConvexPolygon V S) : S.length + 2 = P.n := by
   have C := P.convex
@@ -115,12 +113,9 @@ lemma number_of_triangles_eq (P : ConvexPolygon V S) : S.length + 2 = P.n := by
       | [_, _, _], [] => rfl
       | _ :: _ :: _ :: _ :: V', [] => simp [convex_triangulation] at C
       | x :: V', T' :: S'' =>
-          simp [convex_triangulation] at C
-          have P' := ConvexPolygon.mk C.1
-          have := IHS P' C.1
-          simp [ConvexPolygon.n]
-          simp [ConvexPolygon.n] at this
-          rw [this]
+          simp [ConvexPolygon.n]; simp [convex_triangulation] at C
+          have := IHS (ConvexPolygon.mk C.1) C.1
+          simp [ConvexPolygon.n] at this; rw [this]
 
 end ConvexPolygon
 
@@ -130,24 +125,19 @@ def is_convex (V : List point) : Prop := ∃ S, convex_triangulation V S
 lemma triangle_is_convex (T: Triangle) : ConvexPolygon [T.a, T.b, T.c] [T] := ConvexPolygon.mk (by tauto)
 
 lemma triangle_area_eq (P : ConvexPolygon V S) (abc : V = [a, b, c]) : P.area = area a b c := by
-  have := P.convex
-  rw [abc] at this
+  have := P.convex; rw [abc] at this
   match S with
   | [] => exfalso; exact this
   | [T] =>
-      dsimp [ConvexPolygon.area, triangulation_area]
-      ring_nf
+      dsimp [ConvexPolygon.area, triangulation_area]; ring_nf
       have : triangle_eq_of_pts a b c T := this
-      rcases this with (h|h|h|h|h|h)
-      all_goals rw [h.1, h.2.1, h.2.2]; perm
+      rcases this with (h|h|h|h|h|h); all_goals rw [h.1, h.2.1, h.2.2]; perm
   | _ :: _ :: _ =>
       have := P.number_of_triangles_eq
-      rw [ConvexPolygon.n, abc] at this
-      simp at this
+      simp [ConvexPolygon.n, abc] at this
 
 lemma nodup_of_paragram (pg: paragram a b c d M N O P) : Nodup [a, b, c, d] := by
-  have := nodup_of_triangle $ tri124_of_paragram pg
-  simp [Nodup]; simp [Nodup] at this
+  have := nodup_of_triangle $ tri124_of_paragram pg; simp [Nodup]; simp [Nodup] at this
   obtain ⟨ _, bM, _, cN, cO, _, dP, aP, pMO, pNP ⟩ := pg
   have ac : a ≠ c := fun ac => by rw [ac] at aP; exact not_para_of_inter cN aP pNP
   have bc : b ≠ c := fun bc => by rw [bc] at bM; exact not_para_of_inter bM cO pMO
@@ -155,30 +145,19 @@ lemma nodup_of_paragram (pg: paragram a b c d M N O P) : Nodup [a, b, c, d] := b
   tauto
 
 lemma paragram_is_convex (pg: paragram a b c d M N O P) : is_convex [a, b, c, d] := by
-  have nodup := nodup_of_paragram pg
-  simp [Nodup] at nodup
-  have : b ≠ c ∧ b ≠ d ∧ c ≠ d ∧ b ≠ a ∧ d ≠ a := by tauto
-  let T := Triangle.mk b c d (by simp [this]) (by simp [this]) (by simp [this])
-  let T' := Triangle.mk b d a (by simp [this]) (by simp [this]) (by simp [this])
-  use [T', T]
-  simp [convex_triangulation]
-  constructor
-  simp [triangle_eq_of_pts]
-  simp [exterior_triangle, *]
-  right
-  intro L M' N' bL dL bM' aM' dN' aN' cb
-  right
-  constructor
-  exact diffside_of_paragram bL dL pg
+  have nodup := nodup_of_paragram pg; simp [Nodup, and_assoc] at nodup
+  obtain ⟨ ab, ac, ad, bc, bd, cd⟩ := nodup
+  let T := Triangle.mk b c d  bc bd cd
+  let T' := Triangle.mk b d a bd (Ne.symm ab) (Ne.symm ad)
+  use [T', T]; simp [convex_triangulation]
+  constructor; simp [triangle_eq_of_pts]; simp [exterior_triangle, *]
+  right; intro L M' N' bL dL bM' aM' dN' aN' _; right
   obtain ⟨ aM, bM, bN, cN, cO, dO, dP, aP, pMO, pNP ⟩ := id pg
-  have MM' := line_unique_of_pts (by simp [nodup]) aM bM aM' bM'
-  have PN' := line_unique_of_pts (by simp [this]) dP aP dN' aN'
-  rw [← MM', ← PN']
-  constructor
-  left
-  apply sameside_of_para_online dO cO (by perma)
-  left
-  apply sameside_of_para_online bN cN (by perma)
+  rw [← line_unique_of_pts ab aM bM aM' bM']
+  rw [← line_unique_of_pts (Ne.symm ad) dP aP dN' aN']
+  constructor; exact diffside_of_paragram bL dL pg
+  constructor; left; exact sameside_of_para_online dO cO (by perma)
+  constructor; exact sameside_of_para_online bN cN (by perma)
 
 lemma unique_triangulation (P : ConvexPolygon V S) (P' : ConvexPolygon V S') : S = S' := by sorry
 
