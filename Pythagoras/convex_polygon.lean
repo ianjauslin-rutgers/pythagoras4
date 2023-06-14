@@ -52,7 +52,8 @@ def exterior_triangle (a b x : point) (V : List point) : Prop :=
   ( (online a L) ∧ (online b L) ∧
     (online a M) ∧ (online x M) ∧
     (online b N) ∧ (online x N)   ) →
-  ∀ c ∈ V, B a c b ∨ (diffside x c L ∧ WeakSameside b c M ∧  WeakSameside a c N))
+  ∀ c ∈ V, (c ≠ a) → (c ≠ b) →
+  (B a c b ∨ (diffside x c L ∧ WeakSameside b c M ∧  WeakSameside a c N)))
 
 -- the a b c is the first triangle in S, then it must be an exterior triangle w.r.t. V = c :: V'
 def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
@@ -134,6 +135,8 @@ lemma triangle_area_eq (P : ConvexPolygon V S) (abc : V = [a, b, c]) : P.area = 
       have := P.number_of_triangles_eq
       rw [ConvexPolygon.n, abc] at this
       simp at this
+
+
 
 lemma unique_triangulation (P : ConvexPolygon V S) (P' : ConvexPolygon V S') : S = S' := by sorry
 
