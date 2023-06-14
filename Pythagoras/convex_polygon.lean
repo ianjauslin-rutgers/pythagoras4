@@ -154,6 +154,31 @@ lemma nodup_of_paragram (pg: paragram a b c d M N O P) : Nodup [a, b, c, d] := b
   have cd : c ≠ d := fun cd => by rw [← cd] at dP; exact not_para_of_inter cN dP pNP
   tauto
 
+lemma paragram_is_convex (pg: paragram a b c d M N O P) : is_convex [a, b, c, d] := by
+  have nodup := nodup_of_paragram pg
+  simp [Nodup] at nodup
+  have : b ≠ c ∧ b ≠ d ∧ c ≠ d ∧ b ≠ a ∧ d ≠ a := by tauto
+  let T := Triangle.mk b c d (by simp [this]) (by simp [this]) (by simp [this])
+  let T' := Triangle.mk b d a (by simp [this]) (by simp [this]) (by simp [this])
+  use [T', T]
+  simp [convex_triangulation]
+  constructor
+  simp [triangle_eq_of_pts]
+  simp [exterior_triangle, *]
+  right
+  intro L M' N' bL dL bM' aM' dN' aN' cb
+  right
+  constructor
+  exact diffside_of_paragram bL dL pg
+  obtain ⟨ aM, bM, bN, cN, cO, dO, dP, aP, pMO, pNP ⟩ := id pg
+  have MM' := line_unique_of_pts (by simp [nodup]) aM bM aM' bM'
+  have PN' := line_unique_of_pts (by simp [this]) dP aP dN' aN'
+  rw [← MM', ← PN']
+  constructor
+  left
+  apply sameside_of_para_online dO cO (by perma)
+  left
+  apply sameside_of_para_online bN cN (by perma)
 
 lemma unique_triangulation (P : ConvexPolygon V S) (P' : ConvexPolygon V S') : S = S' := by sorry
 
