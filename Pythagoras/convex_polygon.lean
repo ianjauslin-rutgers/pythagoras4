@@ -35,6 +35,18 @@ def triangle_eq_of_pts (a b c : point) (T : Triangle) :=
 def triangle_eq (T U : Triangle) :=
   triangle_eq_of_pts T.a T.b T.c U
 
+lemma nodup_of_triangle_eq (eq : triangle_eq_of_pts a b c T) : Nodup [a, b, c] := by
+  have ab := T.ab
+  have ac := T.ac
+  have bc := T.bc
+  simp [not_and]
+  rcases eq with (h|h|h|h|h|h)
+  all_goals
+    rw [h.1, h.2.1] at ab
+    rw [h.1, h.2.2] at ac
+    rw [h.2.1, h.2.2] at bc
+    tauto
+
 -- symmetric in a,b --
 def exterior_triangle (a b x : point) (V : List point) : Prop :=
   (a ∈ V) ∧ (b ∈ V) ∧ (a ≠ b) ∧ (x ∉ V) ∧ ( B a x b ∨
@@ -79,30 +91,17 @@ lemma nodup (P : ConvexPolygon V S) : Nodup V := by
   induction V generalizing S with
   | nil => simp
   | cons x V' IH =>
-    match S with
-    | [] => exfalso; rwa [convex_triangulation_any_nil] at C
-    | [T] =>
-        match V' with
-        | [] => simp
-        | [_] => simp [convex_triangulation] at C
-        | _ :: _ :: _ :: _ => simp [convex_triangulation] at C
-        | [a, b] =>
-            have : triangle_eq_of_pts x a b T := by exact C
-            have ab := T.ab
-            have ac := T.ac
-            have bc := T.bc
-            simp [not_and]
-            rcases this with (h|h|h|h|h|h)
-            all_goals
-              rw [h.1, h.2.1] at ab
-              rw [h.1, h.2.2] at ac
-              rw [h.2.1, h.2.2] at bc
-              tauto
-    | T :: T' :: S' =>
-      simp [convex_triangulation] at C
-      have P' : ConvexPolygon V' (T' :: S') := ConvexPolygon.mk C.1
-      simp [nodup_cons]
-      exact ⟨ C.2.1.2.2.2.1 , IH P' P'.convex⟩
+      match S, V' with
+      | [], _ => exfalso; rwa [convex_triangulation_any_nil] at C
+      | [_], [] => simp
+      | [T], [_] => simp [convex_triangulation] at C
+      | [T], [_, _] => exact nodup_of_triangle_eq C
+      | [T], _ :: _ :: _ :: _ => simp [convex_triangulation] at C
+      | T :: T' :: S', V' =>
+        simp [convex_triangulation] at C
+        have P' : ConvexPolygon V' (T' :: S') := ConvexPolygon.mk C.1
+        simp [nodup_cons]
+        exact ⟨ C.2.1.2.2.2.1 , IH P' P'.convex⟩
 
 lemma number_of_triangles_eq (P : ConvexPolygon V S) : S.length + 2 = P.n := by
   have C := P.convex
