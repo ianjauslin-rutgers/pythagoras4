@@ -50,11 +50,10 @@ def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
   match V, S with
   | _, [] => False
   | [], _ => False
-  | [_], _ => False
-  | [_, _], _ => False
+  | [_], _ => False -- for easier proofs
   | [a, b, c], [T] => triangle_eq_of_pts a b c T
   | [_, _, _], _ :: _ :: _ => False -- for easier proofs
-  | x :: V', T :: S' => convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V ∧ x = T.c
+  | x :: V', T :: S' => convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V' ∧ x = T.c
   termination_by convex_triangulation V S => V.length
   -- TODO: decreasing_by simp_wf; exact list_reverse_induction
 
@@ -85,18 +84,16 @@ lemma number_of_triangles_eq (P : ConvexPolygon V S) : S.length + 2 = P.n := by
   | nil => exfalso; rwa [convex_triangulation_any_nil V] at C
   | cons T S' IHS =>
       match V with
-      | [] => exfalso; exact C
-      | [_] => exfalso; exact C
-      | [_, _] => exfalso; exact C
-      | [a, b, c] =>
-          match S' with
-          | [] => rfl
-          | cons T' S'' => exfalso; exact C
+    | [] => exfalso; exact C
+    | [a, b, c] =>
+        match S' with
+        | [] => rfl
+        | cons T' S'' => exfalso; exact C
       | x :: V' =>
           induction V' generalizing S' with
           | nil => exfalso; exact C
           | cons y W IHV =>
-              have : convex_triangulation W S' ∧ exterior_triangle T.a T.b x V ∧ x = T.c := by sorry -- extract this from C somehow
+              have : convex_triangulation W S' ∧ exterior_triangle T.a T.b x (y :: W) ∧ x = T.c := by sorry -- extract this from C somehow
               have : convex_triangulation W S' := this.1
               sorry
 
