@@ -48,13 +48,9 @@ def exterior_triangle (a b x : point) (V : List point) : Prop :=
 def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
   -- TODO: match V.reverse, S.reverse with
   match V, S with
-  | _, [] => False
   | [], _ => False
-  | [_], _ => False -- for easier proofs
-  | [_, _], _ => False -- for easier proofs
-  | [_, _, _], _ :: _ :: _ => False -- for easier proofs
+  | _, [] => False
   | [a, b, c], [T] => triangle_eq_of_pts a b c T
-  | _ :: _, [_] => False -- for easier proofs
   | x :: V', T :: S' => convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V' ∧ x = T.c
   termination_by convex_triangulation V S => V.length
   -- TODO: decreasing_by simp_wf; exact list_reverse_induction
@@ -62,7 +58,7 @@ def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
 lemma convex_triangulation_any_nil (V : List point): convex_triangulation V [] = False := by
   induction V with
   | nil => rfl
-  | cons h t => sorry -- HEq issue?
+  | cons => simp [convex_triangulation]
 
 def triangulation_area (S : List Triangle) : ℝ :=
   match S with
@@ -88,8 +84,8 @@ lemma nodup (P : ConvexPolygon V S) : Nodup V := by
     | [T] =>
         match V' with
         | [] => simp
-        | [_] => exfalso; exact C
-        | _ :: _ :: _ :: _ => exfalso; exact C
+        | [_] => simp [convex_triangulation] at C
+        | _ :: _ :: _ :: _ => simp [convex_triangulation] at C
         | [a, b] =>
             have : triangle_eq_of_pts x a b T := by exact C
             have ab := T.ab
@@ -102,33 +98,32 @@ lemma nodup (P : ConvexPolygon V S) : Nodup V := by
               rw [h.1, h.2.2] at ac
               rw [h.2.1, h.2.2] at bc
               tauto
-    | T :: S' =>
-      have : convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V' ∧ x = T.c := by sorry -- extract this from C somehow
-      have ext_tri := this.2.1
-      have P' : ConvexPolygon V' S' := ConvexPolygon.mk this.1
+    | T :: T' :: S' =>
+      simp [convex_triangulation] at C
+      have P' : ConvexPolygon V' (T' :: S') := ConvexPolygon.mk C.1
       simp [nodup_cons]
-      exact ⟨ ext_tri.2.2.2.1 , IH P' P'.convex⟩
-
-end ConvexPolygon
+      exact ⟨ C.2.1.2.2.2.1 , IH P' P'.convex⟩
 
 lemma number_of_triangles_eq (P : ConvexPolygon V S) : S.length + 2 = P.n := by
   have C := P.convex
   induction S generalizing V with
   | nil => exfalso; rwa [convex_triangulation_any_nil V] at C
   | cons T S' IHS =>
-      match V with
-    | [] => exfalso; exact C
-    | [a, b, c] =>
-        match S' with
-        | [] => rfl
-        | cons T' S'' => exfalso; exact C
-      | x :: V' =>
-          induction V' generalizing S' with
-          | nil => exfalso; exact C
-          | cons y W IHV =>
-              have : convex_triangulation W S' ∧ exterior_triangle T.a T.b x (y :: W) ∧ x = T.c := by sorry -- extract this from C somehow
-              have : convex_triangulation W S' := this.1
-              sorry
+      match V, S' with
+      | [], _ => simp [convex_triangulation] at C
+      | [_], [] => simp [convex_triangulation] at C
+      | [_, _], [] => simp [convex_triangulation] at C
+      | [_, _, _], [] => rfl
+      | _ :: _ :: _ :: _ :: V', [] => simp [convex_triangulation] at C
+      | x :: V', T' :: S'' =>
+          simp [convex_triangulation] at C
+          have P' := ConvexPolygon.mk C.1
+          have := IHS P' C.1
+          simp [ConvexPolygon.n]
+          simp [ConvexPolygon.n] at this
+          rw [this]
+
+end ConvexPolygon
 
 lemma triangle_is_convex (T: Triangle) : ConvexPolygon [T.a, T.b, T.c] [T] := ConvexPolygon.mk (by tauto)
 
@@ -144,7 +139,7 @@ lemma triangle_area_eq (P : ConvexPolygon V S) (abc : V = [a, b, c]) : P.area = 
       rcases this with (h|h|h|h|h|h)
       all_goals rw [h.1, h.2.1, h.2.2]; perm
   | _ :: _ :: _ =>
-      have := number_of_triangles_eq P
+      have := P.number_of_triangles_eq
       rw [ConvexPolygon.n, abc] at this
       simp at this
 
