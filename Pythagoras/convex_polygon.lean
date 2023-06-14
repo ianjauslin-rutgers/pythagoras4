@@ -17,7 +17,13 @@ structure Triangle where
   ac : a ≠ c
   bc : b ≠ c
 
-def triangle_to_Triangle (T: triangle a b c) : Triangle := by
+def nodup_of_triangle (T : triangle a b c) : Nodup [a, b, c] := by
+  have ab := ne_12_of_tri T
+  have ac := ne_13_of_tri T
+  have bc := ne_23_of_tri T
+  simp [Nodup, *]
+
+def triangle_to_Triangle (T : triangle a b c) : Triangle := by
   have ab := ne_12_of_tri T
   have ac := ne_13_of_tri T
   have bc := ne_23_of_tri T
@@ -118,6 +124,9 @@ lemma number_of_triangles_eq (P : ConvexPolygon V S) : S.length + 2 = P.n := by
 
 end ConvexPolygon
 
+-- version with implicit triangulation
+def is_convex (V : List point) : Prop := ∃ S, convex_triangulation V S
+
 lemma triangle_is_convex (T: Triangle) : ConvexPolygon [T.a, T.b, T.c] [T] := ConvexPolygon.mk (by tauto)
 
 lemma triangle_area_eq (P : ConvexPolygon V S) (abc : V = [a, b, c]) : P.area = area a b c := by
@@ -136,6 +145,14 @@ lemma triangle_area_eq (P : ConvexPolygon V S) (abc : V = [a, b, c]) : P.area = 
       rw [ConvexPolygon.n, abc] at this
       simp at this
 
+lemma nodup_of_paragram (pg: paragram a b c d M N O P) : Nodup [a, b, c, d] := by
+  have := nodup_of_triangle $ tri124_of_paragram pg
+  simp [Nodup]; simp [Nodup] at this
+  obtain ⟨ _, bM, _, cN, cO, _, dP, aP, pMO, pNP ⟩ := pg
+  have ac : a ≠ c := fun ac => by rw [ac] at aP; exact not_para_of_inter cN aP pNP
+  have bc : b ≠ c := fun bc => by rw [bc] at bM; exact not_para_of_inter bM cO pMO
+  have cd : c ≠ d := fun cd => by rw [← cd] at dP; exact not_para_of_inter cN dP pNP
+  tauto
 
 
 lemma unique_triangulation (P : ConvexPolygon V S) (P' : ConvexPolygon V S') : S = S' := by sorry
