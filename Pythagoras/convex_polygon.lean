@@ -17,7 +17,7 @@ structure Triangle where
   ac : a ≠ c
   bc : b ≠ c
 
-lemma triangle_is_Triangle (T: triangle a b c) : Triangle := by
+def triangle_to_Triangle (T: triangle a b c) : Triangle := by
   have ab := ne_12_of_tri T
   have ac := ne_13_of_tri T
   have bc := ne_23_of_tri T
@@ -42,9 +42,7 @@ lemma nodup_of_triangle_eq (eq : triangle_eq_of_pts a b c T) : Nodup [a, b, c] :
   simp [not_and]
   rcases eq with (h|h|h|h|h|h)
   all_goals
-    rw [h.1, h.2.1] at ab
-    rw [h.1, h.2.2] at ac
-    rw [h.2.1, h.2.2] at bc
+    simp [h.1, h.2.1, h.2.2] at ab ac bc
     tauto
 
 -- symmetric in a,b --
@@ -60,17 +58,12 @@ def exterior_triangle (a b x : point) (V : List point) : Prop :=
 def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
   -- TODO: match V.reverse, S.reverse with
   match V, S with
-  | [], _ => False
   | _, [] => False
+  | [], _ => False
   | [a, b, c], [T] => triangle_eq_of_pts a b c T
   | x :: V', T :: S' => convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V' ∧ x = T.c
   termination_by convex_triangulation V S => V.length
   -- TODO: decreasing_by simp_wf; exact list_reverse_induction
-
-lemma convex_triangulation_any_nil (V : List point): convex_triangulation V [] = False := by
-  induction V with
-  | nil => rfl
-  | cons => simp [convex_triangulation]
 
 def triangulation_area (S : List Triangle) : ℝ :=
   match S with
@@ -92,7 +85,7 @@ lemma nodup (P : ConvexPolygon V S) : Nodup V := by
   | nil => simp
   | cons x V' IH =>
       match S, V' with
-      | [], _ => exfalso; rwa [convex_triangulation_any_nil] at C
+      | [], _ => simp [convex_triangulation] at C
       | [_], [] => simp
       | [T], [_] => simp [convex_triangulation] at C
       | [T], [_, _] => exact nodup_of_triangle_eq C
@@ -106,7 +99,7 @@ lemma nodup (P : ConvexPolygon V S) : Nodup V := by
 lemma number_of_triangles_eq (P : ConvexPolygon V S) : S.length + 2 = P.n := by
   have C := P.convex
   induction S generalizing V with
-  | nil => exfalso; rwa [convex_triangulation_any_nil V] at C
+  | nil => simp [convex_triangulation] at C
   | cons T S' IHS =>
       match V, S' with
       | [], _ => simp [convex_triangulation] at C
