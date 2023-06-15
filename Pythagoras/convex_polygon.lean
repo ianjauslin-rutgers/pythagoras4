@@ -86,6 +86,13 @@ def area (_ : ConvexPolygon V S) : ℝ := triangulation_area S
 
 def n (_ : ConvexPolygon V S) : ℕ := V.length
 
+lemma vertices_ne_nil (P : ConvexPolygon V S) : V ≠ [] := by
+  have C := P.convex
+  match V, S with
+  | [], [] => simp [convex_triangulation] at C
+  | [], _ :: _ => simp [convex_triangulation] at C
+  | _ :: _, _ => simp
+
 lemma triangulation_ne_nil (P : ConvexPolygon V S) : S ≠ [] := by
   have C := P.convex
   match S, V with
