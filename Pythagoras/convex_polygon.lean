@@ -86,6 +86,12 @@ def area (_ : ConvexPolygon V S) : ℝ := triangulation_area S
 
 def n (_ : ConvexPolygon V S) : ℕ := V.length
 
+lemma triangulation_ne_nil (P : ConvexPolygon V S) : S ≠ [] := by
+  have C := P.convex
+  match S, V with
+  | [], _ => simp [convex_triangulation] at C
+  | _ :: _, _ => simp
+
 lemma nodup (P : ConvexPolygon V S) : Nodup V := by
   have C := P.convex
   induction V generalizing S with
@@ -159,6 +165,32 @@ lemma paragram_is_convex (pg: paragram a b c d M N O P) : is_convex [a, b, c, d]
   constructor; left; exact sameside_of_para_online dO cO (by perma)
   constructor; exact sameside_of_para_online bN cN (by perma)
 
-lemma unique_triangulation (P : ConvexPolygon V S) (P' : ConvexPolygon V S') : S = S' := by sorry
+lemma unique_triangulation (P : ConvexPolygon V S) (P' : ConvexPolygon V S') :
+    triangle_eq (S.head P.triangulation_ne_nil) (S'.head P'.triangulation_ne_nil) := by sorry
+
+def diff_quadri_splits (T U T' U' : Triangle) : Prop :=
+  ∃ a b c d : point, ∃ V : List point,
+  ∃ _ : ConvexPolygon [a, b, c, d] [T, U],
+  ∃ _ : ConvexPolygon V [T', U'], [a, b, c, d] ≠ V ∧ Perm [a, b, c, d] V
+
+lemma eq_area_of_quadri (P : ConvexPolygon [a, b, c, d] [T, U]) (P' : ConvexPolygon V [T', U'])
+   (diff : [a, b, c, d] ≠ V) (perm : Perm [a, b, c, d] V) : P.area = P'.area := by
+  sorry
+
+def eq_area_of_quadri_splits (T U T' U' : Triangle) (splits : diff_quadri_splits T U T' U') :
+    area T.a T.b T.c + area U.a U.b U.c = area T'.a T'.b T'.c + area U'.a U'.b U'.c := by
+  obtain ⟨ a, b, c, d, V, P, P', diff, perm ⟩ := splits
+  have := eq_area_of_quadri P P' diff perm
+  simp [ConvexPolygon.area, triangulation_area] at this
+  exact this
+
+def adj_triangulation (S : List Triangle) (S' : List Triangle) : Prop :=
+  ∃ T U T' U' : Triangle, T ∈ S ∧ U ∈ S ∧ T' ∈ S' ∧ U' ∈ S' ∧
+  diff_quadri_splits T U T' U' ∧ Perm (S.diff [T, U]) (S'.diff [T', U'])
+
+lemma eq_area_of_adj_triangulation (P : ConvexPolygon V S) (P' : ConvexPolygon V' S')
+    (adj : adj_triangulation S S') : P.area = P'area := by
+  obtain ⟨ T, U, T', U', TS, US, T'S', U'S', splits, diff⟩ := adj
+  sorry
 
 theorem area_invariance (P : ConvexPolygon V S) (P' : ConvexPolygon V' S') (perm: List.Perm V V') : P.area = P'.area := by sorry
