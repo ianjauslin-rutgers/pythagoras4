@@ -163,7 +163,7 @@ lemma nodup_of_paragram (pg: paragram a b c d M N O P) : Nodup [a, b, c, d] := b
 lemma paragram_is_convex (pg: paragram a b c d M N O P) : ConvexPolygon [a, b, c, d] := by
   have nodup := nodup_of_paragram pg; simp [Nodup, and_assoc] at nodup
   obtain ⟨ ab, ac, ad, bc, bd, cd⟩ := nodup
-  let T := Triangle.mk b c d  bc bd cd
+  let T := Triangle.mk b c d bc bd cd
   let T' := Triangle.mk b d a bd (Ne.symm ab) (Ne.symm ad)
   use [T', T]; simp [convex_triangulation]
   constructor; simp [triangle_eq_of_pts]; simp [exterior_triangle, *]
@@ -200,9 +200,50 @@ def adj_triangulation (S : List Triangle) (S' : List Triangle) : Prop :=
   ∃ T U T' U' : Triangle, T ∈ S ∧ U ∈ S ∧ T' ∈ S' ∧ U' ∈ S' ∧
   diff_quadri_splits T U T' U' ∧ Perm (S.diff [T, U]) (S'.diff [T', U']) ∧ (S.diff [T, U]) ≠ (S'.diff [T', U'])
 
+lemma eq_area_of_perm_triangulation (S S' : List Triangle) (perm : Perm S S') : triangulation_area S = triangulation_area S' := by
+  induction perm with
+  | nil => rfl
+  | cons _ _ IH => dsimp [triangulation_area]; rw [IH]
+  | swap => dsimp [triangulation_area]; ring
+  | trans _ _ _ _ => linarith
+
+lemma triangulation_area_of_erase (S : List Triangle) (T : Triangle) (TS : T ∈ S) :
+   triangulation_area S = triangulation_area (S.erase T) + triangulation_area [T] := by
+  have := (@cons_perm_iff_perm_erase Triangle _ T (S.erase T) S).mpr ⟨TS, (by rfl)⟩
+  have := eq_area_of_perm_triangulation S (T :: List.erase S T) this.symm
+  rw [this]
+  dsimp [TS, triangulation_area]
+  linarith
+
+lemma triangulation_area_of_diff (S : List Triangle) (T : Triangle) (TS : T ∈ S) :
+   triangulation_area S = triangulation_area (S.diff [T]) + triangulation_area [T] := by
+  simp [List.diff, TS]
+  exact triangulation_area_of_erase S T TS
+
+lemma triangulation_area_of_diff_two (S : List Triangle) (T U: Triangle) (TS : T ∈ S) (US : U ∈ S) (TU : T ≠ U) :
+    triangulation_area S = triangulation_area (List.diff S [T, U]) + triangulation_area [T] + triangulation_area [U] := by
+  have : U ∉ [T] := by intro x; exact TU (mem_singleton.mp x).symm
+  have := mem_diff_of_mem US this; simp [List.diff, TS] at this
+  simp [List.diff, elem_iff, ne_eq, TS, this]
+  have := triangulation_area_of_erase _ U this
+  ring_nf
+  conv => rw [add_assoc, add_comm]; rhs; rw [add_assoc, add_comm]; lhs; rw [add_comm]; rw [← this]
+  exact triangulation_area_of_erase _ T TS
+
 lemma eq_area_of_adj_triangulation (P : ConvexPolygon V) (P' : ConvexPolygon V')
-    (adj : adj_triangulation P.triangulation P'.triangulation) : P.area = P'area := by
-  obtain ⟨ T, U, T', U', TS, US, T'S', U'S', splits, diff⟩ := adj
-  sorry
+    (adj : adj_triangulation P.triangulation P'.triangulation) : P.area = P'.area := by
+  obtain ⟨ T, U, T', U', TS, US, T'S', U'S', splits, perm, diff⟩ := adj
+  have TU: T ≠ U := by sorry
+  have T'U': T' ≠ U' := by sorry
+  have hS := triangulation_area_of_diff_two P.triangulation T U TS US TU
+  have hS' := triangulation_area_of_diff_two P'.triangulation T' U' T'S' U'S' T'U'
+  simp [ConvexPolygon.area, hS, hS']
+  dsimp [triangulation_area]; ring_nf
+  have := eq_area_of_quadri_splits T U T' U' splits
+  conv => lhs; rw [add_assoc, this]
+  conv => rhs; rw [add_assoc]
+  simp
+  have := eq_area_of_perm_triangulation (List.diff P.triangulation [T, U]) (List.diff P'.triangulation [T', U']) perm
+  convert this <;> simp
 
 lemma eq_area_of_eq_last_vertex (P : ConvexPolygon (x :: V)) (P' : ConvexPolygon (x :: V')) (R : ConvexPolygon V) (R' : ConvexPolygon V') (H : R.area = R'.area ): P.area = P'.area := by sorry
