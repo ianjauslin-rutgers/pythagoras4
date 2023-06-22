@@ -152,6 +152,64 @@ lemma triangle_area_eq (P : ConvexPolygon [a,b,c]) : P.area = area a b c := by
     have := P.number_of_triangles_eq
     simp [ConvexPolygon.n, hS] at this
 
+lemma perm_of_two {x y : α} {V : List α} (perm : [x, y] ~ V) : V = [x, y] ∨ V = [y, x] := by
+  cases perm with
+  | cons _ hy => simp [perm_singleton] at hy; simp [hy]
+  | swap => simp
+  | trans perm' perm'' =>
+    rename_i Z
+    induction perm'' with
+    | nil => simp at perm'
+    | cons X Y IH =>
+        rename_i M N
+        have : X ∈ X :: M := by simp
+        have := perm'.mem_iff.mpr this
+        by_cases hX : X = x
+        · rw [hX] at perm'
+          have := perm'.cons_inv
+          simp [perm_singleton] at this; rw [← this] at Y; simp [perm_singleton] at Y;
+          left; simp [Y, hX]
+        · simp [hX] at this
+          rw [this] at perm' |-
+          have : [y, x] ~ [x, y] := by simp [Perm.swap]
+          have := this.trans perm'
+          simp [Perm.cons_inv] at this |-
+          rw [← this] at Y
+          simp [Perm.symm, perm_singleton] at Y
+          right; exact Y.symm
+    | swap X Y T =>
+        by_cases hY : Y = x
+        · rw [hY] at perm' |-
+          have := perm'.cons_inv
+          simp [perm_singleton] at this
+          right; simp [this]
+        · have : Y ∈ Y :: X :: T := by simp
+          have Yy := perm'.mem_iff.mpr this
+          simp [hY] at Yy
+          have : [y, x] ~ [x, y] := by simp [Perm.swap]
+          have perm'' := this.trans perm'
+          simp [Yy] at perm''
+          left; simp [perm'', Yy]
+    | trans perm'' _ _ IH => exact IH (perm'.trans perm'')
+
+lemma perm_of_three {x y : α} {V : List α} (perm : [x, y, z] ~ V) : V = [x, y, z] ∨ V = [x, z, y] ∨ V = [y, x, z] ∨ V = [y, z, x] ∨ V = [z, x, y] ∨ V = [z, y, x] := by
+  cases perm with
+  | cons _ hbc =>
+      rename_i W
+      cases hbc with
+      | cons _ hc => simp [perm_singleton] at hc; simp [hc]
+      | swap => tauto
+      | trans X Y =>
+        have := perm_of_two X
+        rcases this with (h|h); all_goals rw [h] at Y; have := perm_of_two Y; tauto
+  | swap => right; right; left; rfl
+  | trans perm' perm'' =>
+      induction perm'' with
+      | nil => simp at perm'
+      | cons => sorry
+      | swap => sorry
+      | trans perm'' _ _ IH => exact IH (perm'.trans perm'')
+
 lemma nodup_of_paragram (pg: paragram a b c d M N O P) : Nodup [a, b, c, d] := by
   have := nodup_of_triangle $ tri124_of_paragram pg; simp [Nodup]; simp [Nodup] at this
   obtain ⟨ _, bM, _, cN, cO, _, dP, aP, pMO, pNP ⟩ := pg
