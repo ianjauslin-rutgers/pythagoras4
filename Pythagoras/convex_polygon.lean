@@ -261,8 +261,12 @@ lemma paragram_is_convex (pg: paragram a b c d M N O P) : ConvexPolygon [a, b, c
 
 lemma eq_area_of_eq_last_vertex (P: ConvexPolygon $ x :: V) (P': ConvexPolygon $ x :: V') (hS : P.triangulation = T :: S) (hS' : P'.triangulation = U :: S') :
     triangulation_area [T] = triangulation_area [U] := by
-  -- distinguish if the last triangle is degenerate or not
-  sorry
+  have : T = U ∨ (colinear T.a T.b T.c ∧ colinear U.a U.b U.c) := by sorry -- use col_of_B
+  rcases this with (h|h)
+  · rw [h]
+  · dsimp [triangulation_area]
+    obtain ⟨ L, hL ⟩ := h.1; rw [(@area_zero_iff_online i T.a T.b T.c L T.ab hL.1 hL.2.1).mpr hL.2.2]
+    obtain ⟨ M, hM ⟩ := h.2; rw [(@area_zero_iff_online i U.a U.b U.c M U.ab hM.1 hM.2.1).mpr hM.2.2]
 
 def eq_area_of_quadri_splits (P: ConvexPolygon $ x :: y :: V) (P': ConvexPolygon $ y :: x :: V)
     (hS : P.triangulation = T :: T' :: S) (hS' : P'.triangulation = U :: U' :: S') : P.area = P'.area := by
