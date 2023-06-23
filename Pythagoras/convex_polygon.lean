@@ -192,23 +192,22 @@ lemma perm_of_two {x y : α} {V : List α} (perm : [x, y] ~ V) : V = [x, y] ∨ 
           left; simp [perm'', Yy]
     | trans perm'' _ _ IH => exact IH (perm'.trans perm'')
 
-lemma perm_of_three {x y : α} {V : List α} (perm : [x, y, z] ~ V) : V = [x, y, z] ∨ V = [x, z, y] ∨ V = [y, x, z] ∨ V = [y, z, x] ∨ V = [z, x, y] ∨ V = [z, y, x] := by
+lemma perm_of_three {x y : α} {V : List α} (perm : [x, y, z] ~ V) :
+    V = [x, y, z] ∨ V = [x, z, y] ∨ V = [y, x, z] ∨ V = [y, z, x] ∨ V = [z, x, y] ∨ V = [z, y, x] := by
+  have : V.length = 3 := by rw [← Perm.length_eq perm]; simp
+  match V with
+  | [] => simp at this
+  | [_] => simp at this
+  | [_, _] => simp at this
+  | _ :: _ :: _ :: _ :: _ => simp at this
+  | [a, b, c] =>
   cases perm with
-  | cons _ hbc =>
-      rename_i W
-      cases hbc with
-      | cons _ hc => simp [perm_singleton] at hc; simp [hc]
-      | swap => tauto
-      | trans X Y =>
-        have := perm_of_two X
-        rcases this with (h|h); all_goals rw [h] at Y; have := perm_of_two Y; tauto
+  | cons _ hbc => have := perm_of_two hbc; tauto
   | swap => right; right; left; rfl
   | trans perm' perm'' =>
-      induction perm'' with
-      | nil => simp at perm'
-      | cons => sorry
-      | swap => sorry
-      | trans perm'' _ _ IH => exact IH (perm'.trans perm'')
+      have xyz := perm_of_three perm'
+      have abc := perm_of_three perm''.symm
+      rcases xyz with (h|h|h|h|h|h) <;> rcases abc with (H|H|H|H|H|H) <;> {rw [h] at H; simp at H; simp [H]}
 
 lemma eq_area_of_tri (P : ConvexPolygon [a, b, c]) (P' : ConvexPolygon V) (perm : Perm [a, b, c] V) : P.area = P'.area := by
   have C' := P'.convex
