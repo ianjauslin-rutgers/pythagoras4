@@ -210,6 +210,26 @@ lemma perm_of_three {x y : α} {V : List α} (perm : [x, y, z] ~ V) : V = [x, y,
       | swap => sorry
       | trans perm'' _ _ IH => exact IH (perm'.trans perm'')
 
+lemma eq_area_of_tri (P : ConvexPolygon [a, b, c]) (P' : ConvexPolygon V) (perm : Perm [a, b, c] V) : P.area = P'.area := by
+  have C' := P'.convex
+  set S' := P'.triangulation with ← hS
+  have triples := perm_of_three perm
+  match S' with
+  | [] => exfalso; exact P'.triangulation_ne_nil hS
+  | _ :: _ :: _ =>
+      have := P'.number_of_triangles_eq
+      simp [ConvexPolygon.n, Perm.length_eq perm.symm, length_eq_one, hS] at this
+  | [T] =>
+      have := Perm.length_eq perm.symm
+      match V with
+      | [] => simp [convex_triangulation] at C'
+      | [_] => simp [convex_triangulation] at C'
+      | [_, _] => simp [convex_triangulation] at C'
+      | _ :: _ :: _ :: _ :: _ => simp [List.length] at this
+      | [x, y, z] =>
+          simp [triangle_area_eq]
+          rcases triples with (h|h|h|h|h|h) <;> {simp at h; rw [h.1, h.2.1, h.2.2]; perm}
+
 lemma nodup_of_paragram (pg: paragram a b c d M N O P) : Nodup [a, b, c, d] := by
   have := nodup_of_triangle $ tri124_of_paragram pg; simp [Nodup]; simp [Nodup] at this
   obtain ⟨ _, bM, _, cN, cO, _, dP, aP, pMO, pNP ⟩ := pg
