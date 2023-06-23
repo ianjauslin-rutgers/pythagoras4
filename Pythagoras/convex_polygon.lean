@@ -194,20 +194,65 @@ lemma perm_of_two {x y : α} {V : List α} (perm : [x, y] ~ V) : V = [x, y] ∨ 
 
 lemma perm_of_three {x y : α} {V : List α} (perm : [x, y, z] ~ V) :
     V = [x, y, z] ∨ V = [x, z, y] ∨ V = [y, x, z] ∨ V = [y, z, x] ∨ V = [z, x, y] ∨ V = [z, y, x] := by
-  have : V.length = 3 := by rw [← Perm.length_eq perm]; simp
-  match V with
-  | [] => simp at this
-  | [_] => simp at this
-  | [_, _] => simp at this
-  | _ :: _ :: _ :: _ :: _ => simp at this
-  | [a, b, c] =>
   cases perm with
   | cons _ hbc => have := perm_of_two hbc; tauto
   | swap => right; right; left; rfl
   | trans perm' perm'' =>
-      have xyz := perm_of_three perm'
-      have abc := perm_of_three perm''.symm
-      rcases xyz with (h|h|h|h|h|h) <;> rcases abc with (H|H|H|H|H|H) <;> {rw [h] at H; simp at H; simp [H]}
+    induction perm'' with
+    | nil => simp at perm'
+    | cons X perm IH =>
+        rename_i T' T
+        have perm := perm'.trans $ perm.cons X
+        have this : X ∈ X :: T := by simp
+        have XV := perm.mem_iff.mpr this
+        by_cases hX : X = x
+        · simp [hX, Perm.cons_inv] at perm
+          have := perm_of_two perm
+          rcases this with (h|h)
+          · left; simp [hX, h]
+          · right; left; simp [hX, h]
+        · simp [hX] at XV
+          rcases XV with (h|h)
+          · have := (Perm.swap x y [z]).trans perm
+            simp [h] at this
+            have := perm_of_two this
+            rcases this with (H|H)
+            · right; right; left; simp [h, H]
+            · right; right; right; simp [h, H]
+          · have := ((Perm.swap x z [y]).trans ((Perm.swap y z []).cons x)).trans perm
+            simp [h] at this
+            have := perm_of_two this
+            rcases this with (H|H)
+            · right; right; right; right; left; simp [h, H]
+            · repeat right; simp [h, H]
+    | swap X Y T => 
+        by_cases hY : Y = x
+        · rw [hY] at perm' |-
+          have := perm_of_two perm'.cons_inv
+          rcases this with (h|h)
+          · right; right; left; simp at h; simp [h]
+          · right; right; right; right; left; simp at h; simp [h]
+        · have : Y ∈ Y :: X :: T := by simp
+          have YV := perm'.mem_iff.mpr this
+          simp [hY] at YV
+          rcases YV with (h|h)
+          · have : [y, x, z] ~ [x, y, z] := by simp [Perm.swap]
+            have perm := this.trans perm'
+            simp [h, Perm.cons_inv] at perm
+            have := perm_of_two perm
+            rcases this with (H|H)
+            · left; simp at H; simp [H, h]
+            · repeat right; simp at H; simp [H, h]
+          · have p: [x, z, y] ~ [x, y, z] := by simp [Perm.swap]
+            have p': [z, x, y] ~ [x, z, y] := by simp [Perm.swap]
+            have : [z, x, y] ~ [x, y, z] := by simp [Perm.trans p' p]
+            have perm := this.trans perm'
+            simp [h, Perm.cons_inv] at perm
+            have := perm_of_two perm
+            rcases this with (H|H)
+            · right; left; simp at H; simp [H, h]
+            · repeat right; simp at H; simp [H, h]
+    | trans perm'' _ _ IH => exact IH (perm'.trans perm'')
 
 lemma eq_area_of_tri (P : ConvexPolygon [a, b, c]) (P' : ConvexPolygon V) (perm : Perm [a, b, c] V) : P.area = P'.area := by
   have C' := P'.convex
