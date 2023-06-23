@@ -264,9 +264,30 @@ lemma eq_area_of_eq_last_vertex (P: ConvexPolygon $ x :: V) (P': ConvexPolygon $
   -- distinguish if the last triangle is degenerate or not
   sorry
 
-def eq_area_of_quadri_splits (P: ConvexPolygon $ x :: y :: V) (P': ConvexPolygon $ y :: x :: V) (hS : P.triangulation = T :: T' :: S) (hS' : P'.triangulation = U :: U' :: S') : P.area = P'.area := by
-  -- use induction on V and reduce to the parallelogram case
- sorry
+def eq_area_of_quadri_splits (P: ConvexPolygon $ x :: y :: V) (P': ConvexPolygon $ y :: x :: V)
+    (hS : P.triangulation = T :: T' :: S) (hS' : P'.triangulation = U :: U' :: S') : P.area = P'.area := by
+  have C := P.convex
+  have := hS ▸ hS' ▸ eq_number_of_triangles_of_perm P P' $ Perm.swap y x V
+  have lens : S.length = S'.length := by simpa [this]
+  have har: triangulation_area S = triangulation_area S' := by
+    induction S with
+    | nil =>
+      match S' with
+      | [] => rfl
+      | _ :: _ => simp [List.length] at lens; contradiction
+    | cons => sorry -- use info about subpolygons together with eq_area_of_eq_last_vertex
+  cases V with
+  | nil =>
+      set SP := P.triangulation with ← hSP
+      match SP with
+      | [] => simp [convex_triangulation] at C
+      | [_] => simp [convex_triangulation] at C
+      | _ :: _ ::_ => simp [convex_triangulation] at C
+  | cons z W =>
+      simp [ConvexPolygon.area, triangulation_area, hS, hS', har, ← add_assoc];
+      cases W with
+      | nil => have := P.number_of_triangles_eq; simp [hS, ConvexPolygon.n] at this
+      | cons w W' => sorry -- this is the parallelogram case
 
 lemma permuted_ConvexPolygon (P : ConvexPolygon V) (perm: V ~ V') : ConvexPolygon V' := by
   -- use induction
