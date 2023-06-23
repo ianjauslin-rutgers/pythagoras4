@@ -137,6 +137,11 @@ lemma number_of_triangles_eq (P : ConvexPolygon V) : P.triangulation.length + 2 
 
 end ConvexPolygon
 
+lemma eq_number_of_triangles_of_perm (P : ConvexPolygon V) (P' : ConvexPolygon V') (perm : V ~ V') :
+   P.triangulation.length = P'.triangulation.length := by
+  suffices List.length P.triangulation + 2 = List.length P'.triangulation + 2 by   simpa
+  simp [P.number_of_triangles_eq, P'.number_of_triangles_eq, ConvexPolygon.n, Perm.length_eq perm]
+
 lemma triangle_is_convex (T: Triangle) : ConvexPolygon [T.a, T.b, T.c] := ConvexPolygon.mk [T] (by tauto)
 
 lemma triangle_area_eq (P : ConvexPolygon [a,b,c]) : P.area = area a b c := by
@@ -254,13 +259,12 @@ lemma paragram_is_convex (pg: paragram a b c d M N O P) : ConvexPolygon [a, b, c
   constructor; left; exact sameside_of_para_online dO cO (by perma)
   constructor; exact sameside_of_para_online bN cN (by perma)
 
-lemma unique_triangulation (P : ConvexPolygon V) (P' : ConvexPolygon V):
-  triangle_eq (P.triangulation.head P.triangulation_ne_nil) (P'.triangulation.head P'.triangulation_ne_nil) := by
-  set S := P.triangulation with ← hS
-  set S' := P'.triangulation with ← hS'
-  simp [hS, hS']
+lemma eq_area_of_eq_last_vertex (P: ConvexPolygon $ x :: V) (P': ConvexPolygon $ x :: V') (hS : P.triangulation = T :: S) (hS' : P'.triangulation = U :: S') :
+    triangulation_area [T] = triangulation_area [U] := by
+  -- distinguish if the last triangle is degenerate or not
   sorry
-  -- untrue as stated, the last added triangle could be degenerate in different ways
+
+def eq_area_of_quadri_splits (P: ConvexPolygon $ x :: y :: V) (P': ConvexPolygon $ y :: x :: V) (hS : P.triangulation = T :: T' :: S) (hS' : P'.triangulation = U :: U' :: S') : P.area = P'.area := by sorry -- use induction on V and reduce to the parallelogram case
 
 def diff_quadri_splits (T U T' U' : Triangle) : Prop :=
   ∃ a b c d : point, ∃ V : List point, ∃ P : ConvexPolygon [a, b, c, d], ∃ P' : ConvexPolygon V,
@@ -269,7 +273,7 @@ def diff_quadri_splits (T U T' U' : Triangle) : Prop :=
 lemma eq_area_of_quadri (P : ConvexPolygon [a, b, c, d]) (P' : ConvexPolygon V) (perm : Perm [a, b, c, d] V) : P.area = P'.area := by
   sorry
 
-def eq_area_of_quadri_splits (T U T' U' : Triangle) (splits : diff_quadri_splits T U T' U') :
+def eq_area_of_quadri_splits' (T U T' U' : Triangle) (splits : diff_quadri_splits T U T' U') :
     area T.a T.b T.c + area U.a U.b U.c = area T'.a T'.b T'.c + area U'.a U'.b U'.c := by
   obtain ⟨ a, b, c, d, V, P, P', _, perm, hP, hP' ⟩ := splits
   have := eq_area_of_quadri P P' perm
@@ -318,11 +322,76 @@ lemma eq_area_of_adj_triangulation (P : ConvexPolygon V) (P' : ConvexPolygon V')
   have hS' := triangulation_area_of_diff_two P'.triangulation T' U' T'S' U'S' T'U'
   simp [ConvexPolygon.area, hS, hS']
   dsimp [triangulation_area]; ring_nf
-  have := eq_area_of_quadri_splits T U T' U' splits
+  have := eq_area_of_quadri_splits' T U T' U' splits
   conv => lhs; rw [add_assoc, this]
   conv => rhs; rw [add_assoc]
   simp
   have := eq_area_of_perm_triangulation (List.diff P.triangulation [T, U]) (List.diff P'.triangulation [T', U']) perm
   convert this <;> simp
 
-lemma eq_area_of_eq_last_vertex (P : ConvexPolygon (x :: V)) (P' : ConvexPolygon (x :: V')) (R : ConvexPolygon V) (R' : ConvexPolygon V') (H : R.area = R'.area ): P.area = P'.area := by sorry
+lemma ConvexSubpolygon_of_ConvexPolygon (P : ConvexPolygon (x :: V)) (nontriangle : P.triangulation.length > 1): ConvexPolygon V := by sorry
+
+lemma permuted_ConvexPolygon (P : ConvexPolygon V) (perm: V ~ V') : ConvexPolygon V' := by sorry -- use induction
+
+theorem eq_area_of_perm_vertices (P : ConvexPolygon V) (P' : ConvexPolygon V') (perm: V ~ V') : P.area = P'.area := by
+  set S := P.triangulation with ← hS
+  set S' := P'.triangulation with ← hS'
+  have lens := eq_number_of_triangles_of_perm P P' perm
+  induction perm with
+  | nil => exfalso; apply P.vertices_ne_nil; rfl
+  | cons x h IH =>
+    rename_i W W'
+    match S, S' with
+    | [], _ => exfalso; apply P.triangulation_ne_nil; exact hS
+    | _, [] => exfalso; apply P'.triangulation_ne_nil; exact hS'
+    | [T], _ :: _ :: _ => have := hS ▸ hS' ▸ lens; simp at this; contradiction
+    | [T], [_] =>
+        have := hS ▸ P.number_of_triangles_eq
+        simp [ConvexPolygon.n] at this
+        match W with
+        | [] => simp at this
+        | [_] => simp at this
+        | [y, z] => exact eq_area_of_tri P P' $ h.cons x
+    | T :: T' :: S'', [_] => have := hS ▸ hS' ▸ lens; simp at this
+    | T :: T' :: S'', U :: U' :: S''' =>
+        have C := hS ▸ P.convex; simp [convex_triangulation] at C
+        have C' := hS' ▸ P'.convex; simp [convex_triangulation] at C'
+        let PW := ConvexPolygon.mk (T' :: S'') C.1
+        let PW' := ConvexPolygon.mk (U' :: S''') C'.1
+        have : triangulation_area (T :: T' :: S'') = triangulation_area [T] + triangulation_area (T' :: S'') := by simp [triangulation_area]
+        have : ConvexPolygon.area P = ConvexPolygon.area PW + triangulation_area [T] := by
+          simp [ConvexPolygon.area, hS, this]; ring_nf
+        rw [this]
+        have : triangulation_area (U :: U' :: S''') = triangulation_area [U] + triangulation_area (U' :: S''') := by simp [triangulation_area]
+        have : ConvexPolygon.area P' = ConvexPolygon.area PW' + triangulation_area [U] := by
+          simp [ConvexPolygon.area, hS', this]; ring_nf
+        rw [this]
+        have : triangulation_area [T] = triangulation_area [U] := eq_area_of_eq_last_vertex P P' hS hS'
+        rw [this]; simp [add_right_inj]
+        apply IH PW PW' (by rfl) (by rfl)
+        simp [hS, hS', length_cons, Nat.succ.injEq, add_left_inj] at lens
+        simp [lens]
+  | swap x y =>
+      rename_i W
+      match S, S' with
+    | [], _ => exfalso; apply P.triangulation_ne_nil; exact hS
+    | _, [] => exfalso; apply P'.triangulation_ne_nil; exact hS'
+    | [T], _ :: _ :: _ => have := hS ▸ hS' ▸ lens; simp at this; contradiction
+    | [T], [U] =>
+        match W with
+        | [] => have := hS ▸ P.number_of_triangles_eq; simp [ConvexPolygon.n] at this
+        | [z] => exact eq_area_of_tri P P' $ Perm.swap x y [z]
+        | _ :: _ :: _ => have := hS ▸ P.number_of_triangles_eq; simp [ConvexPolygon.n] at this; contradiction
+    | T :: T' :: S'', [_] => have := hS ▸ hS' ▸ lens; simp at this
+    | T :: T' :: S'', U :: U' :: S''' => exact eq_area_of_quadri_splits P P' hS hS'
+  | trans perm' _ IH IH' =>
+      rename_i W X Y
+      let P'' := permuted_ConvexPolygon P perm'
+      have lens' := eq_number_of_triangles_of_perm P P'' perm'
+      have H := IH P P'' hS.symm
+      have H' := IH' P'' P'
+      have h1 : ConvexPolygon.area P'' = ConvexPolygon.area P' := by
+        apply H'; rfl; rfl ; rw [← lens, lens']
+      have h2 : ConvexPolygon.area P = ConvexPolygon.area P'' := by
+        apply H; rfl; rw [← lens']
+      exact Eq.trans h2 h1
