@@ -268,18 +268,67 @@ lemma eq_area_of_eq_last_vertex (P: ConvexPolygon $ x :: V) (P': ConvexPolygon $
     obtain ⟨ L, hL ⟩ := h.1; rw [(@area_zero_iff_online i T.a T.b T.c L T.ab hL.1 hL.2.1).mpr hL.2.2]
     obtain ⟨ M, hM ⟩ := h.2; rw [(@area_zero_iff_online i U.a U.b U.c M U.ab hM.1 hM.2.1).mpr hM.2.2]
 
+lemma eq_area_of_eq_vertices (P : ConvexPolygon V) (P' : ConvexPolygon V)
+  : P.area = P'.area := by
+  induction V with
+  | nil => exfalso; exact P.vertices_ne_nil rfl
+  | cons x V' IH =>
+    have C := P.convex
+    have C' := P'.convex
+    generalize hS : P.triangulation = S at C
+    generalize hS' : P'.triangulation = S' at C'
+    match S, S' with
+    | [], _ => exfalso; exact P.triangulation_ne_nil hS
+    | _, [] => exfalso; exact P'.triangulation_ne_nil hS'
+    | T :: SS, U :: SSS =>
+      match V', SS with
+      | [], _ => simp [convex_triangulation] at C
+      | [_], [] => simp [convex_triangulation] at C
+      | [_], _ :: _ => simp [convex_triangulation] at C
+      | [_, _], _ => exact eq_area_of_tri P P' (by simp)
+      | y :: z :: w :: V', [] =>
+        have := hS ▸ P.number_of_triangles_eq
+        simp [ConvexPolygon.n, List.length] at this; contradiction
+      | y :: z :: V', T' :: SS' =>
+        match SSS with
+        | nil =>
+          have := hS ▸ hS' ▸ eq_number_of_triangles_of_perm P P' (by rfl)
+          simp at this
+        | U' :: SSS' =>
+          simp [convex_triangulation] at C C'
+          let P'' := ConvexPolygon.mk (T' :: SS') C.1
+          let P''' := ConvexPolygon.mk (U' :: SSS') C'.1
+          have IH := IH P'' P'''
+          have := eq_area_of_eq_last_vertex P P' hS hS'
+          simp [ConvexPolygon.area, hS, hS', triangulation_area] at IH this |-
+          linarith
+
 def eq_area_of_quadri_splits (P: ConvexPolygon $ x :: y :: V) (P': ConvexPolygon $ y :: x :: V)
     (hS : P.triangulation = T :: T' :: S) (hS' : P'.triangulation = U :: U' :: S') : P.area = P'.area := by
   have C := P.convex
+  have C' := P'.convex
   have := hS ▸ hS' ▸ eq_number_of_triangles_of_perm P P' $ Perm.swap y x V
   have lens : S.length = S'.length := by simpa [this]
   have har: triangulation_area S = triangulation_area S' := by
-    induction S with
+    cases S with
     | nil =>
+        match S' with
+        | [] => rfl
+        | _ :: _ => simp [List.length] at lens; contradiction
+    | cons T'' S =>
       match S' with
-      | [] => rfl
-      | _ :: _ => simp [List.length] at lens; contradiction
-    | cons => sorry -- use info about subpolygons together with eq_area_of_eq_last_vertex
+      | [] => simp [List.length] at lens;
+      | U'' :: S''' =>
+        match V with
+        | nil => simp [hS, convex_triangulation] at C
+        | z :: V' =>
+          simp [hS, convex_triangulation] at C
+          simp [hS', convex_triangulation] at C'
+          let P'' := ConvexPolygon.mk (T'' :: S) C.1.1
+          let P''' := ConvexPolygon.mk (U'' :: S''')  C'.1.1
+          have := eq_area_of_eq_vertices P'' P'''
+          simp [ConvexPolygon.area] at this
+          exact this
   cases V with
   | nil =>
       set SP := P.triangulation with ← hSP
