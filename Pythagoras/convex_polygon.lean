@@ -259,14 +259,51 @@ lemma paragram_is_convex (pg: paragram a b c d M N O P) : ConvexPolygon [a, b, c
   constructor; left; exact sameside_of_para_online dO cO (by perma)
   constructor; exact sameside_of_para_online bN cN (by perma)
 
-lemma eq_area_of_eq_last_vertex (P: ConvexPolygon $ x :: V) (P': ConvexPolygon $ x :: V') (hS : P.triangulation = T :: S) (hS' : P'.triangulation = U :: S') :
+lemma exterior_triangle_almost_unique {a b c d x : point} {V V': List point} (perm : V ~ V')
+    (abx : exterior_triangle a b x V) (cdx : exterior_triangle c d x V') (nondeg : ¬ (B a x b ∧ B c x d)) :
+    (a = c ∧ b = d) ∨ (a = d ∧ b = c) := by sorry
+    -- show that if one of the B conditions is false, the other is too
+
+lemma eq_area_of_eq_last_vertex (P: ConvexPolygon $ x :: V) (P': ConvexPolygon $ x :: V') (perm : V ~ V') (hS : P.triangulation = T :: S) (hS' : P'.triangulation = U :: S') :
     triangulation_area [T] = triangulation_area [U] := by
-  have : T = U ∨ (colinear T.a T.b T.c ∧ colinear U.a U.b U.c) := by sorry -- use col_of_B
-  rcases this with (h|h)
-  · rw [h]
-  · dsimp [triangulation_area]
-    obtain ⟨ L, hL ⟩ := h.1; rw [(@area_zero_iff_online i T.a T.b T.c L T.ab hL.1 hL.2.1).mpr hL.2.2]
-    obtain ⟨ M, hM ⟩ := h.2; rw [(@area_zero_iff_online i U.a U.b U.c M U.ab hM.1 hM.2.1).mpr hM.2.2]
+  have C := P.convex
+  have C' := P'.convex
+  have lens := hS ▸ hS' ▸ eq_number_of_triangles_of_perm P P' $ Perm.cons x perm
+  match V, S with
+  | [], _ => simp [hS, convex_triangulation] at C
+  | [_], [] => simp [hS, convex_triangulation] at C
+  | [_], _ :: _ => simp [hS, convex_triangulation] at C
+  | [_, _], _ :: _ =>
+    have := hS ▸ P.number_of_triangles_eq; simp [ConvexPolygon.n] at this
+  | [_, _], [] =>
+    match S' with
+    | [] =>
+      have := eq_area_of_tri P P' $ Perm.cons x perm
+      simp [ConvexPolygon.area, hS, hS'] at this; exact this
+    | _ :: _ => simp [List.length] at lens
+  | _ :: _ :: _  :: _, [] =>
+    have := hS ▸ P.number_of_triangles_eq
+    simp [ConvexPolygon.n, length_eq_zero] at this
+    contradiction
+  | y :: W, T' :: SS =>
+    match S' with
+    | [] => simp [List.length] at lens
+    | U' :: SSS =>
+      have : triangle_eq T U ∨ (colinear T.a T.b T.c ∧ colinear U.a U.b U.c) := by
+        simp [hS, hS', convex_triangulation] at C C'
+        by_cases hB : B T.a x T.b ∧ B U.a x U.b
+        · right; exact ⟨ col132.mp $ C.2.2 ▸ col_of_B hB.1, col132.mp $ C'.2.2 ▸ col_of_B hB.2 ⟩
+        · left; simp [triangle_eq, triangle_eq_of_pts, C'.2.2 ▸ C.2.2.symm]
+          rcases exterior_triangle_almost_unique perm C.2.1 C'.2.1 hB with (h|h) <;> simp [h.1, h.2]
+      rcases this with (h|h)
+      · dsimp [triangle_eq, triangle_eq_of_pts] at h; dsimp [triangulation_area];
+        generalize T.a = A at h |-
+        generalize T.b = B at h |-
+        generalize T.c = C at h |-
+        rcases h with (H|H|H|H|H|H) <;> (rw [H.1, H.2.1, H.2.2]; try {ring_nf; perm})
+      · dsimp [triangulation_area]
+        obtain ⟨ L, hL ⟩ := h.1; rw [(@area_zero_iff_online i T.a T.b T.c L T.ab hL.1 hL.2.1).mpr hL.2.2]
+        obtain ⟨ M, hM ⟩ := h.2; rw [(@area_zero_iff_online i U.a U.b U.c M U.ab hM.1 hM.2.1).mpr hM.2.2]
 
 lemma eq_area_of_eq_vertices (P : ConvexPolygon V) (P' : ConvexPolygon V)
   : P.area = P'.area := by
@@ -299,7 +336,7 @@ lemma eq_area_of_eq_vertices (P : ConvexPolygon V) (P' : ConvexPolygon V)
           let P'' := ConvexPolygon.mk (T' :: SS') C.1
           let P''' := ConvexPolygon.mk (U' :: SSS') C'.1
           have IH := IH P'' P'''
-          have := eq_area_of_eq_last_vertex P P' hS hS'
+          have := eq_area_of_eq_last_vertex P P' (by rfl) hS hS'
           simp [ConvexPolygon.area, hS, hS', triangulation_area] at IH this |-
           linarith
 
@@ -377,7 +414,7 @@ theorem eq_area_of_perm_vertices (P : ConvexPolygon V) (P' : ConvexPolygon V') (
         have : triangulation_area (U :: U' :: S''') = triangulation_area [U] + triangulation_area (U' :: S''') := by simp [triangulation_area]
         have hU: ConvexPolygon.area P' = ConvexPolygon.area PW' + triangulation_area [U] := by
           simp [ConvexPolygon.area, hS', this]; ring_nf
-        have : triangulation_area [T] = triangulation_area [U] := eq_area_of_eq_last_vertex P P' hS hS'
+        have : triangulation_area [T] = triangulation_area [U] := eq_area_of_eq_last_vertex P P' h hS hS'
         rw [hT, hU, this]; simp [add_right_inj]; apply IH PW PW' (by rfl) (by rfl)
         simp [hS, hS', length_cons, Nat.succ.injEq, add_left_inj] at lens; simp [lens]
   | swap x y =>
