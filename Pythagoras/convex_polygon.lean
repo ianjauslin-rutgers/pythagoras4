@@ -6,7 +6,7 @@ open List
 
 variable [i: incidence_geometry]
 
-def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
+def WeakSameside (a b : point) (L : line) := sameside a b L ∨ online a L ∨ online b L
 
 -- allows colinearity, unlike triangle --
 structure Triangle where
@@ -52,7 +52,7 @@ lemma nodup_of_triangle_eq (eq : triangle_eq_of_pts a b c T) : Nodup [a, b, c] :
     tauto
 
 -- symmetric in a,b --
-def exterior_triangle (a b x : point) (V : List point) : Prop :=
+def exterior_triangle (a b x : point) (V : List point) :=
   (a ∈ V) ∧ (b ∈ V) ∧ (a ≠ b) ∧ (x ∉ V) ∧ ( B a x b ∨
   ∀ L M N : line,
   ( (online a L) ∧ (online b L) ∧
@@ -61,16 +61,14 @@ def exterior_triangle (a b x : point) (V : List point) : Prop :=
   ∀ c ∈ V, (c ≠ a) → (c ≠ b) →
   (B a c b ∨ (diffside x c L ∧ WeakSameside b c M ∧  WeakSameside a c N)))
 
--- the a b c is the first triangle in S, then it must be an exterior triangle w.r.t. V = c :: V'
-def convex_triangulation (V : List point) (S : List Triangle) : Prop :=
-  -- TODO: match V.reverse, S.reverse with
+-- if a b c is the first triangle in S, then it must be an exterior triangle w.r.t. V = c :: V'
+def convex_triangulation (V : List point) (S : List Triangle) :=
   match V, S with
   | [], _ => False
   | _, [] => False
   | [a, b, c], [T] => triangle_eq_of_pts a b c T
   | x :: V', T :: S' => convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V' ∧ x = T.c
   termination_by convex_triangulation V S => V.length
-  -- TODO: decreasing_by simp_wf; exact list_reverse_induction
 
 def triangulation_area (S : List Triangle) : ℝ :=
   match S with
@@ -438,7 +436,7 @@ theorem eq_area_of_perm_vertices (P : ConvexPolygon V) (P' : ConvexPolygon V') (
 
 #exit
 
-def diff_quadri_splits (T U T' U' : Triangle) : Prop :=
+def diff_quadri_splits (T U T' U' : Triangle) :=
   ∃ a b c d : point, ∃ V : List point, ∃ P : ConvexPolygon [a, b, c, d], ∃ P' : ConvexPolygon V,
   [a, b, c, d] ≠ V ∧ [a, b, c, d] ~ V ∧ P.triangulation = [T, U] ∧ P'.triangulation = [T', U']
 
@@ -451,7 +449,7 @@ def eq_area_of_quadri_splits' (T U T' U' : Triangle) (splits : diff_quadri_split
   have := eq_area_of_quadri P P' perm
   convert this <;> simp [ConvexPolygon.area, triangulation_area, hP, hP']
 
-def adj_triangulation (S : List Triangle) (S' : List Triangle) : Prop :=
+def adj_triangulation (S : List Triangle) (S' : List Triangle) :=
   ∃ T U T' U' : Triangle, T ∈ S ∧ U ∈ S ∧ T' ∈ S' ∧ U' ∈ S' ∧
   diff_quadri_splits T U T' U' ∧ S.diff [T, U] ~ S'.diff [T', U'] ∧ (S.diff [T, U]) ≠ (S'.diff [T', U'])
 
