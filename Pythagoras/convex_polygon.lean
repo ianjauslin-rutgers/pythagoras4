@@ -1,253 +1,500 @@
 import SyntheticEuclid4
--- import Mathlib.Data.FinEnum
-
+import Mathlib.Data.List.Rotate
 open incidence_geometry
 open Classical
 open List
 
 variable [i: incidence_geometry]
 
-def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L
+def WeakSameside (a b : point) (L : line) := sameside a b L ∨ online a L ∨ online b L
 
-def list_shift_nat [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℕ) : α := by
-  let n := lst.length
-  let j := lst.indexOf a + i
-  have : j % n < n := by
-    cases lst
-    · contradiction
-    · apply Nat.mod_lt _ _; simp
-  exact lst[j % n]
-
-/-- ##
-  #reduce list_shift ["a", "b", "c", "d"] (by simp) "a" (-1)
- -/
-def list_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) : α := by
-  cases i with
-  | ofNat j => exact list_shift_nat lst aL j
-  | negSucc j => exact list_shift_nat lst aL (lst.length - j - 1)
-
-lemma mem_of_idx (lst : List α) (i : ℕ) {hi: i < List.length lst} : lst[i] ∈ lst := by simp [mem_iff_get]
-
-lemma mem_of_shift [DecidableEq α] (lst : List α) (aL : a ∈ lst) (i : ℤ) : list_shift lst aL i ∈ lst := by cases i with | ofNat | negSucc => apply mem_of_idx
-
-lemma same_of_shift_iff [DecidableEq α] (lst : List α) (nodup: lst.Nodup) (aL : a ∈ lst) (i : ℤ) : list_shift lst aL i = a ↔ lst.length % i = 0 := by sorry
-
-lemma list_shift_1_nat (a b c : point): @list_shift_nat _ a _ [a, b, c] (by simp) 1 = b := by dsimp [list_shift_nat]; simp [*]
-
-lemma list_shift_1 (a b c : point): @list_shift _ a _ [a, b, c] (by simp) 1 = b := by conv => rhs; rw [← list_shift_1_nat a b c]
-
-def convex (V: List point) : Prop :=
-  ∀ a b c : point, ∀ L : line,
-  (aV: a ∈ V) -> (b ∈ V) → (c ∈ V) → (online a L) → (online (list_shift V aV 1) L) → WeakSameside b c L
-
-lemma convex_of_sublist (C: convex V) (sub: W <+ V) (nW: W ≠ []) : convex W := by sorry
-
-structure ConvexPolygon where
-  vertices : List point
-  nodup : Nodup vertices
-  convex: convex vertices
-  nondeg: vertices ≠ [] := by simp
-
-lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
-  refine ConvexPolygon.mk [a,b,c] ?_ ?_
-  perm [ne_12_of_tri T, ne_13_of_tri T, ne_23_of_tri T]; simp; tauto
-  dsimp [convex, WeakSameside]
-  intro x y z L xP yP zP xL wL
-  have xa : x = a := by
-    obtain ⟨ n, hn ⟩ := get_of_mem xP
-    have : n = (0 : Fin 3) := by sorry -- WLOG
-    simp [*, hn.symm]
-  rw [xa] at xP
-  let w := list_shift [a, b, c] xP 1
-  let w := list_shift [a, b, c] xP 1
-  have wP : w ∈ [a, b, c] := mem_of_shift [a,b,c] xP 1
-  have wb : w = b := by simp [xa]; exact list_shift_1 a b c
-  simp [*, list_shift_1] at wL; rw [← wb] at wL
-  have aL : online a L := by rwa [← xa]
-  have bL : online b L := by rwa [← wb]
-  by_cases yx : y = x
-  · simp [xL, yx]
-  · by_cases zx : z = x
-    · simp [xL, zx]
-    · by_cases yz : y = z
-      · by_cases wy : w = y
-        · right; left; rwa [← wy]
-        · have yc : y = c := by
-            convert yP; rw [xa] at zx; rw [wb, yz] at wy
-            have : ¬ z = b := fun zb => wy zb.symm
-            simp [*]
-          simp [*]; left; apply sameside_rfl_of_not_online
-          rw [yz.symm, yc]
-          exact online_3_of_triangle aL bL T
-      · by_cases yb : y = b
-        · simp [*]
-        · have yc : y = c := by rw [xa] at yx; convert yP; simp [*]
-          have zb : z = b := by convert zP; aesop
-          simp [*]
-
-lemma mem_diff_single_of_ne {l₁: List α} (bL: b ∈ l₁) (ab: a ≠ b) : b ∈ l₁.diff [a] :=
-  mem_diff_of_mem bL (by simp [ab.symm])
-
-def ConvexPolygon_remove_vertex [DecidableEq point] (P : ConvexPolygon) (a b : point)
- (ab: a ≠ b) (bP: b ∈ P.vertices) : ConvexPolygon:= by
-  let V := P.vertices.diff [a]
-  have ne : V ≠ [] := by
-    intro empty
-    apply (@eq_nil_iff_forall_not_mem point (P.vertices.diff [a])).mp empty b
-    convert mem_diff_single_of_ne bP ab
-  have convex := convex_of_sublist P.convex (diff_sublist P.vertices [a]) ne
-  exact ConvexPolygon.mk V (Nodup.diff P.nodup) convex ne
-
-#exit
-def Fin.neZero_of (i : Fin n) : NeZero n := ⟨Nat.pos_iff_ne_zero.mp (Fin.pos i)⟩
-
-def finenum_shift_nat {S : Set α} [FinEnum S] (a : S) (k : ℕ) : α :=
-  haveI := Fin.neZero_of (FinEnum.Equiv a)
-  (FinEnum.Equiv.symm ((FinEnum.Equiv a : ℕ) + k) : S)
-
-def finenum_shift {S : Set α} [h_fin: FinEnum S] (a : S) (k : ℤ) : α := by
-  cases k with
-  | ofNat l => exact finenum_shift_nat a l
-  | negSucc l => exact finenum_shift_nat a (h_fin.card - l - 1)
-
-structure ConvexPolygon := 
-  (vertices : Set point)
-  (h_finenum : FinEnum vertices)
-  (convex : ∀ a b c : vertices, ∀ L : line, (online a L) → (online (finenum_shift a 1) L)
-    → WeakSameside b c L)
-
-
-#exit
-
-example (n i j : ℕ) (hji: j < i) (hin: i < n) (l k : ZMod (i - j + 1)) (hlk: l ≠ k) (hjlk: (j : ZMod n) + l = j + k) : 
-    False := by
-  
-  sorry
-
-
-#exit
-
-open incidence_geometry
-open Classical
-
-
-variable [i: incidence_geometry]
-
-def WeakSameside (a b : point) (L : line) : Prop := sameside a b L ∨ online a L ∨ online b L 
-
-structure ConvexPolygon := 
-  (n : ℕ)
-  (hn : n ≠ 0)
-  (vertex : ZMod n → point)
-  (distinct : ∀ i j : ZMod n, i ≠ j → vertex i ≠ vertex j)
-  (convex : ∀ i j k : ZMod n, ∀ L : line, (online (vertex i) L) → (online (vertex (i+1)) L)
-    → WeakSameside (vertex j) (vertex k) L)
-
-def ConvexPolygon_split_L (P : ConvexPolygon)
-    (i j : ℕ) (hji : j < i) (hin : i < P.n) : ConvexPolygon := by    
-  refine ConvexPolygon.mk (i - j + 1) (by linarith) (fun (k : ZMod (i - j + 1)) => P.vertex (j + k)) ?_ ?_
-  · intro l k hlk hPlk
-    refine P.distinct (j+l) (j+k) ?_ hPlk
-    intro hjlk
-    
-    let ii  := l.val
-    have : (l : ZMod P.n) = k := by
-      have := congr_fun_congr_arg
-
-
-#exit
-
-      have := congr_fun_congr_arg (fun (m : ZMod P.n) => (j : ZMod P.n) + m) ?_ 
-        ?_
-    sorry --- ALEX HOMEWORK
-
-  · intro l m k L lL lpoL 
-    have := P.convex (j+l) (j+m) (j+k) L ?_ ?_
-    repeat {sorry} ---- ALEX HOMEWORK
-    
-def ConvexPolygon_split_R (P : ConvexPolygon) (i j : ZMod P.n) := ConvexPolygon_split_L P j i
-
-lemma decreasing_ConvexPolygon_split_L (P : ConvexPolygon) (i j : ZMod P.n)
-    (hij: i ≠ j) (hijp : i ≠ j+1) (hijm : i ≠ j-1) :
-    (ConvexPolygon_split_L P i j).n < P.n := by
-  dsimp [ConvexPolygon_split_L]
-  have := @ZMod.val_lt P.n (neZero_iff.mpr P.hn) (i-j)
-  sorry
-
-lemma decreasing_ConvexPolygon_split_R (P : ConvexPolygon) (i j : ZMod P.n)
-    (hij: i ≠ j) (hijp : i ≠ j+1) (hijm : i ≠ j-1) :
-    (ConvexPolygon_split_R P i j).n < P.n := by
-  refine decreasing_ConvexPolygon_split_L P j i hij.symm ?_ ?_
-  by_contra contra
-  · rw [contra] at hijm
-    ring_nf at hijm
-    tauto
-  by_contra contra
-  · rw [contra] at hijp
-    ring_nf at hijp
-    tauto
-
-
---class Triangle := (a b c : point)
+-- allows colinearity, unlike triangle --
 structure Triangle where
   a : point
   b : point
   c : point
+  ab : a ≠ b
+  ac : a ≠ c
+  bc : b ≠ c
+
+def nodup_of_triangle (T : triangle a b c) : Nodup [a, b, c] := by
+  have ab := ne_12_of_tri T
+  have ac := ne_13_of_tri T
+  have bc := ne_23_of_tri T
+  simp [Nodup, *]
+
+def triangle_to_Triangle (T : triangle a b c) : Triangle := by
+  have ab := ne_12_of_tri T
+  have ac := ne_13_of_tri T
+  have bc := ne_23_of_tri T
+  exact Triangle.mk a b c ab ac bc
 
 /-- is abc = t? -/
-def triangle_eq_of_pts (a b c : point) (t : Triangle) :=
-  (t.a=a ∧ t.b=b ∧ t.c=c) ∨
-  (t.a=a ∧ t.b=c ∧ t.c=b) ∨
-  (t.a=b ∧ t.b=a ∧ t.c=c) ∨
-  (t.a=b ∧ t.b=c ∧ t.c=a) ∨
-  (t.a=c ∧ t.b=a ∧ t.c=b) ∨
-  (t.a=c ∧ t.b=b ∧ t.c=a)
+def triangle_eq_of_pts (a b c : point) (T : Triangle) :=
+  (T.a=a ∧ T.b=b ∧ T.c=c) ∨
+  (T.a=a ∧ T.b=c ∧ T.c=b) ∨
+  (T.a=b ∧ T.b=a ∧ T.c=c) ∨
+  (T.a=b ∧ T.b=c ∧ T.c=a) ∨
+  (T.a=c ∧ T.b=a ∧ T.c=b) ∨
+  (T.a=c ∧ T.b=b ∧ T.c=a)
 
-def triangle_eq (t u : Triangle) :=
-  triangle_eq_of_pts t.a t.b t.c u
+def triangle_eq (T U : Triangle) :=
+  triangle_eq_of_pts T.a T.b T.c U
+
+lemma nodup_of_triangle_eq (eq : triangle_eq_of_pts a b c T) : Nodup [a, b, c] := by
+  have ab := T.ab
+  have ac := T.ac
+  have bc := T.bc
+  simp [not_and]
+  rcases eq with (h|h|h|h|h|h)
+  all_goals
+    simp [h.1, h.2.1, h.2.2] at ab ac bc
+    tauto
+
+-- symmetric in a,b --
+def exterior_triangle (a b x : point) (V : List point) :=
+  (a ∈ V) ∧ (b ∈ V) ∧ (a ≠ b) ∧ (x ∉ V) ∧ ( B a x b ∨
+  ∀ L M N : line,
+  ( (online a L) ∧ (online b L) ∧
+    (online a M) ∧ (online x M) ∧
+    (online b N) ∧ (online x N)   ) →
+  ∀ c ∈ V, (c ≠ a) → (c ≠ b) →
+  (B a c b ∨ (diffside x c L ∧ WeakSameside b c M ∧  WeakSameside a c N)))
+
+-- if a b c is the first triangle in S, then it must be an exterior triangle w.r.t. V = c :: V'
+def convex_triangulation (V : List point) (S : List Triangle) :=
+  match V, S with
+  | [], _ => False
+  | _, [] => False
+  | [a, b, c], [T] => triangle_eq_of_pts a b c T
+  | x :: V', T :: S' => convex_triangulation V' S' ∧ exterior_triangle T.a T.b x V' ∧ x = T.c
+  termination_by convex_triangulation V S => V.length
+
+def triangulation_area (S : List Triangle) : ℝ :=
+  match S with
+  | [] => 0
+  | T :: S' => area T.a T.b T.c + triangulation_area S'
+
+structure ConvexPolygon (V : List point) where
+  triangulation : List Triangle
+  convex : convex_triangulation V triangulation
+
+namespace ConvexPolygon
+
+def area (P : ConvexPolygon V) : ℝ := triangulation_area P.triangulation
+
+def n (_ : ConvexPolygon V) : ℕ := V.length
+
+lemma vertices_ne_nil (P : ConvexPolygon V) : V ≠ [] := by
+  have S := P.triangulation
+  have C := P.convex
+  match V, S with
+  | [], _ => simp [convex_triangulation] at C
+  | _ :: _, _ => simp
+
+lemma triangulation_ne_nil (P : ConvexPolygon V) : P.triangulation ≠ [] := by
+  have C := P.convex
+  set S := P.triangulation
+  match V, S with
+  | [], [] => simp [convex_triangulation] at C
+  | _ :: _, [] => simp [convex_triangulation] at C
+  | _ :: _, _ :: _ => simp
+
+lemma nodup (P : ConvexPolygon V) : Nodup V := by
+  have C := P.convex
+  set S := P.triangulation
+  induction V with
+  | nil => simp
+  | cons x V' IH =>
+      match S, V' with
+      | [], _ => simp [convex_triangulation] at C
+      | [_], [] => simp
+      | [T], [_] => simp [convex_triangulation] at C
+      | [T], [_, _] => exact nodup_of_triangle_eq C
+      | [T], _ :: _ :: _ :: _ => simp [convex_triangulation] at C
+      | T :: T' :: S', V' =>
+        simp [convex_triangulation] at C; rw [nodup_cons]
+        exact ⟨ C.2.1.2.2.2.1 , IH (ConvexPolygon.mk (T' :: S') C.1) C.1⟩
+
+lemma number_of_triangles_eq (P : ConvexPolygon V) : P.triangulation.length + 2 = P.n := by
+  have C := P.convex
+  have ne_nil := P.triangulation_ne_nil
+  generalize hS : P.triangulation = S at C ne_nil
+  induction S generalizing V with
+  | nil => contradiction
+  | cons T S' IH =>
+    match V, S' with
+    | [], _ => simp [convex_triangulation] at C
+    | [_], [] => simp [convex_triangulation] at C
+    | [_, _], [] => simp [convex_triangulation] at C
+    | [_, _, _], [] => rfl
+    | _ :: _ :: _ :: _ :: V', [] => simp [convex_triangulation] at C
+    | x :: V', T' :: S'' =>
+        simp [ConvexPolygon.n] at IH |-; simp [convex_triangulation] at C
+        exact IH (ConvexPolygon.mk (T' :: S'') C.1) (rfl) C.1
+
+end ConvexPolygon
+
+lemma eq_number_of_triangles_of_perm (P : ConvexPolygon V) (P' : ConvexPolygon V') (perm : V ~ V') :
+   P.triangulation.length = P'.triangulation.length := by
+  suffices List.length P.triangulation + 2 = List.length P'.triangulation + 2 by   simpa
+  simp [P.number_of_triangles_eq, P'.number_of_triangles_eq, ConvexPolygon.n, Perm.length_eq perm]
+
+lemma triangle_is_convex (T : Triangle) : ConvexPolygon [T.a, T.b, T.c] := ConvexPolygon.mk [T] (by tauto)
+
+lemma triangle_area_eq (P : ConvexPolygon [a,b,c]) : P.area = area a b c := by
+  have C := P.convex
+  set S := P.triangulation with ← hS
+  match S with
+  | [] => exfalso; exact C
+  | [T] =>
+      dsimp [ConvexPolygon.area, triangulation_area]; ring_nf
+      have : triangle_eq_of_pts a b c T := C
+      rcases this with (h|h|h|h|h|h) <;> {rw [hS]; simp [triangulation_area, add_zero]; rw [h.1, h.2.1, h.2.2]; perm}
+  | _ :: _ :: _ =>
+    have := P.number_of_triangles_eq
+    simp [ConvexPolygon.n, hS] at this
+
+lemma perm_of_two {x y : α} {V : List α} (perm : [x, y] ~ V) : V = [x, y] ∨ V = [y, x] := by
+  cases perm with
+  | cons _ hy => simp [perm_singleton] at hy; simp [hy]
+  | swap => simp
+  | trans perm' perm'' =>
+    induction perm'' with
+    | nil => simp at perm'
+    | cons X perm =>
+        rename_i T _ _
+        have := perm'.mem_iff.mpr (by simp : X ∈ X :: T)
+        by_cases hX : X = x
+        · simp [hX, perm_singleton.mp (((hX ▸ perm').cons_inv).trans perm).symm]
+        · simp [hX] at this
+          simp [this, (((Perm.swap x y []).trans $ this ▸ perm').cons_inv.trans perm).symm |> perm_singleton.mp]
+    | swap X Y T =>
+        by_cases hY : Y = x
+        · have := (hY ▸ perm').cons_inv.symm |> perm_singleton.mp
+          rw [cons.injEq] at this; simp [this, hY]
+        · have Yy := perm'.mem_iff.mpr (by simp : Y ∈ Y :: X :: T); simp [hY] at Yy
+          have := Yy ▸ (Perm.swap x y []).trans perm'
+          rw [perm_cons, singleton_perm, cons.injEq] at this; simp [this, Yy]
+    | trans perm'' _ _ IH => exact IH (perm'.trans perm'')
+
+lemma perm_of_three {x y : α} {V : List α} (perm : [x, y, z] ~ V) :
+    V = [x, y, z] ∨ V = [x, z, y] ∨ V = [y, x, z] ∨ V = [y, z, x] ∨ V = [z, x, y] ∨ V = [z, y, x] := by
+  cases perm with
+  | cons _ perm' => rcases perm_of_two perm' with (h|h) <;> simp [h]
+  | swap => simp
+  | trans perm' perm'' =>
+    induction perm'' with
+    | nil => simp at perm'
+    | cons X perm =>
+        rename_i _ T _
+        have perm := perm'.trans $ perm.cons X
+        have XV := (perm).mem_iff.mpr (by simp : X ∈ X :: T)
+        by_cases hX : X = x
+        · simp [hX, Perm.cons_inv] at perm
+          rcases perm_of_two perm with (h|h) <;> simp [hX, h]
+        · simp [hX] at XV
+          rcases XV with (h|h)
+          · have := (Perm.swap x y [z]).trans perm; simp [h] at this
+            rcases perm_of_two this with (H|H) <;> simp [h, H]
+          · have := ((Perm.swap x z [y]).trans $ (Perm.swap y z []).cons x).trans perm
+            simp [h] at this
+            rcases perm_of_two this with (H|H) <;> simp [h, H]
+    | swap X Y T =>
+        by_cases hY : Y = x
+        · rw [hY] at perm' |-
+          rcases perm_of_two perm'.cons_inv with (h|h) <;> {simp at h; simp [h]}
+        · have YV := perm'.mem_iff.mpr (by simp : Y ∈ Y :: X :: T); simp [hY] at YV
+          rcases YV with (h|h)
+          · have perm := (Perm.swap x y [z]).trans perm';
+            simp [h, Perm.cons_inv] at perm
+            rcases perm_of_two perm with (H|H) <;> {simp at H; simp [H, h]}
+          · have := ((Perm.swap x z [y]).trans $ (Perm.swap y z []).cons x).trans perm'
+            simp [h, Perm.cons_inv] at this
+            rcases perm_of_two this with (H|H) <;> {simp at H; simp [H, h]}
+    | trans perm'' _ _ IH => exact IH (perm'.trans perm'')
+
+lemma eq_area_of_tri (P : ConvexPolygon [a, b, c]) (P' : ConvexPolygon V) (perm : [a, b, c] ~ V) : P.area = P'.area := by
+  have C' := P'.convex
+  set S' := P'.triangulation with ← hS
+  have triples := perm_of_three perm
+  match S' with
+  | [] => exfalso; exact P'.triangulation_ne_nil hS
+  | _ :: _ :: _ =>
+      have := P'.number_of_triangles_eq
+      simp [ConvexPolygon.n, Perm.length_eq perm.symm, length_eq_one, hS] at this
+  | [T] =>
+      have := Perm.length_eq perm.symm
+      match V with
+      | [] => simp [convex_triangulation] at C'
+      | [_] => simp [convex_triangulation] at C'
+      | [_, _] => simp [convex_triangulation] at C'
+      | _ :: _ :: _ :: _ :: _ => simp [List.length] at this
+      | [x, y, z] =>
+          simp [triangle_area_eq]
+          rcases triples with (h|h|h|h|h|h) <;> {simp at h; rw [h.1, h.2.1, h.2.2]; perm}
+
+lemma nodup_of_paragram (pg: paragram a b c d M N O P) : Nodup [a, b, c, d] := by
+  have := nodup_of_triangle $ tri124_of_paragram pg; simp [Nodup]; simp [Nodup] at this
+  obtain ⟨ _, bM, _, cN, cO, _, dP, aP, pMO, pNP ⟩ := pg
+  have ac : a ≠ c := fun ac => by rw [ac] at aP; exact not_para_of_inter cN aP pNP
+  have bc : b ≠ c := fun bc => by rw [bc] at bM; exact not_para_of_inter bM cO pMO
+  have cd : c ≠ d := fun cd => by rw [← cd] at dP; exact not_para_of_inter cN dP pNP
+  tauto
+
+lemma paragram_is_convex (pg: paragram a b c d M N O P) : ConvexPolygon [a, b, c, d] := by
+  have nodup := nodup_of_paragram pg; simp [Nodup, and_assoc] at nodup
+  obtain ⟨ ab, ac, ad, bc, bd, cd⟩ := nodup
+  let T := Triangle.mk b c d bc bd cd
+  let T' := Triangle.mk b d a bd (Ne.symm ab) (Ne.symm ad)
+  use [T', T]; simp [convex_triangulation]
+  constructor; simp [triangle_eq_of_pts]; simp [exterior_triangle, *]
+  right; intro L M' N' bL dL bM' aM' dN' aN' _; right
+  obtain ⟨ aM, bM, bN, cN, cO, dO, dP, aP, pMO, pNP ⟩ := id pg
+  rw [← line_unique_of_pts ab aM bM aM' bM']
+  rw [← line_unique_of_pts (Ne.symm ad) dP aP dN' aN']
+  constructor; exact diffside_of_paragram bL dL pg
+  constructor; left; exact sameside_of_para_online dO cO (by perma)
+  constructor; exact sameside_of_para_online bN cN (by perma)
+
+lemma exterior_triangle_almost_unique {a b c d x : point} {V V': List point} (perm : V ~ V')
+    (abx : exterior_triangle a b x V) (cdx : exterior_triangle c d x V') (nondeg : ¬ (B a x b ∧ B c x d)) :
+    (a = c ∧ b = d) ∨ (a = d ∧ b = c) := by sorry
+    -- show that if one of the B conditions is false, the other is too
+
+lemma eq_area_of_eq_last_vertex (P: ConvexPolygon $ x :: V) (P': ConvexPolygon $ x :: V') (perm : V ~ V') (hS : P.triangulation = T :: S) (hS' : P'.triangulation = U :: S') :
+    triangulation_area [T] = triangulation_area [U] := by
+  have C := P.convex
+  have C' := P'.convex
+  have lens := hS ▸ hS' ▸ eq_number_of_triangles_of_perm P P' $ Perm.cons x perm
+  match V, S with
+  | [], _ => simp [hS, convex_triangulation] at C
+  | [_], [] => simp [hS, convex_triangulation] at C
+  | [_], _ :: _ => simp [hS, convex_triangulation] at C
+  | [_, _], _ :: _ =>
+    have := hS ▸ P.number_of_triangles_eq; simp [ConvexPolygon.n] at this
+  | [_, _], [] =>
+    match S' with
+    | [] =>
+      have := eq_area_of_tri P P' $ Perm.cons x perm
+      simp [ConvexPolygon.area, hS, hS'] at this; exact this
+    | _ :: _ => simp [List.length] at lens
+  | _ :: _ :: _  :: _, [] =>
+    have := hS ▸ P.number_of_triangles_eq
+    simp [ConvexPolygon.n, length_eq_zero] at this
+    contradiction
+  | y :: W, T' :: SS =>
+    match S' with
+    | [] => simp [List.length] at lens
+    | U' :: SSS =>
+      have : triangle_eq T U ∨ (colinear T.a T.b T.c ∧ colinear U.a U.b U.c) := by
+        simp [hS, hS', convex_triangulation] at C C'
+        by_cases hB : B T.a x T.b ∧ B U.a x U.b
+        · right; exact ⟨ col132.mp $ C.2.2 ▸ col_of_B hB.1, col132.mp $ C'.2.2 ▸ col_of_B hB.2 ⟩
+        · left; simp [triangle_eq, triangle_eq_of_pts, C'.2.2 ▸ C.2.2.symm]
+          rcases exterior_triangle_almost_unique perm C.2.1 C'.2.1 hB with (h|h) <;> simp [h.1, h.2]
+      rcases this with (h|h)
+      · dsimp [triangle_eq, triangle_eq_of_pts] at h; dsimp [triangulation_area];
+        generalize T.a = A at h |-
+        generalize T.b = B at h |-
+        generalize T.c = C at h |-
+        rcases h with (H|H|H|H|H|H) <;> (rw [H.1, H.2.1, H.2.2]; try {ring_nf; perm})
+      · dsimp [triangulation_area]
+        obtain ⟨ L, hL ⟩ := h.1; rw [(@area_zero_iff_online i T.a T.b T.c L T.ab hL.1 hL.2.1).mpr hL.2.2]
+        obtain ⟨ M, hM ⟩ := h.2; rw [(@area_zero_iff_online i U.a U.b U.c M U.ab hM.1 hM.2.1).mpr hM.2.2]
+
+lemma eq_area_of_eq_vertices (P : ConvexPolygon V) (P' : ConvexPolygon V)
+  : P.area = P'.area := by
+  induction V with
+  | nil => exfalso; exact P.vertices_ne_nil rfl
+  | cons x V' IH =>
+    have C := P.convex
+    have C' := P'.convex
+    generalize hS : P.triangulation = S at C
+    generalize hS' : P'.triangulation = S' at C'
+    match S, S' with
+    | [], _ => exfalso; exact P.triangulation_ne_nil hS
+    | _, [] => exfalso; exact P'.triangulation_ne_nil hS'
+    | T :: SS, U :: SSS =>
+      match V', SS with
+      | [], _ => simp [convex_triangulation] at C
+      | [_], [] => simp [convex_triangulation] at C
+      | [_], _ :: _ => simp [convex_triangulation] at C
+      | [_, _], _ => exact eq_area_of_tri P P' (by simp)
+      | y :: z :: w :: V', [] =>
+        have := hS ▸ P.number_of_triangles_eq
+        simp [ConvexPolygon.n, List.length] at this; contradiction
+      | y :: z :: V', T' :: SS' =>
+        match SSS with
+        | nil =>
+          have := hS ▸ hS' ▸ eq_number_of_triangles_of_perm P P' (by rfl)
+          simp at this
+        | U' :: SSS' =>
+          simp [convex_triangulation] at C C'
+          let P'' := ConvexPolygon.mk (T' :: SS') C.1
+          let P''' := ConvexPolygon.mk (U' :: SSS') C'.1
+          have IH := IH P'' P'''
+          have := eq_area_of_eq_last_vertex P P' (by rfl) hS hS'
+          simp [ConvexPolygon.area, hS, hS', triangulation_area] at IH this |-
+          linarith
+
+def eq_area_of_quadri_splits (P: ConvexPolygon $ x :: y :: V) (P': ConvexPolygon $ y :: x :: V)
+    (hS : P.triangulation = T :: T' :: S) (hS' : P'.triangulation = U :: U' :: S') : P.area = P'.area := by
+  have C := P.convex
+  have C' := P'.convex
+  have := hS ▸ hS' ▸ eq_number_of_triangles_of_perm P P' $ Perm.swap y x V
+  have lens : S.length = S'.length := by simpa [this]
+  have har: triangulation_area S = triangulation_area S' := by
+    cases S with
+    | nil =>
+        match S' with
+        | [] => rfl
+        | _ :: _ => simp [List.length] at lens; contradiction
+    | cons T'' S =>
+      match S' with
+      | [] => simp [List.length] at lens;
+      | U'' :: S''' =>
+        match V with
+        | nil => simp [hS, convex_triangulation] at C
+        | z :: V' =>
+          simp [hS, convex_triangulation] at C
+          simp [hS', convex_triangulation] at C'
+          let P'' := ConvexPolygon.mk (T'' :: S) C.1.1
+          let P''' := ConvexPolygon.mk (U'' :: S''')  C'.1.1
+          have := eq_area_of_eq_vertices P'' P'''
+          simp [ConvexPolygon.area] at this
+          exact this
+  cases V with
+  | nil =>
+      set SP := P.triangulation with ← hSP
+      match SP with
+      | [] => simp [convex_triangulation] at C
+      | [_] => simp [convex_triangulation] at C
+      | _ :: _ ::_ => simp [convex_triangulation] at C
+  | cons z W =>
+      simp [ConvexPolygon.area, triangulation_area, hS, hS', har, ← add_assoc];
+      cases W with
+      | nil => have := P.number_of_triangles_eq; simp [hS, ConvexPolygon.n] at this
+      | cons w W' => sorry -- this is the parallelogram case
+
+lemma permuted_ConvexPolygon (P : ConvexPolygon V) (perm: V ~ V') : ConvexPolygon V' := by
+  -- use induction
+  sorry
+
+theorem eq_area_of_perm_vertices (P : ConvexPolygon V) (P' : ConvexPolygon V') (perm: V ~ V') : P.area = P'.area := by
+  set S := P.triangulation with ← hS
+  set S' := P'.triangulation with ← hS'
+  have lens := eq_number_of_triangles_of_perm P P' perm
+  induction perm with
+  | nil => exfalso; apply P.vertices_ne_nil; rfl
+  | cons x h IH =>
+    rename_i W W'
+    match S, S' with
+    | [], _ => exfalso; apply P.triangulation_ne_nil; exact hS
+    | _, [] => exfalso; apply P'.triangulation_ne_nil; exact hS'
+    | [T], _ :: _ :: _ => have := hS ▸ hS' ▸ lens; simp at this; contradiction
+    | [T], [_] =>
+        have := hS ▸ P.number_of_triangles_eq
+        simp [ConvexPolygon.n] at this
+        match W with
+        | [] => simp at this
+        | [_] => simp at this
+        | [y, z] => exact eq_area_of_tri P P' $ h.cons x
+    | T :: T' :: S'', [_] => have := hS ▸ hS' ▸ lens; simp at this
+    | T :: T' :: S'', U :: U' :: S''' =>
+        have C := hS ▸ P.convex; simp [convex_triangulation] at C
+        have C' := hS' ▸ P'.convex; simp [convex_triangulation] at C'
+        let PW := ConvexPolygon.mk (T' :: S'') C.1
+        let PW' := ConvexPolygon.mk (U' :: S''') C'.1
+        have : triangulation_area (T :: T' :: S'') = triangulation_area [T] + triangulation_area (T' :: S'') := by simp [triangulation_area]
+        have hT: ConvexPolygon.area P = ConvexPolygon.area PW + triangulation_area [T] := by
+          simp [ConvexPolygon.area, hS, this]; ring_nf
+        have : triangulation_area (U :: U' :: S''') = triangulation_area [U] + triangulation_area (U' :: S''') := by simp [triangulation_area]
+        have hU: ConvexPolygon.area P' = ConvexPolygon.area PW' + triangulation_area [U] := by
+          simp [ConvexPolygon.area, hS', this]; ring_nf
+        have : triangulation_area [T] = triangulation_area [U] := eq_area_of_eq_last_vertex P P' h hS hS'
+        rw [hT, hU, this]; simp [add_right_inj]; apply IH PW PW' (by rfl) (by rfl)
+        simp [hS, hS', length_cons, Nat.succ.injEq, add_left_inj] at lens; simp [lens]
+  | swap x y =>
+      rename_i W
+      match S, S' with
+    | [], _ => exfalso; apply P.triangulation_ne_nil; exact hS
+    | _, [] => exfalso; apply P'.triangulation_ne_nil; exact hS'
+    | [T], _ :: _ :: _ => have := hS ▸ hS' ▸ lens; simp at this; contradiction
+    | [T], [U] =>
+        match W with
+        | [] => have := hS ▸ P.number_of_triangles_eq; simp [ConvexPolygon.n] at this
+        | [z] => exact eq_area_of_tri P P' $ Perm.swap x y [z]
+        | _ :: _ :: _ => have := hS ▸ P.number_of_triangles_eq; simp [ConvexPolygon.n] at this; contradiction
+    | T :: T' :: S'', [_] => have := hS ▸ hS' ▸ lens; simp at this
+    | T :: T' :: S'', U :: U' :: S''' => exact eq_area_of_quadri_splits P P' hS hS'
+  | trans perm' _ IH IH' =>
+      let P'' := permuted_ConvexPolygon P perm'
+      have lens' := eq_number_of_triangles_of_perm P P'' perm'
+      exact Eq.trans (by apply IH P P'' hS.symm; rfl; rw [← lens']) (by apply IH' P'' P'; rfl; rfl ; rw [← lens, lens'])
 
 
+#exit
 
-/-- is abc in a set of triangles? -/
-def triangle_in_set (a b c : point) (T : Set Triangle) :=
-  ∃ t ∈ T, triangle_eq_of_pts a b c t
+def diff_quadri_splits (T U T' U' : Triangle) :=
+  ∃ a b c d : point, ∃ V : List point, ∃ P : ConvexPolygon [a, b, c, d], ∃ P' : ConvexPolygon V,
+  [a, b, c, d] ≠ V ∧ [a, b, c, d] ~ V ∧ P.triangulation = [T, U] ∧ P'.triangulation = [T', U']
 
-/-- is this point in the polygon -/
-def point_in_ConvexPolygon (a : point) (P : ConvexPolygon) :=
-  ∃ i : ZMod P.n, a = P.vertex i
-/-- is the whole triangle in the polygon -/
-def triangle_in_ConvexPolygon (t : Triangle) (P : ConvexPolygon) :=
-  point_in_ConvexPolygon t.a P ∧
-  point_in_ConvexPolygon t.b P ∧
-  point_in_ConvexPolygon t.c P
-  
+lemma eq_area_of_quadri (P : ConvexPolygon [a, b, c, d]) (P' : ConvexPolygon V) (perm : [a, b, c, d] ~ V) : P.area = P'.area := by
+  sorry
 
-/-- More general: suffices to show that a triangle splits the polygon into two triangulations -/
-def is_triangulation (T : Finset Triangle) (P : ConvexPolygon) : Prop :=
-  match P.n with
-  | 0 => T = Finset.empty
-  | 1 => T = Finset.empty
-  | 2 => T = Finset.empty
-  | 3 => T.card = 1 ∧ (∀ t ∈ T, triangle_eq_of_pts (P.vertex 0) (P.vertex 1) (P.vertex 2) t)
-  | Nat.succ n => 
-    ∃ i j k : ZMod P.n, ∃ h : i≠j ∧ (i≠j-1) ∧ (i≠j+1) ∧ k≠i ∧ k≠j,  (triangle_in_set (P.vertex i) (P.vertex j) (P.vertex k) T)
-    ∧ is_triangulation (Finset.filter (fun t:Triangle => triangle_in_ConvexPolygon t (ConvexPolygon_split_L P i j)) T) (ConvexPolygon_split_L P i j)
-    ∧ is_triangulation (Finset.filter (fun t:Triangle => triangle_in_ConvexPolygon t (ConvexPolygon_split_R P i j)) T) (ConvexPolygon_split_R P i j)
-  -- termination is dictated by P.n
-  termination_by is_triangulation T P => P.n
-  decreasing_by
-    simp_wf
-    try exact decreasing_ConvexPolygon_split_L P i j h.1 h.2.2.1 h.2.1
-    try exact decreasing_ConvexPolygon_split_R P i j h.1 h.2.2.1 h.2.1
+def eq_area_of_quadri_splits' (T U T' U' : Triangle) (splits : diff_quadri_splits T U T' U') :
+    area T.a T.b T.c + area U.a U.b U.c = area T'.a T'.b T'.c + area U'.a U'.b U'.c := by
+  obtain ⟨ a, b, c, d, V, P, P', _, perm, hP, hP' ⟩ := splits
+  have := eq_area_of_quadri P P' perm
+  convert this <;> simp [ConvexPolygon.area, triangulation_area, hP, hP']
 
+def adj_triangulation (S : List Triangle) (S' : List Triangle) :=
+  ∃ T U T' U' : Triangle, T ∈ S ∧ U ∈ S ∧ T' ∈ S' ∧ U' ∈ S' ∧
+  diff_quadri_splits T U T' U' ∧ S.diff [T, U] ~ S'.diff [T', U'] ∧ (S.diff [T, U]) ≠ (S'.diff [T', U'])
 
+lemma eq_area_of_perm_triangulation (S S' : List Triangle) (perm : S ~ S') : triangulation_area S = triangulation_area S' := by
+  induction perm with
+  | nil => rfl
+  | cons _ _ IH => dsimp [triangulation_area]; rw [IH]
+  | swap => dsimp [triangulation_area]; ring
+  | trans _ _ _ _ => linarith
 
-/-- This definition requires the identification of an external triangle -/
-def is_triangulation' (T : Finset Triangle) (P : ConvexPolygon) : Prop :=
-  match P.n with
-  | 0 => T = Finset.empty
-  | 1 => T = Finset.empty
-  | 2 => T = Finset.empty
-  | Nat.succ n => 
-    ∃ i : ZMod (n+1) , ∃ t ∈ T, triangle_eq_of_pts (P.vertex i) (P.vertex (i+1)) (P.vertex (i+2)) t
-    ∧ is_triangulation (Finset.erase T t) (ConvexPolygon_split_L P (i-1) (i+1))
+lemma triangulation_area_of_erase (S : List Triangle) (T : Triangle) (TS : T ∈ S) :
+   triangulation_area S = triangulation_area (S.erase T) + triangulation_area [T] := by
+  have := (@cons_perm_iff_perm_erase Triangle _ T (S.erase T) S).mpr ⟨TS, (by rfl)⟩
+  have := eq_area_of_perm_triangulation S (T :: List.erase S T) this.symm
+  rw [this]
+  dsimp [TS, triangulation_area]
+  linarith
+
+lemma triangulation_area_of_diff (S : List Triangle) (T : Triangle) (TS : T ∈ S) :
+   triangulation_area S = triangulation_area (S.diff [T]) + triangulation_area [T] := by
+  simp [List.diff, TS]
+  exact triangulation_area_of_erase S T TS
+
+lemma triangulation_area_of_diff_two (S : List Triangle) (T U: Triangle) (TS : T ∈ S) (US : U ∈ S) (TU : T ≠ U) :
+    triangulation_area S = triangulation_area (List.diff S [T, U]) + triangulation_area [T] + triangulation_area [U] := by
+  have : U ∉ [T] := by intro x; exact TU (mem_singleton.mp x).symm
+  have := mem_diff_of_mem US this; simp [List.diff, TS] at this
+  simp [List.diff, elem_iff, ne_eq, TS, this]
+  have := triangulation_area_of_erase _ U this
+  ring_nf
+  conv => rw [add_assoc, add_comm]; rhs; rw [add_assoc, add_comm]; lhs; rw [add_comm]; rw [← this]
+  exact triangulation_area_of_erase _ T TS
+
+lemma eq_area_of_adj_triangulation (P : ConvexPolygon V) (P' : ConvexPolygon V')
+    (adj : adj_triangulation P.triangulation P'.triangulation) : P.area = P'.area := by
+  obtain ⟨ T, U, T', U', TS, US, T'S', U'S', splits, perm, diff⟩ := adj
+  have TU:  T ≠ U := by sorry
+  have T'U' : T' ≠ U' := by sorry
+  have hS := triangulation_area_of_diff_two P.triangulation T U TS US TU
+  have hS' := triangulation_area_of_diff_two P'.triangulation T' U' T'S' U'S' T'U'
+  simp [ConvexPolygon.area, hS, hS']
+  dsimp [triangulation_area]; ring_nf
+  have := eq_area_of_quadri_splits' T U T' U' splits
+  conv => lhs; rw [add_assoc, this]
+  conv => rhs; rw [add_assoc]
+  simp
+  have := eq_area_of_perm_triangulation (List.diff P.triangulation [T, U]) (List.diff P'.triangulation [T', U']) perm
+  convert this <;> simp
