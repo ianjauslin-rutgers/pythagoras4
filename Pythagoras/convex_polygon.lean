@@ -57,6 +57,8 @@ lemma triangle_is_convex (T: triangle a b c) : ConvexPolygon := by
     obtain ⟨ n, hn ⟩ := get_of_mem xP
     have : n = (0 : Fin 3) := by sorry -- WLOG
     simp [*, hn.symm]
+  rw [xa] at xP
+  let w := list_shift [a, b, c] xP 1
   let w := list_shift [a, b, c] xP 1
   have wP : w ∈ [a, b, c] := mem_of_shift [a,b,c] xP 1
   have wb : w = b := by simp [xa]; exact list_shift_1 a b c
