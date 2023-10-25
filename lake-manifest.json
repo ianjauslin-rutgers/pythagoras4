@@ -1,0 +1,33 @@
+{"version": 4,
+ "packagesDir": "lake-packages",
+ "packages":
+ [{"git":
+   {"url": "https://github.com/leanprover-community/mathlib4.git",
+    "subDir?": null,
+    "rev": "4321641dc1e1590157b2fd08adcbd45b468c8dc5",
+    "name": "mathlib",
+    "inputRev?": "4321641dc1e1590157b2fd08adcbd45b468c8dc5"}},
+  {"git":
+   {"url": "https://github.com/gebner/quote4",
+    "subDir?": null,
+    "rev": "c71f94e34c1cda52eef5c93dc9da409ab2727420",
+    "name": "Qq",
+    "inputRev?": "master"}},
+  {"git":
+   {"url": "https://github.com/JLimperg/aesop",
+    "subDir?": null,
+    "rev": "38bcf8b9e564d23bad55cbfa3c770f135f926d98",
+    "name": "aesop",
+    "inputRev?": "master"}},
+  {"git":
+   {"url": "https://github.com/leanprover/std4",
+    "subDir?": null,
+    "rev": "b886042255d5e93b8d0adb780d49b1c8f3482fbb",
+    "name": "std",
+    "inputRev?": "main"}},
+  {"git":
+   {"url": "https://github.com/ah1112/synthetic_euclid_4.git",
+    "subDir?": null,
+    "rev": "c6c30de0d18abf416a0be9cb0df2fefe4123dd86",
+    "name": "synthetic_euclid_4",
+    "inputRev?": "c6c30de"}}]}
