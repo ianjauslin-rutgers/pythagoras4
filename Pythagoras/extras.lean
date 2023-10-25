@@ -10,18 +10,22 @@ variable [i: incidence_geometry]
 
 theorem incenter (a b c d e f : point)
     (Bafb : B a f b) (Bbdc : B b d c) (Baec : B a e c)
+    (abc: triangle a b c)
     (Aa : angle b a d = angle d a c)
     (Ab : angle a b e = angle e b c)
     (Ac : angle a c f = angle f c b) :
     ∃ g : point, B a g d ∧ B b g e ∧ B c g f ∧
-    ∃ d' e' f' : point, 
+    ∃ d' e' f' : point,
+      Baf'b : B a f' b ∧
+      Bbd'c : B b d' c ∧
+      Bae'c : B a e' c
       angle g d' b = rightangle ∧
       angle g e' c = rightangle ∧
       angle g f' a = rightangle ∧
     ∃ α : circle, center_circle g α ∧
                   on_circle d' α ∧
                   on_circle e' α ∧
-                  on_circle f' α 
+                  on_circle f' α
     := by
   obtain ⟨ L, aL, dL ⟩ := line_of_pts a d
   obtain ⟨ M, bM, eM ⟩ := line_of_pts b e
@@ -39,7 +43,7 @@ theorem circumcenter (a b c d e f : point) (L M N : line)
     (Lbis : ∀ p : point, length b p = length c p → online p L)
     (Mbis : ∀ p : point, length a p = length c p → online p M)
     (Nbis : ∀ p : point, length a p = length b p → online p N) :
-    ∃ g : point, online g L ∧ online g M ∧ online g M ∧ 
+    ∃ g : point, online g L ∧ online g M ∧ online g M ∧
     ∃ α : circle, center_circle g α ∧
                   on_circle a α ∧
                   on_circle b α ∧
