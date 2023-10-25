@@ -16,9 +16,9 @@ theorem incenter (a b c d e f : point)
     (Ac : angle a c f = angle f c b) :
     ∃ g : point, B a g d ∧ B b g e ∧ B c g f ∧
     ∃ d' e' f' : point,
-      Baf'b : B a f' b ∧
-      Bbd'c : B b d' c ∧
-      Bae'c : B a e' c
+      B a f' b ∧
+      B b d' c ∧
+      B a e' c ∧
       angle g d' b = rightangle ∧
       angle g e' c = rightangle ∧
       angle g f' a = rightangle ∧
