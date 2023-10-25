@@ -1,723 +1,461 @@
 import SyntheticEuclid4
 import Pythagoras.proportion
 import Mathlib.Tactic.SwapVar
-import Mathlib.Tactic.LibrarySearch
 
 open incidence_geometry
 variable [i: incidence_geometry]
 
+/-- a wrapper around proportion_iff utilizing length nonnegativity-/
+lemma proportion_len_iff (a b c d e f g h : point) (cd : length c d ≠ 0) (gh: length g h ≠ 0) :
+  (length a b) / (length c d) = (length e f) / (length g h) ↔ proportion (length a b) (length c d) (length e f) (length g h) :=
+   proportion_iff (length_nonneg _ _) (length_nonneg _ _) (length_nonneg _ _) (length_nonneg _ _) cd gh
+
+/-- given two lengths, one is trivial iff the other is -/
+lemma same_len_pts_coincide_iff {a b c d : point} (hlen: length a b = length c d) : a = b ↔ c = d := by
+    rw [← @length_eq_zero_iff i a b, ← @length_eq_zero_iff i c d, hlen]
 
 /-- find second point on line -/
-lemma pt_of_line_ne_pt (a : point) (L : line):
+lemma pt_of_line_ne_pt (a : point) (L : line) :
     ∃ b : point, (b ≠ a) ∧ (online b L) := by
-  obtain ⟨ b, c, hbc ⟩ := online_ne_of_line L
+  obtain ⟨ b, c, Hbc ⟩ := online_ne_of_line L
   by_cases b = a
-  · use c
-    rw [h] at hbc
-    exact ⟨ hbc.1.symm, hbc.2.2 ⟩
-  · use b
-    exact ⟨ h, hbc.2.1 ⟩
-
+  · simp_rw [h] at Hbc; exact ⟨c, Hbc.1.symm, Hbc.2.2 ⟩
+  · exact ⟨ b, h, Hbc.2.1 ⟩
 
 /-- intersection of non_parallel lines -/
 lemma pt_of_line_line {L M : line} (hp: ¬ para L M) :
-    ∃ a:point, (online a L)∧(online a M) := by
-  dsimp [para] at hp
-  rw [not_forall] at hp
-  obtain ⟨ e, he ⟩ := hp
-  use e
-  rw [not_or,not_not,not_not] at he
-  exact he
-
+    ∃a : point, (online a L) ∧ (online a M) := by
+  simp_rw [para, not_forall, not_or, not_not] at hp; exact hp
 
 /-- parallel lines don't intersect -/
 lemma neq_of_para {a b : point} {L M : line}
-    (haL: online a L)
-    (hbM: online b M)
-    (hpar: para L M) :
-    a ≠ b := by
-  by_contra contra
-  have := online_of_online_para haL hpar
-  rw [contra] at this
-  exact this hbM
-
+    (aL: online a L)
+    (bM: online b M)
+    (pLM: para L M) :
+    a ≠ b := fun ab => by
+  have := offline_of_para aL pLM; rw [ab] at this; exact this bM
 
 /-- ## Euclid I.30
 parallel is (almost) transitive (almost because parallel means not equal) -/
 theorem para_trans {L M N : line}
     (pLM: para L M)
     (pLN: para L N) :
-    M=N ∨ (para M N) := by
+    M = N ∨ (para M N) := by
   by_cases MN : M = N
   · tauto
 
   -- assume that M, N intersect at c; drop a line from it perpendicular to L
-  by_contra npMN
-  simp only [not_or] at npMN
-  rcases pt_of_line_line npMN.2 with ⟨c, hcM, hcN⟩
-  have hncL := online_of_online_para hcN (para_symm pLN)
-  rcases perppointnon hncL with ⟨-, d, -, -, hdL, -, -, -, -⟩
-  obtain ⟨O, hcO, hdO⟩ := line_of_pts c d
-  have cd : c ≠ d := neq_of_para hcM hdL (para_symm pLM)
-  have hLO : L ≠ O := fun LO => hncL (by rwa [← LO] at hcO)
+  by_contra npMN; simp [not_or] at npMN
+  rcases pt_of_line_line npMN.2 with ⟨c, cM, cN⟩
+  have cL := offline_of_para cN (para_symm pLN)
+  rcases perpendicular_of_not_online cL with ⟨-, -, d, -, -, -, dL, -, -⟩
+  obtain ⟨O, cO, dO⟩ := line_of_pts c d
+  have cd : c ≠ d := neq_of_para cM dL (para_symm pLM)
+  have LO : L ≠ O := fun LO => cL (by rwa [← LO] at cO)
 
   -- draw a circle α with center c and radius d; find its intersections with M,N
-  obtain ⟨α, hα⟩ := circle_of_ne cd
-  have cα := inside_circle_of_center hα.1
-  have αM := line_circle_inter_of_inside_online hcM cα
-  have αN := line_circle_inter_of_inside_online hcN cα
-  obtain ⟨a, a', aa', haM, ha'M, aα⟩ := pts_of_line_circle_inter αM
-  obtain ⟨b, b', bb', hbN, hb'N, bα⟩ := pts_of_line_circle_inter αN
-  have Baca' := B_of_line_circle_inter aa' hcM haM ha'M aα.1 aα.2 cα
-  have Bbcb' := B_of_line_circle_inter bb' hcN hbN hb'N bα.1 bα.2 cα
+  obtain ⟨α, Hα⟩ := circle_of_ne cd
+  have cα := inside_circle_of_center Hα.1
+  have αM := line_circle_inter_of_inside_online cM cα
+  have αN := line_circle_inter_of_inside_online cN cα
+  obtain ⟨a, a', aa', aM, a'M, aα⟩ := pts_of_line_circle_inter αM
+  obtain ⟨b, b', bb', bN, b'N, bα⟩ := pts_of_line_circle_inter αN
+  have Baca' := B_of_line_circle_inter aa' cM aM a'M aα.1 aα.2 cα
+  have Bbcb' := B_of_line_circle_inter bb' cN bN b'N bα.1 bα.2 cα
   have ac := ne_12_of_B Baca'
   have bc := ne_12_of_B Bbcb'
   have b'c := (ne_23_of_B Bbcb').symm
-  have hnaO: ¬ online a O := fun haO => neq_of_para hdL hdO (by rwa [← line_unique_of_pts ac haO hcO haM hcM] at pLM) (by rfl)
-  have hnbO : ¬ online b O := fun hbO => neq_of_para hdL hdO (by rwa [← line_unique_of_pts bc hbO hcO hbN hcN] at pLN) (by rfl)
-  have hnb'O : ¬ online b' O := fun hb'O => neq_of_para hdL hdO (by rwa [← line_unique_of_pts b'c hb'O hcO hb'N hcN] at pLN) (by rfl)
-  have hnaN: ¬ online a N := fun haN => MN (line_unique_of_pts ac haM hcM haN hcN)
-  have hnbM: ¬ online b M := fun hbM => MN (line_unique_of_pts bc hbM hcM hbN hcN)
-  have hnb'M: ¬ online b' M := fun hb'M => MN (line_unique_of_pts b'c hb'M hcM hb'N hcN)
-  have hNO : N ≠ O := fun NO => hnbO (by rwa [NO] at hbN)
-  have hMO : M ≠ O := fun MO => hnaO (by rwa [MO] at haM)
+  have aO: ¬ online a O := fun aO => neq_of_para dL dO (by rwa [← line_unique_of_pts ac aO cO aM cM] at pLM) rfl
+  have bO : ¬ online b O := fun bO => neq_of_para dL dO (by rwa [← line_unique_of_pts bc bO cO bN cN] at pLN) rfl
+  have b'O : ¬ online b' O := fun hb'O => neq_of_para dL dO (by rwa [← line_unique_of_pts b'c hb'O cO b'N cN] at pLN) rfl
+  have aN: ¬ online a N := fun aN => MN (line_unique_of_pts ac aM cM aN cN)
+  have bM: ¬ online b M := fun bM => MN (line_unique_of_pts bc bM cM bN cN)
+  have b'M: ¬ online b' M := fun hb'M => MN (line_unique_of_pts b'c hb'M cM b'N cN)
+  have NO : N ≠ O := fun NO => bO (by rwa [NO] at bN)
+  have MO : M ≠ O := fun MO => aO (by rwa [MO] at aM)
 
   -- choose b so that a, b that lie on the same side of O by symmetry
   by_cases ssbaO: sameside b a O
   have ssabO := sameside_symm ssbaO
   swap
-  have nsbb'O := not_sameside13_of_B123_online2 Bbcb' hcO
-  have ssabO := sameside_of_diffside_diffside ⟨hnbO, hnaO, ssbaO⟩ ⟨hnbO, hnb'O, nsbb'O⟩
-  swap_var b ↔ b'
-  swap_var hbN ↔ hb'N
-  swap_var hnbM ↔ hnb'M
-  swap_var hnbO ↔ hnb'O
-  swap_var bc ↔ b'c
-  all_goals {
-    have ss1 := sameside_of_sameside_not_sameside cd hcO hcN hcM hdO hbN haM hnaN (sameside_symm ssabO)
-    have ss2 := not_sameside_of_sameside_sameside hcO hcM hcN hdO haM hbN ssabO
+  have nsbb'O := not_sameside13_of_B123_online2 Bbcb' cO
+  have ssabO := sameside_of_diffside_diffside ⟨bO, aO, ssbaO⟩ ⟨bO, b'O, nsbb'O⟩
+  swap_var b ↔ b'; swap_var bN ↔ b'N; swap_var bM ↔ b'M; swap_var bO ↔ b'O; swap_var bc ↔ b'c
+  all_goals
+    have ss1 := sameside_of_sameside_not_sameside cd cO cN cM dO bN aM aN (sameside_symm ssabO)
+    have ss2 := not_sameside_of_sameside_sameside cO cM cN dO aM bN ssabO
     have ss: sameside d a N ∨ sameside d b M := by tauto
 
     -- choose e on L so that it lies on the opposite side w.r.t. to O than a, b
     obtain ⟨e0, e0d, -⟩ := pt_of_line_ne_pt d L
     obtain ⟨β, hβ⟩ := circle_of_ne e0d.symm
     have dβ := inside_circle_of_center hβ.1
-    have βL := line_circle_inter_of_inside_online hdL dβ
-    obtain ⟨e, e', ee', heL, he'L, eβ⟩ := pts_of_line_circle_inter βL
-    have Bede' := B_of_line_circle_inter ee' hdL heL he'L eβ.1 eβ.2 dβ
+    have βL := line_circle_inter_of_inside_online dL dβ
+    obtain ⟨e, e', ee', eL, e'L, eβ⟩ := pts_of_line_circle_inter βL
+    have Bede' := B_of_line_circle_inter ee' dL eL e'L eβ.1 eβ.2 dβ
     have ed := ne_12_of_B Bede'
     have e'd := (ne_23_of_B Bede').symm
-    have hneO : ¬ online e O := fun heO => hLO (line_unique_of_pts ed heL hdL heO hdO)
-    have hne'O : ¬ online e' O := fun he'O => hLO (line_unique_of_pts e'd he'L hdL he'O hdO)
+    have hneO : ¬ online e O := fun eO => LO (line_unique_of_pts ed eL dL eO dO)
+    have hne'O : ¬ online e' O := fun he'O => LO (line_unique_of_pts e'd e'L dL he'O dO)
     by_cases nsaeO: sameside a e' O
-    have nse'eO := not_sameside13_of_B123_online2 (B_symm Bede') hdO
+    have nse'eO := not_sameside13_of_B123_online2 (B_symm Bede') dO
     have dsaeO := diffside_of_sameside_diffside (sameside_symm nsaeO) ⟨hne'O, hneO, nse'eO⟩
-    swap
-    swap_var e ↔ e'
-    swap_var heL ↔ he'L
-    swap_var ed ↔ e'd
-    swap_var hneO ↔ hne'O
-    have dsaeO: diffside a e O := ⟨hnaO, hneO, nsaeO⟩
-    all_goals {
+    swap; swap_var e ↔ e'; swap_var eL ↔ e'L; swap_var ed ↔ e'd; swap_var hneO ↔ hne'O
+    have dsaeO: diffside a e O := ⟨aO, hneO, nsaeO⟩
+    all_goals
       have dsbeO := diffside_of_sameside_diffside ssabO dsaeO
-      have acd := parapostcor ed haM hcM hdL heL hdO hcO (para_symm pLM) dsaeO
-      have bcd := parapostcor ed hbN hcN hdL heL hdO hcO (para_symm pLN) dsbeO
+      have acd := alternate_eq_of_para aM cM cO dO dL eL dsaeO (para_symm pLM)
+      have bcd := alternate_eq_of_para bN cN cO dO dL eL dsbeO (para_symm pLN)
 
       -- argue about angles given by parallel assumptions in two symmetric cases
       cases ss with
       | inl ssdaN =>
-        have sum := (angle_add_iff_sameside bc.symm cd hcN hbN hcO hdO hnaO hnaN hNO).2 ⟨sameside_symm ssabO, ssdaN⟩
-        rw [acd, bcd] at sum
-        simp at sum
-        exact hnaN ((angle_zero_iff_online bc.symm ac.symm hcN hbN).2 sum).1
-
+        have sum := (angle_add_iff_sameside bc.symm cd cN bN cO dO aO aN NO).2 ⟨sameside_symm ssabO, ssdaN⟩
+        rw [acd, bcd, self_eq_add_left] at sum
+        exact aN ((angle_zero_iff_online bc.symm ac.symm cN bN).2 sum).1
       | inr ssdbM =>
-      -- sameside d b M
-        have sum := (angle_add_iff_sameside ac.symm cd hcM haM hcO hdO hnbO hnbM hMO).2 ⟨ssabO, ssdbM⟩
-        rw [acd, bcd] at sum
-        simp at sum
-        exact hnbM ((angle_zero_iff_online ac.symm bc.symm hcM haM).2 sum).1
-    }
-  }
-
-
-/-- reorder areas -/
-lemma area_invariant_132 {a b c : point} :
-    area a b c = area a c b := by
-  exact (area_invariant a b c).2
-lemma area_invariant_213 {a b c : point} :
-    area a b c = area b a c := by
-  rw [(area_invariant a b c).2]
-  rw [(area_invariant a c b).1]
-lemma area_invariant_231 {a b c : point} :
-    area a b c = area b c a := by
-  rw [(area_invariant a b c).1]
-  rw [(area_invariant c a b).1]
-lemma area_invariant_312 {a b c : point} :
-    area a b c = area c a b := by
-  exact (area_invariant a b c).1
-lemma area_invariant_321 {a b c : point} :
-    area a b c = area c b a := by
-  rw [(area_invariant a b c).2]
-  rw [(area_invariant c b a).1]
-
+        have sum := (angle_add_iff_sameside ac.symm cd cM aM cO dO bO bM MO).2 ⟨ssabO, ssdbM⟩
+        rw [acd, bcd, self_eq_add_left] at sum;
+        exact bM ((angle_zero_iff_online ac.symm bc.symm cM aM).2 sum).1
 
 /-- degenerate area: more general statement -/
 lemma area_of_eq (a b c : point)
     (h: a=b ∨ a=c ∨ b=c) :
-    area a b c =0 := by
+    area a b c = 0 := by
   cases h with
-  | inl ab =>
-    rw [ab]
-    exact degenerate_area b c
-  | inr h =>
-    cases h with
-    | inl ac =>
-      rw [ac,area_invariant_132]
-      exact degenerate_area c b
-    | inr bc =>
-      rw [bc,area_invariant_321]
-      exact degenerate_area c a
-
+  | inl ab => rw [ab]; exact degenerate_area b c
+  | inr h => cases h with
+    | inl ac => rw [ac, ar132]; exact degenerate_area c b
+    | inr bc => rw [bc, ar321]; exact degenerate_area c a
 
 /-- equivalent areas of paralellogram -/
 lemma area_of_parallelogram {a b c d : point} {L M N O : line}
-    (haL: online a L) (hbL: online b L)
-    (hbM: online b M) (hcM: online c M)
-    (hcN: online c N) (hdN: online d N)
-    (hdO: online d O) (haO: online a O)
-    (parLN: para L N)
-    (parMO: para M O) :
-    area a b c + area a d c = 2*(area a b c)
-    ∧ area b a d + area b c d = 2*(area a b c) := by
+    (abcd: paragram a b c d L M N O) :
+    area a b c + area a d c = 2 * (area a b c)
+    ∧ area b a d + area b c d = 2 * (area a b c) := by
+  obtain ⟨ aL, bL, bM, cM, cN, dN, dO, aO, pLN, pMO⟩ := id abcd
+  have bcda : paragram b c d a M N O L := by splitAll <;> perma only [para]
+
   constructor
-  have := (parasianar hbL haL hcN hdN hbM hcM haO hdO parLN parMO).2.2
-  rw [area_invariant_321] at this
-  rw [this.symm]
-  ring_nf
-
-  have := (parasianar haL hbL hdN hcN haO hdO hbM hcM parLN (para_symm parMO)).2.2
-  rw [area_invariant_321] at this
-  rw [this.symm]
-  ring_nf
-
-  rw [area_invariant_312, @area_invariant_321 i a b c]
-  field_simp
-  exact triarea hdN hcN hbL haL (para_symm parLN)
-
+  · linperm [(len_ang_area_eq_of_parallelogram bcda).2.2]
+  · linperm [(len_ang_area_eq_of_parallelogram abcd).2.2, triarea cN dN bL aL (by perma)]
 
 /-- non-degeneracy of triangle -/
 lemma not_online_of_triangle {a b c : point} {L M : line}
-    (haL: online a L)
-    (hbL: online b L)
-    (hbM: online b M)
-    (hcM: online c M)
+    (aL: online a L)
+    (bL: online b L)
+    (bM: online b M)
+    (cM: online c M)
     (hn: ¬ online a M)
-    (hdeg: b ≠ c) :
-    ¬ online c L := by
-  by_contra contra
-  rw [line_unique_of_pts hdeg hbL contra hbM hcM] at haL
-  exact hn haL
-
+    (bc: b ≠ c) :
+    ¬ online c L := fun cL => by rw [line_unique_of_pts bc bL cL bM cM] at aL; exact hn aL
 
 /--parallel line through point -/
 lemma parallel_of_line_pt {a : point} {L : line}
-    (haL: ¬ online a L) :
+    (aL: ¬ online a L) :
     ∃ M : line, (online a M) ∧ (para L M) := by
-  obtain ⟨ b, hb ⟩ := online_of_line L
-  obtain ⟨ c, hc ⟩ := pt_of_line_ne_pt b L
-  have := drawpar hc.1 hc.2 hb haL
-  obtain ⟨ throwaway,O,hO ⟩ := drawpar hc.1 hc.2 hb haL
-  use O
-  exact ⟨ hO.2.1, para_symm hO.2.2.2.2 ⟩
-
+  dsimp [para]; exact para_of_offline aL
 
 /-- parallel projection of point -/
 lemma parallel_projection {a : point}{L M N : line}
-    (haM: online a M)
-    (hpar: para M N)
-    (h_L_npara_M: ¬ para L M)
-    (haL: ¬ online a L) :
+    (aM: online a M)
+    (pMN: para M N)
+    (pLM: ¬ para L M)
+    (aL: ¬ online a L) :
     ∃ b : point, ∃ O : line, (online b N) ∧ (online b O) ∧ (online a O) ∧ (para L O) := by
   -- intersections with L
-  obtain ⟨ c, hc ⟩ := pt_of_line_line h_L_npara_M
-  have h_L_npara_N : ¬ para L N := by
-    by_contra contra
-    cases para_trans (para_symm hpar) (para_symm contra) with
-    | inl h =>
-      rw [h] at haM
-      exact haL haM
-    | inr h =>
-      exact h_L_npara_M (para_symm h)
-
-  obtain ⟨ d, hd ⟩ := pt_of_line_line h_L_npara_N
-
-  have h_c_ne_d : c ≠ d := by
-    by_contra contra
-    rw [contra] at hc
-    dsimp [para] at hpar
-    cases hpar d with
-    | inl h =>
-      exact h hc.2
-    | inr h =>
-      exact h hd.2
+  have pLN : ¬ para L N := fun pLN => by
+    cases para_trans (para_symm pMN) (para_symm pLN) with
+    | inl h => rw [h] at aM; exact aL aM
+    | inr h => exact pLM (para_symm h)
+  obtain ⟨ d, dL, dN ⟩ := pt_of_line_line pLN
 
   -- construct parallel to L through a
-  obtain ⟨ throwaway,O,hO ⟩ := drawpar h_c_ne_d hc.1 hd.1 haL
+  obtain ⟨ O, aO, pLO ⟩ := para_of_offline aL
 
   -- construct intersection of O and M
-  have h_O_npara_N : ¬ para O N := by
-    by_contra contra
-    have pNO := para_trans contra  hO.2.2.2.2
+  have pON : ¬ para O N := fun pON => by
+    have pNO := para_trans pON (para_symm pLO)
     cases pNO with
-    | inl pNO =>
-      rw [pNO] at hpar
-      exact h_L_npara_M (para_symm hpar)
-    | inr pNO =>
-      exact (online_of_online_para hd.1 (para_symm pNO)) hd.2
-
-  obtain ⟨ ap, hap ⟩ := pt_of_line_line h_O_npara_N
-
-  use ap
-  use O
-
-  exact ⟨ hap.2, hap.1, hO.2.1, (para_symm hO.2.2.2.2) ⟩
-
+    | inl pNO => rw [pNO] at pMN; exact pLM (para_symm pMN)
+    | inr pNO => exact (offline_of_para dL (para_symm pNO)) dN
+  obtain ⟨ b, bO, bN ⟩ := pt_of_line_line pON
+  exact ⟨ b, O, bN, bO, aO, pLO ⟩
 
 /-- intersecting lines cannot be parallel -/
 lemma not_para_of_online_online {a : point} {L M : line} :
-    (online a L) → (online a M) → ¬ para L M := by
-  intro hL hM
-  dsimp [para]
-  simp only [not_forall]
-  use a
-  rw [not_or,not_not,not_not]
-  exact ⟨ hL, hM ⟩
-
+    (online a L) → (online a M) → ¬ para L M := fun hL hM => by
+  simp_rw [para, not_forall, not_or, not_not]; exact ⟨ a, hL, hM ⟩
 
 /-- diagonals of a trapezoid imply diffside -/
-theorem diffside_of_trapezoid {a b c d : point} {L M N : line}
-    (haL: online a L) (hbL: online b L)
-    (hbM: online b M) (hcM: online c M)
-    (hcN: online c N) (hdN: online d N)
-    {D : line}
-    (hbD: online b D) (hdD: online d D)
-    (parLN: para L N)
+theorem diffside_of_trapezoid {a b c d : point} {L M N O: line}
+    (aL: online a L) (bL: online b L)
+    (bM: online b M) (cM: online c M)
+    (cN: online c N) (dN: online d N)
+    (bO: online b O) (dO: online d O)
+    (pLN: para L N)
     (h_nondeg: a ≠ b ∧ c ≠ d) :
-    diffside a c D ∨ diffside a d M := by
-  dsimp [diffside]
-  by_cases h_ss : sameside a c D
-  right
-  constructor
-  exact not_online_of_triangle hcM hbM hbL haL (online_of_online_para hcN (para_symm parLN)) h_nondeg.1.symm
-  constructor
-  exact not_online_of_triangle hbM hcM hcN hdN (online_of_online_para hbL parLN) h_nondeg.2
+    diffside a c O ∨ diffside a d M := by
+  by_cases h_ss : sameside a c O
+  · right
+    refine' ⟨ not_online_of_triangle cM bM bL aL (offline_of_para cN (para_symm pLN)) h_nondeg.1.symm, _ ⟩
+    refine' ⟨ not_online_of_triangle bM cM cN dN (offline_of_para bL pLN) h_nondeg.2, _ ⟩
+    have := sameside_of_para_online cN dN (para_symm pLN)
+    exact not_sameside_of_sameside_sameside bL bM bO aL cM dO this h_ss
 
-  have := sameside_of_online_online_para hcN hdN (para_symm parLN)
-  exact not_sameside_of_sameside_sameside hbL hbM hbD haL hcM hdD this h_ss
-
-  left
-  constructor
-  exact not_online_of_triangle hdD hbD hbL haL (online_of_online_para hdN (para_symm parLN)) h_nondeg.1.symm
-  constructor
-  exact not_online_of_triangle hbD hdD hdN hcN (online_of_online_para hbL parLN) h_nondeg.2.symm
-  exact h_ss
+  · left
+    refine' ⟨ not_online_of_triangle dO bO bL aL (offline_of_para dN (para_symm pLN)) h_nondeg.1.symm, _ ⟩
+    refine' ⟨ not_online_of_triangle bO dO dN cN (offline_of_para bL pLN) h_nondeg.2.symm, h_ss ⟩
 
 /-- cannot have B a b c if lengths don't match up -/
 lemma not_B_of_short {a b c : point}
     (hlen: length a b < length a c) :
-    ¬ B a c b := by
-  by_contra contra
-  rw [(length_sum_of_B contra).symm] at hlen
-  linarith [length_nonneg c b]
+    ¬ B a c b := fun hBacb => by
+  rw [(length_sum_of_B hBacb).symm] at hlen; linarith [length_nonneg c b]
 
 /-- B_of_three_online_ne but with one length too short -/
 lemma B_of_three_online_ne_short {a b c : point} {L : line}
     (hlen: length a b < length a c) :
-    a ≠ b → a ≠ c → b ≠ c → online a L → online b L → online c L →  B a b c ∨ B b a c := by
-  intro ab ac bc aL bL cL
-  have := B_of_three_online_ne ab ac bc aL bL cL
-  convert this
-  simp [not_B_of_short hlen]
-
+    a ≠ b → a ≠ c → b ≠ c → online a L → online b L → online c L →  B a b c ∨ B b a c := fun ab ac bc aL bL cL => by
+  have := B_of_three_online_ne ab ac bc aL bL cL; convert this; simp [not_B_of_short hlen]
 
 /-- complement to same_length_of_ne_le -/
-theorem same_length_B_of_ne_ge {a b c d : point} (a_ne_b : a ≠ b) (big : length a b < length c d) :
+theorem same_length_B_of_ne_ge {a b c d : point} (ab : a ≠ b) (big : length a b < length c d) :
     ∃ (p : point), B a b p ∧ length a p = length c d := by
-  have c_ne_d : c ≠ d := by
-    by_contra contra
-    rw [contra] at big
-    rw [length_eq_zero_iff.mpr (Eq.refl d)] at big
-    have := length_nonneg a b
-    exact not_lt_of_ge this big
+  have cd : c ≠ d := fun cd => by
+    rw [cd, length_eq_zero_iff.mpr rfl] at big;
+    exact not_lt_of_ge (length_nonneg a b) big
+  obtain ⟨q, Hq⟩ := length_eq_B_of_ne_four ab.symm cd
+  have aq : a ≠ q := fun aq => by
+    rw [aq, length_eq_zero_iff.mpr rfl] at Hq; rw [Hq.2] at big
+    exact not_lt_of_ge (length_nonneg a b) big
+  obtain ⟨C, hC⟩ := circle_of_ne aq
+  obtain ⟨p, Hp⟩ := pt_oncircle_of_inside_ne aq.symm (inside_circle_of_center hC.1)
+  obtain ⟨AB, aAB, bAB⟩ := line_of_pts a b
+  have qAB := online_3_of_B Hq.1 bAB aAB
+  have pAB := online_3_of_B Hp.1 qAB aAB
+  have := (on_circle_iff_length_eq hC.1 Hp.2).mpr hC.2
+  rw [← this] at Hq; rw [Hq.2] at big
+  have bp : b ≠ p := fun bp => by
+    rw [←bp, bp] at Hq; rw [bp] at big
+    simp [lt_self_iff_false] at big
+  have ap := (ne_12_of_B (B_symm Hp.1)).symm
+  refine' ⟨p, _, Hq.2.symm⟩
 
-  obtain ⟨q,hq⟩ := length_eq_B_of_ne_four a_ne_b.symm c_ne_d
-
-  have a_ne_q : a ≠ q := by
-    by_contra contra
-    rw [contra, length_eq_zero_iff.mpr (Eq.refl q)] at hq
-    rw [hq.2] at big
-    have := length_nonneg a b
-    exact not_lt_of_ge this big
-
-  obtain ⟨C, hC⟩ := circle_of_ne a_ne_q
-
-  obtain ⟨p, hp⟩ := pt_oncircle_of_inside_ne a_ne_q.symm (inside_circle_of_center hC.1)
-
-  obtain ⟨AB, hAB⟩ := line_of_pts a b
-  have q_online_AB := online_3_of_B hq.1 hAB.2 hAB.1
-  have p_online_AB := online_3_of_B hp.1 q_online_AB hAB.1
-
-  have := (on_circle_iff_length_eq hC.1 hp.2).mpr hC.2
-  rw [this.symm] at hq
-
-  have b_ne_p : b ≠ p := by
-    by_contra contra
-    rw [contra.symm] at hq
-    rw [contra] at hq big
-    rw [hq.2] at big
-    simp at big
-
-  rw [hq.2] at big
-
-  have a_ne_p := (ne_12_of_B (B_symm hp.1)).symm
-
-  use p
-  refine' ⟨_, hq.2.symm⟩
-  have B3 := B_of_three_online_ne_short big a_ne_b a_ne_p b_ne_p hAB.1 hAB.2 p_online_AB
+  have B3 := B_of_three_online_ne_short big ab ap bp aAB bAB pAB
   cases B3 with
-  | inl B3 =>
-    exact B3
-  | inr B3 =>
-    exfalso
-    exact (not_B324_of_B123_B124 (B_symm hq.1) hp.1) B3
-
+  | inl B3 => exact B3
+  | inr B3 => exfalso; exact (not_B324_of_B123_B124 (B_symm Hq.1) Hp.1) B3
 
 /-- ## Euclid I.33
 lines which join the ends of equal and parallel lines in the same directions are themselves equal and parallel
 https://mathcs.clarku.edu/~djoyce/java/elements/bookI/propI33.html -/
 theorem para_len_parallelogram {a b c d : point} {L M N O P : line}
-    (haL: online a L) (hbL: online b L)
-    (hbM: online b M) (hcM: online c M)
-    (hcN: online c N) (hdN: online d N)
-    (hdO: online d O) (haO: online a O)
-    (hcP: online c P) (haP: online a P)
-    (hdiff: d ≠ c)
-    (hside: diffside b d P)
-    (pLN: para L N)
+    (aL: online a L) (bL: online b L)
+    (cM: online c M) (dM: online d M)
+    (aN: online a N) (cN: online c N)
+    (bO: online b O) (dO: online d O)
+    (bP: online b P) (cP: online c P)
+    (cb: c ≠ b)
+    (aPd: diffside a d P)
+    (pLM: para L M)
     (hlen: length a b = length c d) :
-    para O M := by
-  have :=parapostcor hdiff hbL haL hcN hdN hcP haP pLN hside
-  rw [angle_symm a c d] at this
-  have := ((sas hlen (length_symm a c) this).2.2).symm
-  rw [angle_symm c a d] at this
-
-  exact angeqpar (neq_of_para hdN haL (para_symm pLN)) (neq_of_para haL hcN pLN) (neq_of_para hcN hbL (para_symm pLN)) hdO haO hcM hbM haP hcP this (diffside_symm hside)
-
+    para N O := by
+  have abc_bcd := alternate_eq_of_para aL bL bP cP cM dM aPd pLM
+  obtain ⟨-, -, bca_cbd⟩ := sas (by perma) (by perm) (by perma)
+  exact para_of_ang_eq cb aN cN cP bP bO dO aPd bca_cbd
 
 /-- ## Euclid I.36
 parallelograms which are on equal bases and in the same parallels equal one another
 https://mathcs.clarku.edu/~djoyce/java/elements/bookI/propI36.html -/
 theorem eq_of_parallelogram_of_eq_basis_of_diffside {a b c d e f g h: point} {L M K N O P: line}
-    (haL: online a L) (hdL: online d L) (heL: online e L) (hhL: online h L)
-    (hbM: online b M) (hcM: online c M) (hfM: online f M) (hgM: online g M)
-    (haK: online a K) (hbK: online b K)
-    (hdN: online d N) (hcN: online c N)
-    (heO: online e O) (hfO: online f O)
-    (hhP: online h P) (hgP: online g P)
-    (parLM: para L M) (parKN: para K N) (parOP: para O P)
+    (aL: online a L) (dL: online d L) (eL: online e L) (hL: online h L)
+    (bM: online b M) (cM: online c M) (fM: online f M) (gM: online g M)
+    (aK: online a K) (bK: online b K)
+    (dN: online d N) (cN: online c N)
+    (eO: online e O) (fO: online f O)
+    (hP: online h P) (gP: online g P)
+    (pLM: para L M) (pKN: para K N) (pOP: para O P)
     (hlen: length b c = length f g)
     {S: line}
-    (hcS: online c S) (heS: online e S)
-    (hside: diffside b h S)
-    (h_b_ne_c: b ≠ c) :
+    (cS: online c S) (eS: online e S)
+    (aPd: diffside b h S)
+    (bc: b ≠ c) :
     area a b c + area a d c = area e f g + area e h g := by
-  obtain ⟨ Q, hQ ⟩ := line_of_pts b e
-  obtain ⟨ R, hR ⟩ := line_of_pts c h
-  have' parQR := para_len_parallelogram heL hhL hR.2 hR.1 hcM hbM hQ.1 hQ.2 hcS heS h_b_ne_c (diffside_symm hside) parLM _
+  obtain ⟨ Q, bQ, eQ ⟩ := line_of_pts b e
+  obtain ⟨ R, cR, hR ⟩ := line_of_pts c h
+  have ec : e ≠ c := neq_of_para eL cM pLM
+  have ehgf : paragram e h g f L P M O := by splitAll <;> perma only [para]
+  have : length b c = length e h := by linperm [(len_ang_area_eq_of_parallelogram ehgf).1]
+  have' pQR := para_len_parallelogram bM cM eL hL bQ eQ cR hR cS eS ec aPd (para_symm pLM) this
+  have eq1 := parallelarea aL dL bM cM eL hL aK bK dN cN bQ eQ cR hR pLM pKN pQR
+  have eq2 := parallelarea bM cM eL hL fM gM bQ eQ cR hR eO fO hP gP (para_symm pLM) pQR pOP
+  have abcd : paragram a b c d K M N L := by splitAll <;> perma only [para]
+  have hgfe : paragram h g f e P M O L := by splitAll <;> perma only [para]
+  have: area a b c = area a c d := by linperm [(area_of_parallelogram abcd).1]
+  have: area f g h = area e f h := by linperm [(area_of_parallelogram hgfe).1]
+  have: 2 * area a b c = area f g h + area e f h := by linperm [(area_of_parallelogram abcd).2]
+  linperm [(area_of_parallelogram hgfe).2]
 
-  have eq1 := parallelarea haL hdL hbM hcM heL hhL haK hbK hdN hcN hQ.1 hQ.2 hR.1 hR.2 parLM parKN parQR
-
-  have eq2 := parallelarea hbM hcM heL hhL hfM hgM hQ.1 hQ.2 hR.1 hR.2 heO hfO hhP hgP (para_symm parLM) parQR parOP
-  rw [(area_invariant e b c).2, (area_invariant c e h).2, add_comm] at eq2
-  rw [eq2] at eq1
-
-  have arp := (area_of_parallelogram haL hdL hdN hcN hcM hbM hbK haK parLM (para_symm parKN)).1
-  rw [add_comm] at arp
-  rw [arp]
-
-  have arp := (area_of_parallelogram heL hhL hhP hgP hgM hfM hfO heO parLM (para_symm parOP)).1
-  rw [add_comm] at arp
-  rw [arp]
-
-  have arp := (area_of_parallelogram haL hdL hdN hcN hcM hbM hbK haK parLM (para_symm parKN)).2
-  rw [area_invariant_321, (area_invariant d c b).2] at arp
-  rw [arp] at eq1
-  rw [eq1]
-
-  have arp := (area_of_parallelogram heL hhL hhP hgP hgM hfM hfO heO parLM (para_symm parOP)).2
-  rw [(area_invariant h e f).1] at arp
-  rw [arp.symm, add_comm]
-
-  rw [Eq.symm (parasianar hfM hgM heL hhL hfO heO hgP hhP (para_symm parLM) parOP).1]
-  rw [hlen.symm]
-  exact length_symm b c
 
 theorem eq_of_parallelogram_of_eq_basis {a b c d e f g h: point} {L M K N O P: line}
-    (haL: online a L) (hdL: online d L) (heL: online e L) (hhL: online h L)
-    (hbM: online b M) (hcM: online c M) (hfM: online f M) (hgM: online g M)
-    (haK: online a K) (hbK: online b K)
-    (hdN: online d N) (hcN: online c N)
-    (heO: online e O) (hfO: online f O)
-    (hhP: online h P) (hgP: online g P)
-    (parLM: para L M) (parKN: para K N) (parOP: para O P)
+    (aL: online a L) (dL: online d L) (eL: online e L) (hL: online h L)
+    (bM: online b M) (cM: online c M) (fM: online f M) (gM: online g M)
+    (aK: online a K) (bK: online b K)
+    (dN: online d N) (cN: online c N)
+    (eO: online e O) (fO: online f O)
+    (hP: online h P) (gP: online g P)
+    (pLM: para L M) (pKN: para K N) (pOP: para O P)
     (hlen: length b c = length f g) :
     area a b c + area a d c = area e f g + area e h g := by
-  have h_fg_eq_eh := (parasianar heL hhL hfM hgM heO hfO hhP hgP parLM parOP).1
-  -- trivial case: b=c
-  by_cases h_b_ne_c: b=c
-  · have h_f_eq_g := (length_eq_zero_iff.mp (Eq.trans hlen.symm (length_eq_zero_iff.mpr h_b_ne_c)))
+  have bcda: paragram b c d a M N L K := by splitAll <;> perma only [para]
+  have fghe: paragram f g h e M P L O := by splitAll <;> perma only [para]
+  have fg_he := (len_ang_area_eq_of_parallelogram fghe).1
 
-    have := (parasianar haL hdL hbM hcM haK hbK hdN hcN parLM parKN).1
-    have h_a_eq_d := (length_eq_zero_iff.mp (Eq.trans this (length_eq_zero_iff.mpr h_b_ne_c)))
+  -- trivial case: b = c
+  by_cases bc: b = c
+  · have hg := (same_len_pts_coincide_iff hlen).mp bc
+    have he := (same_len_pts_coincide_iff fg_he).mp hg
+    have da := (same_len_pts_coincide_iff (len_ang_area_eq_of_parallelogram bcda).1).mp bc
+    conv in (occs := *) area _ _ _ => all_goals rw [area_of_eq _ _ _ (by tauto)]
 
-    have h_e_eq_h := (length_eq_zero_iff.mp (Eq.trans h_fg_eq_eh (length_eq_zero_iff.mpr h_f_eq_g)))
-
-    rw [area_of_eq a b c _, area_of_eq a d c _, area_of_eq e f g _, area_of_eq e h g _]
-    
-    left
-    exact h_e_eq_h
-
-    repeat right
-    exact h_f_eq_g
-
-    left
-    exact h_a_eq_d
-
-    repeat right
-    exact h_b_ne_c
-
-  have h_e_ne_h : e ≠ h := by
-    by_contra contra
-    rw [hlen.symm] at h_fg_eq_eh
-    exact h_b_ne_c (length_eq_zero_iff.mp (Eq.trans h_fg_eq_eh.symm (length_eq_zero_iff.mpr contra)))
-  rw [(Ne.def b c).symm] at h_b_ne_c
-
-  obtain ⟨ S, hS ⟩ := line_of_pts c e
-  obtain ⟨ Q, hQ ⟩ := line_of_pts b e
-  obtain ⟨ R, hR ⟩ := line_of_pts c h
-
-  have hside := diffside_of_trapezoid hhL heL hQ.2 hQ.1 hbM hcM hS.2 hS.1 parLM ⟨ h_e_ne_h.symm, h_b_ne_c ⟩
-
-  cases hside with
-  | inl hside =>
-    exact eq_of_parallelogram_of_eq_basis_of_diffside haL hdL heL hhL hbM hcM hfM hgM haK hbK hdN hcN heO hfO hhP hgP parLM parKN parOP hlen hS.1 hS.2 (diffside_symm hside) h_b_ne_c
-
-  | inr hside =>
-    -- invert parallelogram
-    rw [length_symm b c] at hlen
-    have := eq_of_parallelogram_of_eq_basis_of_diffside hdL haL heL hhL hcM hbM hfM hgM hdN hcN haK hbK heO hfO hhP hgP parLM (para_symm parKN) parOP hlen hQ.1 hQ.2 (diffside_symm hside) h_b_ne_c.symm
-    rw [area_invariant_321, @area_invariant_321 i d a b, add_comm] at this
-    rw [this.symm, (area_of_parallelogram haK hbK hbM hcM hcN hdN hdL haL parKN (para_symm parLM)).2]
-    rw [(area_of_parallelogram haK hbK hbM hcM hcN hdN hdL haL parKN (para_symm parLM)).1]
+  · rw [(Ne.def b c).symm] at bc
+    have he : h ≠ e := ne_of_ne_len bc (hlen.trans fg_he)
+    obtain ⟨ S, cS, eS ⟩ := line_of_pts c e
+    obtain ⟨ Q, bQ, eQ ⟩ := line_of_pts b e
+    have aPd := diffside_of_trapezoid hL eL eQ bQ bM cM eS cS pLM ⟨ he, bc ⟩
+    cases aPd with
+    | inl aPd =>
+      exact eq_of_parallelogram_of_eq_basis_of_diffside aL dL eL hL bM cM fM gM aK bK dN cN eO fO hP gP pLM pKN pOP hlen cS eS (diffside_symm aPd) bc
+    | inr aPd =>
+      -- invert parallelogram
+      rw [← eq_of_parallelogram_of_eq_basis_of_diffside dL aL eL hL cM bM fM gM dN cN aK bK eO fO hP gP pLM (para_symm pKN) pOP (by perma) bQ eQ (diffside_symm aPd) bc.symm]
+      perm [(area_of_parallelogram bcda).1]; rw [this]
+      perm [(area_of_parallelogram bcda).2]; rw [this]
 
 /-- ## Euclid I.38
 triangles which are on equal bases and in the same parallels equal one another (version where the vertex is different for both triangles)
 https://mathcs.clarku.edu/~djoyce/java/elements/bookI/propI38.html -/
 theorem eq_area_of_eq_base {a b c d e f : point} {L M : line}
-    (haM: online a M)
-    (hbL: online b L)
-    (hcL: online c L)
-    (hdM: online d M)
-    (heL: online e L)
-    (hfL: online f L)
+    (aM: online a M)
+    (bL: online b L)
+    (cL: online c L)
+    (dM: online d M)
+    (eL: online e L)
+    (fL: online f L)
     (pLM: para L M)
     (hlen: length b c = length e f) :
-    area a b c=area d e f := by
-  -- trivial case: b=c
-  by_cases h_b_ne_c: b=c
-  · rw [area_of_eq a b c _, area_of_eq d e f _]
+    area a b c = area d e f := by
+  -- trivial case: b = c
+  by_cases bc: b = c
+  · have ef: e = f := (same_len_pts_coincide_iff hlen).mp bc
+    rw [area_of_eq a b c (by tauto), area_of_eq d e f (by tauto)]
 
-    repeat right
-    exact length_eq_zero_iff.mp (Eq.trans hlen.symm (length_eq_zero_iff.mpr h_b_ne_c))
-
-    repeat right
-    exact h_b_ne_c
-
-
-  have h_e_ne_f : e ≠ f := by
-    by_contra contra
-    exact h_b_ne_c (length_eq_zero_iff.mp (Eq.trans hlen (length_eq_zero_iff.mpr contra)))
-  rw [(Ne.def b c).symm] at h_b_ne_c
-
+  have ef : e ≠ f := ne_of_ne_len bc hlen
   -- line through a c abd d e
-  obtain ⟨ K, hK ⟩ := line_of_pts a c
-  obtain ⟨ N, hN ⟩ := line_of_pts d e
+  obtain ⟨ K, aK, cK ⟩ := line_of_pts a c
+  obtain ⟨ N, dN, eN ⟩ := line_of_pts d e
 
   -- construct parallel projection of b through a c
-  have h_a_nonline_L := online_of_online_para haM (para_symm pLM)
-  have := not_online_of_triangle hK.1 hK.2 hcL hbL h_a_nonline_L h_b_ne_c.symm
-  obtain ⟨ g,O,hg ⟩ := parallel_projection hbL pLM (not_para_of_online_online hK.2 hcL) this
+  have aL := offline_of_para aM (para_symm pLM)
+  have := not_online_of_triangle aK cK cL bL aL (fun cb => bc cb.symm)
+  obtain ⟨ g, O, gM, hgO, bO, pKO ⟩ := parallel_projection bL pLM (not_para_of_online_online cK cL) this
 
   -- construct parallel projection of f through d e
-  have h_d_nonline_L := online_of_online_para hdM (para_symm pLM)
-  have := not_online_of_triangle hN.1 hN.2 heL hfL h_d_nonline_L h_e_ne_f
-  obtain ⟨ h,P,hh ⟩ := parallel_projection hfL pLM (not_para_of_online_online hN.2 heL) this
+  have dL := offline_of_para dM (para_symm pLM)
+  have := not_online_of_triangle dN eN eL fL dL ef
+  obtain ⟨ h, P, hhM, hP, hfP, pNP ⟩ := parallel_projection fL pLM (not_para_of_online_online eN eL) this
 
-  have := eq_of_parallelogram_of_eq_basis 
-    hg.1 haM hdM hh.1 hbL hcL heL hfL hg.2.1 hg.2.2.1 hK.1 hK.2 hN.1 hN.2 hh.2.1 hh.2.2.1
-    (para_symm pLM) (para_symm hg.2.2.2) hh.2.2.2
-    hlen
-
-  rw [@area_invariant_321 i g b c, @area_invariant_321 i g a c] at this
-
-  rw [(area_of_parallelogram hbL hcL hK.2 hK.1 haM hg.1 hg.2.1 hg.2.2.1 pLM hg.2.2.2).2] at this
-  rw [(area_invariant b c a).1] at this
-  rw [(area_of_parallelogram hN.1 hN.2 heL hfL hh.2.2.1 hh.2.1 hh.1 hdM hh.2.2.2 pLM).1] at this
-  simp at this
-  exact this
-
+  perm [eq_of_parallelogram_of_eq_basis gM aM dM hhM bL cL eL fL hgO bO aK cK dN eN hP hfP (by perma) (by perma) pNP hlen]
+  have bcag: paragram b c a g L K M O:= by splitAll <;> perma only [para]
+  have fedh: paragram f e d h L N M P:= by splitAll <;> perma only [para]
+  have: area b c g + area a c g = 2 * area a b c := by perma [(area_of_parallelogram bcag).2]
+  have: area d e f = area d f h := by linperm [(area_of_parallelogram fedh).1]
+  linarith
 
 /-- ## Euclid I.38
 triangles which are on equal bases and in the same parallels equal one another (version where the vertex is the same for both triangles)
 https://mathcs.clarku.edu/~djoyce/java/elements/bookI/propI38.html -/
 theorem eq_area_of_eq_base_samevertex (a : point) {b c e f : point} {L : line}
-    (hbL: online b L)
-    (hcL: online c L)
-    (heL: online e L)
-    (hfL: online f L)
+    (bL: online b L)
+    (cL: online c L)
+    (eL: online e L)
+    (fL: online f L)
     (hlen: length b c = length e f) :
-    area a b c=area a e f := by
-  -- trivial case: b=c
-  by_cases h_b_ne_c : b=c
-  · rw [length_eq_zero_iff.mpr h_b_ne_c] at hlen
-    have := length_eq_zero_iff.mp hlen.symm
-    rw [area_of_eq a b c _, area_of_eq a e f _]
-    repeat tauto
+    area a b c = area a e f := by
+  -- trivial case: b = c
+  by_cases bc : b = c
+  · have ef: e = f := (same_len_pts_coincide_iff hlen).mp bc
+    rw [area_of_eq a b c (by tauto), area_of_eq a e f (by tauto)]
 
-  have h_e_ne_f : e ≠ f := by
-    have := length_eq_zero_iff.not.mpr h_b_ne_c
-    rw [hlen] at this
-    exact length_eq_zero_iff.not.mp this
-
+  have ef : e ≠ f := ne_of_ne_len bc hlen
   -- trivial case online a L
-  by_cases h_a_nonline_L : online a L
-  · have := (area_zero_iff_online h_b_ne_c hbL hcL).mpr h_a_nonline_L
-    rw [@area_invariant_231 i a b c, @area_invariant_231 i a e f, this]
-    have := (area_zero_iff_online h_e_ne_f heL hfL).mpr h_a_nonline_L
-    exact this.symm
+  by_cases aL : online a L
+  · perm [(area_zero_iff_online bc bL cL).mpr aL]; rw [this]
+    linperm [(area_zero_iff_online ef eL fL).mpr aL]
 
-  obtain ⟨ M, hM ⟩ := parallel_of_line_pt h_a_nonline_L
-  exact eq_area_of_eq_base hM.1 hbL hcL hM.1 heL hfL hM.2 hlen
-
+  obtain ⟨ _, hM ⟩ := parallel_of_line_pt aL
+  exact eq_area_of_eq_base hM.1 bL cL hM.1 eL fL hM.2 hlen
 
 /-- ## Euclid I.37
 triangles which are on the same base and in the same parallels equal one another (a special case of I.38)
 https://mathcs.clarku.edu/~djoyce/java/elements/bookI/propI37.html -/
 theorem para_implies_eq_area_of_same_base {a b c d : point} {L M : line}
-    (haM: online a M)
-    (hbL: online b L)
-    (hcL: online c L)
-    (hdM: online d M)
+    (aM: online a M) (dM: online d M)
+    (bL: online b L) (cL: online c L)
     (pLM: para L M) :
-    area a b c = area d b c := by
-  apply eq_area_of_eq_base haM hbL hcL hdM hbL hcL pLM
-  simp
-
+    area a b c = area d b c := by exact eq_area_of_eq_base aM bL cL dM bL cL pLM rfl
 
 /-- area of a triangle cannot equal the area of its subtriangle -/
 lemma tri_sum_contra {b c d e: point} {O : line}
-    (hbO: online b O)
-    (hdO: online d O)
-    (heO: online e O)
-    (hncO: ¬ online c O)
+    (bO: online b O) (dO: online d O) (eO: online e O)
+    (cO: ¬ online c O)
     (bd: b ≠ d)
     (de: d ≠ e)
     (eb: e ≠ b)
-    (hBbed: B b e d)
-    (harea: area b c d = area e b c) :
+    (Bbed: B b e d)
+    (ar: area b c d = area b c e) :
     False := by
-  have sum:= (area_add_iff_B bd de eb hbO hdO heO hncO).1 hBbed
-  have bec_eq_ebc : area b e c = area e b c := by
-    rw [(area_invariant b e c).2, (area_invariant b c e).1]
-  have ced_eq_dec : area c e d = area d e c:= by
-    rw [(area_invariant c e d).1,(area_invariant d e c).2]
-  rw [harea, bec_eq_ebc, ced_eq_dec] at sum
-  simp at sum
-  have hcO := (area_zero_iff_online de hdO heO).1 (sum)
-  exact hncO hcO
-
+  apply cO; apply (area_zero_iff_online de dO eO).mp
+  linperm [(area_add_iff_B eb.symm de.symm bd.symm bO eO dO cO).mp Bbed]
 
   /-- ## Euclid I.39
   equal triangles which are on the same base and on the same side are also in the same parallels
   https://mathcs.clarku.edu/~djoyce/java/elements/bookI/propI39.html -/
   theorem eq_area_of_same_base_implies_para {a b c d : point} {L M O : line}
-    (hbL: online b L)
-    (hcL: online c L)
-    (hnaL: ¬ online a L)
-    (haM: online a M)
-    (hdM: online d M)
-    (hbO: online b O)
-    (hdO: online d O)
-    (hncO: ¬ online c O)
+    (bL: online b L) (cL: online c L) (aL: ¬ online a L)
+    (aM: online a M) (dM: online d M)
+    (bO: online b O) (dO: online d O) (cO: ¬ online c O)
     (ad: a ≠ d)
-    (bc: b ≠ c)
     (bd: b ≠ d)
     (ssadL: sameside a d L)
-    (harea: area a b c = area d b c) :
+    (ar: area a b c = area d b c) :
     para L M := by
-  rcases drawpar bc hbL hcL hnaL with ⟨-, N,_,haN,-,-,pNL⟩
-  have pLN:= para_symm pNL
+  obtain ⟨N, aN, pNL⟩ := para_of_offline aL
+
   -- show that N and O intersect
-  have npNO: ¬ para N O := by
-    by_contra pNO
-    have LO_or_pLO := para_trans pNL pNO
-
+  have pNO: ¬ para N O := fun pNO => by
+    have LO_or_pLO := para_trans (para_symm pNL) pNO
     cases LO_or_pLO with
-    | inl LO =>
-      rw [← LO] at hncO
-      exact hncO hcL
-
-    | inr pLO =>
-      apply neq_of_para hbL hbO pLO
-      rfl
+    | inl LO => rw [← LO] at cO; exact cO cL
+    | inr pLO => exact neq_of_para bL bO pLO rfl
 
   -- contruct e as intersection of N and O
-  rcases pt_of_line_line npNO with ⟨e, heN, heO⟩
-
-  have harea2: area a b c = area e b c := by
-    apply eq_area_of_eq_base haN hbL hcL heN hbL hcL pLN
-    rfl
-  have dbc_eq_bcd : area d b c = area b c d := by rw [(area_invariant b c d).1]
-  rw [harea, dbc_eq_bcd] at harea2
-
-  have be := neq_of_para hbL heN pLN
+  rcases pt_of_line_line pNO with ⟨e, eN, eO⟩
+  have ar2 := eq_area_of_eq_base aN bL cL eN bL cL pNL rfl; rw [ar] at ar2
+  have be := neq_of_para bL eN pNL
   by_cases de: d = e
-  -- case d = e
-  rw [← de] at heN
-  rwa [line_unique_of_pts ad haM hdM haN heN]
-
-  -- case d != e (cannot actually occur)
-  rw [← Ne.def d e] at de
-  exfalso
-
-  cases B_of_three_online_ne be bd de.symm hbO heO hdO with
-  -- case B b e d
-  | inl hBbed =>
-  -- cases B_of_three_online_ne be bd de.symm hbO heO hdO with hBbed hB
-    exact tri_sum_contra hbO hdO heO hncO bd de be.symm hBbed harea2
-
-  | inr hB =>
-    cases hB with
-  -- case B e b d
-    | inl hBebd =>
-    have ssaeL := sameside_of_online_online_para haN heN pNL
-    have ssedL := sameside_symm (sameside_trans ssadL ssaeL)
-    have dsedL:= not_sameside13_of_B123_online2 hBebd hbL
-    exact dsedL ssedL
-
-  -- case B b d e
-    | inr hBbde =>
-    have ebc_eq_bce : area e b c = area b c e := by rw [(area_invariant b c e).1]
-    rw [← dbc_eq_bcd, ebc_eq_bce] at harea2
-    exact tri_sum_contra hbO heO hdO hncO be de.symm bd.symm hBbde harea2.symm
+  · rw [← de] at eN; rwa [line_unique_of_pts ad aM dM aN eN]
+  · rw [← Ne.def d e] at de; exfalso
+    cases B_of_three_online_ne be bd de.symm bO eO dO with
+    | inl Bbed =>
+      exact tri_sum_contra bO dO eO cO bd de be.symm Bbed (by perma at ar2)
+    | inr HB =>
+      cases HB with
+      | inl Bebd =>
+        have ssaeL := sameside_of_para_online aN eN (para_symm pNL)
+        have ssedL := sameside_symm (sameside_trans ssadL ssaeL)
+        have dsedL:= not_sameside13_of_B123_online2 Bebd bL
+        exact dsedL ssedL
+      | inr Bbde =>
+        exact tri_sum_contra bO eO dO cO be de.symm bd.symm Bbde (by perma at ar2)

@@ -83,8 +83,7 @@ This document lists recipes for what to do when faced with a proof in lean.
   
   If you use 'simp', you can get lean to tell you what simp used, and replace
   it with a 'simp only' using
-    squeeze_simp
-  (not yet supported in lean4)
+    simp?
 
 
 * Rewriting:
