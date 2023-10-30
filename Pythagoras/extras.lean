@@ -38,9 +38,10 @@ theorem incenter (a b c d e f : point)
     exact this
   obtain ⟨ g, gL, gM ⟩ := pt_of_lines_inter liLM
   obtain ⟨ BC, bBC, cBC ⟩ := line_of_pts b c
-  have aNotOnBC := online_1_of_triangle bBC cBC abc
-  have ⟨b2, d2, e2, Bc2d2e2, b2BC, d2BC, e2BC, ae2b2Right, ae2d2Right⟩ := perpendicular_of_not_online aNotOnBC
-  -- TODO: Use angle extension theorem or something to turn ae2b2Right, ae2d2Right into something more usable
+  have gNotOnBC : ¬online g BC := by
+    sorry
+  have ⟨b2, d2, e2, Bc2d2e2, b2BC, d2BC, e2BC, ge2b2Right, ge2d2Right⟩ := perpendicular_of_not_online gNotOnBC
+  -- TODO: Use angle extension theorem or something to turn ge2b2Right, ge2d2Right into something more usable
 
   sorry
   -- sketch: let g be the intersection of L and M, drop perpendiculars from it,
