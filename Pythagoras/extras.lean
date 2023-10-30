@@ -29,13 +29,19 @@ theorem incenter (a b c d e f : point)
     := by
   obtain ⟨ L, aL, dL ⟩ := line_of_pts a d
   obtain ⟨ M, bM, eM ⟩ := line_of_pts b e
-  have : lines_inter L M := by
+  have liLM : lines_inter L M := by
     have diffbcL := diffside_of_B_offline' (Bbdc) (dL) ?_
     have sameecL := sameside_of_B_not_online_2 Baec aL ?_
     have := diffside_of_sameside_diffside (sameside_symm sameecL) (diffside_symm diffbcL)
     have : lines_inter L M := lines_inter_of_not_sameside bM eM ?_
     dsimp [diffside] at this
     exact this
+  obtain ⟨ g, gL, gM ⟩ := pt_of_lines_inter liLM
+  obtain ⟨ BC, bBC, cBC ⟩ := line_of_pts b c
+  have aNotOnBC := online_1_of_triangle bBC cBC abc
+  have ⟨b2, d2, e2, Bc2d2e2, b2BC, d2BC, e2BC, ae2b2Right, ae2d2Right⟩ := perpendicular_of_not_online aNotOnBC
+  -- TODO: Use angle extension theorem or something to turn ae2b2Right, ae2d2Right into something more usable
+
   sorry
   -- sketch: let g be the intersection of L and M, drop perpendiculars from it,
   --         argue about similar triangles to deduce that g lies on the angle bisector at C
