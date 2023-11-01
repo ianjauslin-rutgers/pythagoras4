@@ -8,6 +8,8 @@ variable [i: incidence_geometry]
 -- alternatively, introducing new API and definitions (e.g., for medians) could be helpful
 -- or use Ceva's theorem
 
+def congrtri (a b c d e f : point) : Prop := length a b = length d e ∧ length b c = length e f ∧ length a c = length d f
+
 theorem incenter (a b c d e f : point)
     (Bafb : B a f b) (Bbdc : B b d c) (Baec : B a e c)
     (abc: triangle a b c)
@@ -38,8 +40,38 @@ theorem incenter (a b c d e f : point)
     exact this
   obtain ⟨ g, gL, gM ⟩ := pt_of_lines_inter liLM
   obtain ⟨ BC, bBC, cBC ⟩ := line_of_pts b c
-  have gNotOnBC : ¬online g BC := by
-    sorry
+  have gNotOnBC : ¬online g BC := sorry
+  have : ∃ d', angle g d' b = rightangle ∧ online d' BC := sorry
+  obtain ⟨ d', Ad', d'BC⟩ := this
+  obtain ⟨ AC, aAC, cAC ⟩ := line_of_pts a c
+  have : ∃ e', angle g e' c = rightangle ∧ online e' AC := sorry
+  obtain ⟨ e', Ae', e'AC⟩ := this
+  obtain ⟨ AB, aAB, bAB ⟩ := line_of_pts a b
+  have : ∃ f', angle g f' a = rightangle ∧ online f' AB := sorry
+  obtain ⟨ f', Af', f'AB⟩ := this
+  have : congrtri a g e' a g f' := sorry
+  have bgd'f' : congrtri b g d' b g f' := sorry
+  have cgd'e' : congrtri c g d' c g e' := sorry
+  have Bagd : B a g d := sorry
+  have Bbge : B b g e := sorry
+  have Bcgf : B c g f := sorry
+  have Baf'b : B a f' b := sorry
+  have Bbd'c : B b d' c := sorry
+  have Bae'c : B a e' c := sorry
+  have ne_gd' : g ≠ d'
+  · intro gd'
+    rw [gd'] at gNotOnBC
+    exact gNotOnBC d'BC
+  obtain ⟨ α, gα, d'α ⟩ := circle_of_ne ne_gd'
+  have e'α : on_circle e' α :=
+    (on_circle_iff_length_eq gα d'α).mp cgd'e'.2.1
+  have f'α : on_circle f' α :=
+    (on_circle_iff_length_eq gα d'α).mp bgd'f'.2.1
+  exact ⟨ g, Bagd, Bbge, Bcgf, d', e', f', Baf'b, Bbd'c, Bae'c, Ad', Ae', Af', α, gα, d'α, e'α, f'α ⟩
+
+
+
+
   have ⟨b2, d2, e2, Bc2d2e2, b2BC, d2BC, e2BC, ge2b2Right, ge2d2Right⟩ := perpendicular_of_not_online gNotOnBC
   -- TODO: Use angle extension theorem or something to turn ge2b2Right, ge2d2Right into something more usable
 
